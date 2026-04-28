@@ -515,9 +515,14 @@ canvas:active { cursor: grabbing; }
 <canvas id="topo"></canvas>
 
 <script>
-const PEER_URLS = (new URLSearchParams(window.location.search).get('peers') || '')
+// Default: pure animation, no backend. Pass ?live=1 (and optionally ?peers=…)
+// to drive the visualization from real STK nodes instead.
+const QS = new URLSearchParams(window.location.search);
+const SIM_MODE = QS.get('live') !== '1';
+
+const PEER_URLS = (QS.get('peers') || '')
   .split(',').filter(Boolean);
-if (!PEER_URLS.length) {
+if (!PEER_URLS.length && !SIM_MODE) {
   PEER_URLS.push('http://localhost:8000','http://localhost:8001','http://localhost:8002','http://localhost:8003','http://localhost:8004');
 }
 
@@ -1227,8 +1232,18 @@ async function openPanel(nodeId) {
   }
   document.getElementById('panelActions').innerHTML = actions.join('');
 
-  const actData = await fetchJSON(`${n.url}/gossip/activity?since=0`);
-  const actList = (actData?.activity ?? []).slice(-15).reverse();
+  let actList = [];
+  let evList = [];
+  if (SIM_MODE) {
+    actList = (n.activityLog ?? []).slice(-15).reverse();
+    evList = (n.eventList ?? []).slice(0, 8);
+  } else {
+    const actData = await fetchJSON(`${n.url}/gossip/activity?since=0`);
+    actList = (actData?.activity ?? []).slice(-15).reverse();
+    const evData = await fetchJSON(`${n.url}/events`);
+    evList = (evData ?? []).slice(0, 8);
+  }
+
   document.getElementById('panelActivity').innerHTML = actList.length === 0
     ? '<div style="font-size:0.7rem;color:var(--fg-dim)">Ingen aktivitet enda</div>'
     : actList.map(a => `
@@ -1239,8 +1254,6 @@ async function openPanel(nodeId) {
       </div>
     `).join('');
 
-  const evData = await fetchJSON(`${n.url}/events`);
-  const evList = (evData ?? []).slice(0, 8);
   document.getElementById('panelEvents').innerHTML = evList.length === 0
     ? '<div style="font-size:0.7rem;color:var(--fg-dim)">Ingen hendelser</div>'
     : evList.map(e => `
@@ -1262,6 +1275,18 @@ async function sendEvent(nodeId) {
   const n = nodes.get(nodeId);
   if (!n) return;
   const ev = SIM_EVENTS[Math.floor(Math.random() * SIM_EVENTS.length)];
+  if (SIM_MODE) {
+    simEmitEvent(nodeId, ev);
+    // Gossip the event to a random peer for visual flair
+    const peers = links.filter(l => l.source === nodeId || l.target === nodeId);
+    if (peers.length) {
+      const lk = peers[Math.floor(Math.random() * peers.length)];
+      const tgt = lk.source === nodeId ? lk.target : lk.source;
+      simEmitActivity(nodeId, tgt, 'push', 1);
+    }
+    setTimeout(() => openPanel(nodeId), 200);
+    return;
+  }
   try {
     await fetch(`${n.url}/events`, {
       method: 'POST',
@@ -1273,6 +1298,22 @@ async function sendEvent(nodeId) {
 }
 
 async function revokeNode(nodeId) {
+  if (SIM_MODE) {
+    const n = nodes.get(nodeId);
+    if (!n) return;
+    n.revoked = true;
+    // Animate the revocation gossiping out from KraftCERT
+    let kcId = null;
+    for (const [id, nn] of nodes) if (nn.role === 'kraftcert') { kcId = id; break; }
+    if (kcId) {
+      for (const [id] of nodes) {
+        if (id === kcId) continue;
+        simEmitActivity(kcId, id, 'pull_revocation', 1);
+      }
+    }
+    setTimeout(() => openPanel(nodeId), 400);
+    return;
+  }
   let kcUrl = null;
   for (const [, n] of nodes) {
     if (n.role === 'kraftcert') { kcUrl = n.url; break; }
@@ -1290,10 +1331,209 @@ async function revokeNode(nodeId) {
 
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
 
+// ── Simulation (no backend required) ──────────────────────
+
+const SIM_TOPOLOGY = [
+  { id: 'kraftcert-01', company: 'KraftCERT',     role: 'kraftcert', varde: '' },
+  { id: 'hafslund-01',  company: 'Hafslund Kraft', role: 'peer',      varde: '' },
+  { id: 'glitre-01',    company: 'Glitrenett',     role: 'peer',      varde: '' },
+  { id: 'elvia-01',     company: 'Elvia',          role: 'peer',      varde: '' },
+  { id: 'statkraft-01', company: 'Statkraft',      role: 'peer',      varde: 'varde-oslo' },
+  { id: 'agder-01',     company: 'Agder Energi',   role: 'peer',      varde: 'varde-kristiansand' },
+];
+
+// Mesh: KraftCERT to all + a few peer-to-peer links for redundancy
+const SIM_LINKS = [
+  ['kraftcert-01', 'hafslund-01'],
+  ['kraftcert-01', 'glitre-01'],
+  ['kraftcert-01', 'elvia-01'],
+  ['kraftcert-01', 'statkraft-01'],
+  ['kraftcert-01', 'agder-01'],
+  ['hafslund-01',  'glitre-01'],
+  ['glitre-01',    'elvia-01'],
+  ['elvia-01',     'statkraft-01'],
+  ['statkraft-01', 'agder-01'],
+  ['agder-01',     'hafslund-01'],
+];
+
+function simInit() {
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const R = 220;
+  const peers = SIM_TOPOLOGY.filter(t => t.role !== 'kraftcert');
+
+  for (const t of SIM_TOPOLOGY) {
+    let x, y;
+    if (t.role === 'kraftcert') {
+      x = cx; y = cy;
+    } else {
+      const i = peers.indexOf(t);
+      const ang = (i / peers.length) * Math.PI * 2 - Math.PI / 2;
+      x = cx + Math.cos(ang) * R;
+      y = cy + Math.sin(ang) * R;
+    }
+    nodes.set(t.id, {
+      x, y, vx: 0, vy: 0,
+      company: t.company, role: t.role, online: true, revoked: false,
+      eventCount: 0, url: '', peers: [], varde: t.varde,
+      heartbeat: 0,
+      activityLog: [],
+      eventList: [],
+    });
+  }
+
+  for (const [a, b] of SIM_LINKS) {
+    links.push({ source: a, target: b });
+    // Mirror into node.peers so live-mode link rebuilding stays a no-op
+    nodes.get(a).peers.push(b);
+    nodes.get(b).peers.push(a);
+  }
+}
+
+function simEmitActivity(srcId, tgtId, action, count) {
+  const src = nodes.get(srcId);
+  const tgt = nodes.get(tgtId);
+  if (!src || !tgt || src.revoked || tgt.revoked) return;
+
+  const lk = [srcId, tgtId].sort().join('::');
+  linkActivity.set(lk, { lastActive: Date.now(), intensity: 1 });
+
+  const t = Math.floor(Date.now() / 1000);
+
+  if (action === 'push' && count > 0) {
+    particles.push({ srcId, tgtId, progress: 0, speed: 0.025,
+      color: C.aurora1, label: `push ${count}`, size: 4 + Math.min(count, 5) });
+  } else if (action === 'pull' && count > 0) {
+    particles.push({ srcId: tgtId, tgtId: srcId, progress: 0, speed: 0.015,
+      color: C.aurora2, label: `pull ${count}`, size: 3 + Math.min(count, 4) });
+  } else if (action === 'discovery') {
+    particles.push({ srcId: tgtId, tgtId: srcId, progress: 0, speed: 0.02,
+      color: C.aurora3, label: 'discovery', size: 3 });
+  } else if (action === 'pull_identity') {
+    particles.push({ srcId: tgtId, tgtId: srcId, progress: 0, speed: 0.018,
+      color: C.aurora1, label: `identity ×${count}`, size: 3 });
+  } else if (action === 'pull_revocation') {
+    particles.push({ srcId, tgtId, progress: 0, speed: 0.02,
+      color: C.revoked, label: 'revoke', size: 5 });
+  }
+
+  src.activityLog.push({ t, action, peer: tgtId, count: count ?? 0 });
+  if (src.activityLog.length > 60) src.activityLog.shift();
+  src.heartbeat = (src.heartbeat ?? 0) + 1;
+}
+
+function simEmitEvent(nodeId, ev) {
+  const n = nodes.get(nodeId);
+  if (!n || n.revoked) return;
+  const id = `sim-${nodeId}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+  const created_at = new Date().toISOString();
+  const full = { id, node_id: nodeId, company: n.company,
+    title: ev.title, severity: ev.severity, created_at };
+
+  n.eventList.unshift(full);
+  if (n.eventList.length > 30) n.eventList.pop();
+  n.eventCount += 1;
+
+  const pColor =
+    ev.severity === 'critical' ? C.revoked :
+    ev.severity === 'high' ? C.high :
+    ev.severity === 'medium' ? C.medium : C.aurora1;
+  pulses.push({ x: n.x, y: n.y, radius: 0, opacity: 1, color: pColor });
+  addLogEntry(full);
+
+  document.getElementById('statEvents').textContent =
+    [...nodes.values()].reduce((s, nn) => s + nn.eventCount, 0);
+}
+
+function simRefreshStats() {
+  document.getElementById('statPeers').textContent = nodes.size;
+  document.getElementById('statEvents').textContent =
+    [...nodes.values()].reduce((s, n) => s + n.eventCount, 0);
+  document.getElementById('statLinks').textContent = links.length;
+}
+
+function pickWeighted(weights) {
+  const sum = weights.reduce((s, w) => s + w[1], 0);
+  let r = Math.random() * sum;
+  for (const [v, w] of weights) { r -= w; if (r <= 0) return v; }
+  return weights[weights.length - 1][0];
+}
+
+function simTick() {
+  // One gossip exchange per tick — paced so 5–6 nodes don't feel busy
+  const bursts = 1;
+  for (let i = 0; i < bursts; i++) {
+    const live = links.filter(l => {
+      const a = nodes.get(l.source), b = nodes.get(l.target);
+      return a && b && !a.revoked && !b.revoked;
+    });
+    if (!live.length) break;
+    const link = live[Math.floor(Math.random() * live.length)];
+
+    const action = pickWeighted([
+      ['push', 38], ['pull', 30], ['pull_identity', 12],
+      ['discovery', 8], ['pull_empty', 12],
+    ]);
+
+    // Direction: KraftCERT identity flows outward; otherwise random
+    let srcId = link.source, tgtId = link.target;
+    if (Math.random() < 0.5) [srcId, tgtId] = [tgtId, srcId];
+    if (action === 'pull_identity') {
+      const kcEnd = [link.source, link.target].find(id => nodes.get(id)?.role === 'kraftcert');
+      if (kcEnd) { srcId = kcEnd; tgtId = (link.source === kcEnd ? link.target : link.source); }
+    }
+
+    if (action === 'pull_empty') {
+      // Just record the heartbeat, no particle
+      const t = Math.floor(Date.now() / 1000);
+      const src = nodes.get(srcId);
+      if (src) {
+        src.activityLog.push({ t, action, peer: tgtId, count: 0 });
+        if (src.activityLog.length > 60) src.activityLog.shift();
+      }
+      continue;
+    }
+
+    const count = action === 'push' || action === 'pull'
+      ? 1 + Math.floor(Math.random() * 4)
+      : 1;
+    simEmitActivity(srcId, tgtId, action, count);
+  }
+}
+
+function simEventTick() {
+  const candidates = [...nodes.values()].filter(n => !n.revoked && n.role !== 'kraftcert');
+  if (!candidates.length) return;
+  const n = candidates[Math.floor(Math.random() * candidates.length)];
+  const ev = SIM_EVENTS[Math.floor(Math.random() * SIM_EVENTS.length)];
+  // Find the node id for this node
+  let nodeId = null;
+  for (const [id, nn] of nodes) if (nn === n) { nodeId = id; break; }
+  if (!nodeId) return;
+  simEmitEvent(nodeId, ev);
+  // Gossip the event to one or two neighbors, staggered so it reads as a wave
+  const myLinks = links.filter(l => l.source === nodeId || l.target === nodeId);
+  const fanout = Math.min(myLinks.length, 1 + Math.floor(Math.random() * 2));
+  const shuffled = myLinks.slice().sort(() => Math.random() - 0.5).slice(0, fanout);
+  shuffled.forEach((lk, i) => {
+    const tgt = lk.source === nodeId ? lk.target : lk.source;
+    setTimeout(() => simEmitActivity(nodeId, tgt, 'push', 1), 400 + i * 600);
+  });
+}
+
 // ── Init ───────────────────────────────────────────────────
 
-poll();
-setInterval(poll, 3000);
+if (SIM_MODE) {
+  simInit();
+  simRefreshStats();
+  setInterval(simTick, 1600);
+  setInterval(simEventTick, 12000);
+  // Kick off an initial event so the log isn't empty on load
+  setTimeout(simEventTick, 2500);
+} else {
+  poll();
+  setInterval(poll, 3000);
+}
 draw();
 </script>
 </body>
