@@ -446,8 +446,18 @@ body { min-height: 100%; }
 
 /* ── 03 · DEMO ───────────────────────────────────────────── */
 .s-demo {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: stretch;
+  gap: 5rem;
+}
+.demo__left {
+  display: flex;
   flex-direction: column;
   justify-content: center;
+}
+.s-demo .problem__list {
+  align-self: center;
 }
 .demo__head {
   display: flex;
@@ -688,6 +698,8 @@ body { min-height: 100%; }
   .demo__grid { grid-template-columns: repeat(2, 1fr); }
   .tile.span-2 { grid-column: span 1; }
   .demo__head { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+  .s-demo { grid-template-columns: 1fr; gap: 2rem; }
+  .demo__left { padding-bottom: 0; justify-content: flex-start; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -766,17 +778,18 @@ body { min-height: 100%; }
 <section class="section s-demo" id="s-demo">
   <div class="section__tag"><b>03</b> / 05 — Demo</div>
 
-  <div class="demo__head">
-    <div class="demo__mark reveal">STK</div>
-    <div class="demo__name reveal d1">
-      <span class="label">Demo</span>
-      <span class="full">Security Toolkit</span>
+  <div class="demo__left">
+    <div class="demo__head">
+      <div class="demo__mark reveal">STK</div>
+      <div class="demo__name reveal d1">
+        <span class="full">Security Toolkit</span>
+      </div>
     </div>
-  </div>
 
-  <p class="demo__tagline reveal d2">
-    Desentralisert mesh-plattform for <em>sanntids situasjonsforståelse</em>.
-  </p>
+    <p class="demo__tagline reveal d2">
+      Desentralisert mesh-plattform for <em>sanntids situasjonsforståelse</em>.
+    </p>
+  </div>
 
   <ol class="problem__list">
     <li class="problem__item reveal d3">
@@ -788,12 +801,6 @@ body { min-height: 100%; }
       <span class="t">Automatisk deling av TLP grønn informasjon.</span>
     </li>
   </ol>
-
-  <div class="demo__url reveal d5" style="margin-top: 2.6rem;">
-    <span class="arrow">→</span>
-    <span class="label">demo</span>
-    <span>localhost:8001</span>
-  </div>
 </section>
 
 <!-- ═══════════════════ 04 · PRICE ═══════════════════ -->
@@ -801,7 +808,7 @@ body { min-height: 100%; }
   <div class="section__tag"><b>04</b> / 05 — Pris</div>
 
   <h2 class="problem__headline reveal">
-    Forretningsmodell</em>
+    Sammarbeid</em>
   </h2>
   <div class="problem__rule reveal d1"></div>
 
