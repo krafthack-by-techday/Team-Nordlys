@@ -567,6 +567,98 @@ body { min-height: 100%; }
   50%      { transform: translateX(8px); }
 }
 
+/* ── 04 · PRICE ──────────────────────────────────────────── */
+.s-price .problem__headline { max-width: 18ch; }
+.problem__item .sub {
+  display: block;
+  margin-top: 0.55rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  font-weight: 400;
+  
+}
+
+/* ── 05 · OUTTRO ─────────────────────────────────────────── */
+.s-outtro {
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+.outtro__name {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-variation-settings: 'opsz' 96, 'wght' 700;
+  font-size: clamp(5rem, 14vw, 14rem);
+  line-height: 0.82;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+}
+.outtro__name .l1 {
+  display: block;
+  color: var(--fg);
+  font-variation-settings: 'opsz' 48, 'wght' 500;
+  font-size: 0.32em;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.4rem;
+}
+.outtro__name .l2 {
+  display: block;
+  background: linear-gradient(110deg, var(--aurora-3) 0%, var(--aurora-1) 45%, var(--aurora-2) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  background-size: 220% 100%;
+  animation: shimmer 9s ease-in-out infinite alternate;
+}
+.outtro__rule {
+  width: 4.5rem; height: 2px;
+  background: var(--aurora-1);
+  margin-top: 2.6rem;
+}
+.outtro__sign {
+  margin-top: 2rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  letter-spacing: 0.22em;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+.outtro__sign .yr { color: var(--fg); font-weight: 500; }
+.outtro__sign .sep {
+  width: 5px; height: 5px;
+  background: var(--aurora-1);
+  border-radius: 50%;
+  display: inline-block;
+}
+.outtro__url {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 2.6rem;
+  padding: 1.2rem 1.8rem;
+  border: 1px solid var(--aurora-1);
+  background: rgba(127,220,181,0.08);
+  width: fit-content;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(1.1rem, 1.6vw, 1.7rem);
+  letter-spacing: 0.02em;
+  color: var(--fg);
+  box-shadow: 0 0 36px -12px rgba(127,220,181,0.45);
+}
+.outtro__url .label {
+  color: var(--aurora-1);
+  text-transform: uppercase;
+  font-size: 0.7em;
+  letter-spacing: 0.22em;
+  border-right: 1px solid rgba(127,220,181,0.32);
+  padding-right: 1.2rem;
+}
+
 /* ── Reveal animations ───────────────────────────────────── */
 .reveal {
   opacity: 0;
@@ -628,7 +720,7 @@ body { min-height: 100%; }
 
 <!-- ═══════════════════ 01 · TEAM ═══════════════════ -->
 <section class="section s-team" id="s-team">
-  <div class="section__tag"><b>01</b> / 03 — Team</div>
+  <div class="section__tag"><b>01</b> / 05 — Team</div>
 
   <div class="team-block">
     <h1 class="team__name">
@@ -662,36 +754,17 @@ body { min-height: 100%; }
 
 <!-- ═══════════════════ 02 · PROBLEM ═══════════════════ -->
 <section class="section s-problem" id="s-problem">
-  <div class="section__tag"><b>02</b> / 03 — Problem</div>
+  <div class="section__tag"><b>02</b> / 05 — Problem</div>
 
   <h2 class="problem__headline reveal">
     Norsk kraftsektor er sårbar for <em>koordinerte cyberangrep.</em>
   </h2>
   <div class="problem__rule reveal d1"></div>
-
-  <ol class="problem__list">
-    <li class="problem__item reveal d2">
-      <span class="n">01</span>
-      <span class="t">Ingen felles situasjonsforståelse på tvers av selskaper.</span>
-    </li>
-    <li class="problem__item reveal d3">
-      <span class="n">02</span>
-      <span class="t">Trusselinformasjon spres for sakte når angrepet allerede pågår.</span>
-    </li>
-    <li class="problem__item reveal d4">
-      <span class="n">03</span>
-      <span class="t">Sentraliserte løsninger blir selv et angrepsmål.</span>
-    </li>
-    <li class="problem__item reveal d5">
-      <span class="n">04</span>
-      <span class="t">Vi mangler verktøy som virker når strømmen og nettet svikter.</span>
-    </li>
-  </ol>
 </section>
 
 <!-- ═══════════════════ 03 · DEMO ═══════════════════ -->
 <section class="section s-demo" id="s-demo">
-  <div class="section__tag"><b>03</b> / 03 — Demo</div>
+  <div class="section__tag"><b>03</b> / 05 — Demo</div>
 
   <div class="demo__head">
     <div class="demo__mark reveal">STK</div>
@@ -705,20 +778,76 @@ body { min-height: 100%; }
     Desentralisert mesh-plattform for <em>sanntids situasjonsforståelse</em>.
   </p>
 
-  <div class="demo__grid">
-    <div class="tile reveal d3"><span class="num">01</span><span class="name">Dashboard</span></div>
-    <div class="tile reveal d3"><span class="num">02</span><span class="name">Vulnerability<br>Dashboard</span></div>
-    <div class="tile reveal d4"><span class="num">03</span><span class="name">Network<br>Scanner</span></div>
-    <div class="tile reveal d4"><span class="num">04</span><span class="name">Tool Store</span></div>
-    <div class="tile reveal d5"><span class="num">05</span><span class="name">Indicators</span></div>
-    <div class="tile reveal d5"><span class="num">06</span><span class="name">Chat</span></div>
-    <div class="tile span-2 reveal d6"><span class="num">07</span><span class="name">Data Collector</span></div>
-  </div>
-
-  <div class="demo__url reveal d7">
+  <div class="demo__url reveal d3">
     <span class="arrow">→</span>
     <span class="label">demo</span>
     <span>localhost:8001</span>
+  </div>
+</section>
+
+<!-- ═══════════════════ 04 · PRICE ═══════════════════ -->
+<section class="section s-problem s-price" id="s-price">
+  <div class="section__tag"><b>04</b> / 05 — Pris</div>
+
+  <h2 class="problem__headline reveal">
+    Forretningsmodell</em>
+  </h2>
+  <div class="problem__rule reveal d1"></div>
+
+  <ol class="problem__list">
+    <li class="problem__item reveal d2">
+      <span class="n">01</span>
+      <span class="t">
+        Åpen kildekode.
+        <span class="sub">Sektoren eier plattformen — ikke en leverandør.</span>
+      </span>
+    </li>
+    <li class="problem__item reveal d3">
+      <span class="n">02</span>
+      <span class="t">
+        Community og meetups.
+        <span class="sub">Felles utvikling, felles trusselbilde, felles tempo.</span>
+      </span>
+    </li>
+    <li class="problem__item reveal d4">
+      <span class="n">03</span>
+      <span class="t">
+        Store selskaper bidrar med utviklingstimer.
+        <span class="sub">Investerer i egen sikkerhet — og hele meshen tjener på det.</span>
+      </span>
+    </li>
+    <li class="problem__item reveal d5">
+      <span class="n">04</span>
+      <span class="t">
+        Mindre selskaper bruker STK gratis.
+        <span class="sub">Ingen lisens, ingen barriere — bare koble noden til meshen.</span>
+      </span>
+    </li>
+  </ol>
+</section>
+
+<!-- ═══════════════════ 05 · OUTTRO ═══════════════════ -->
+<section class="section s-outtro" id="s-outtro">
+  <div class="section__tag"><b>05</b> / 05 — Takk</div>
+
+  <h2 class="outtro__name">
+    <span class="l1 reveal d1">Sammen lyser vi opp</span>
+    <span class="l2 reveal d2">Nordlys</span>
+  </h2>
+
+  <div class="outtro__rule reveal d3"></div>
+
+  <div class="outtro__sign reveal d4">
+    <span>Team Nordlys</span>
+    <span class="sep"></span>
+    <span>Krafthack <span class="yr">2026</span></span>
+    <span class="sep"></span>
+    <span>Oslo</span>
+  </div>
+
+  <div class="outtro__url reveal d5">
+    <span class="label">join</span>
+    <span>github.com/team-nordlys/stk</span>
   </div>
 </section>
 
