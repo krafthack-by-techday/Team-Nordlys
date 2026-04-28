@@ -1,0 +1,17 @@
+# Hafslunds peer-konfig for STK-kollektoren (demo-versjon).
+
+node:
+  ingest_url: http://hafslund:8000/events/ingest
+  ingest_key: demo-secret-hafslund
+
+active_packs:
+  - generic-syslog-ot
+  - abb-relion
+
+# Ingen overstyringer for demoen — bruk pakkenes defaults.
+overrides: {}
+
+internal_networks:
+  - 10.0.0.0/8
+  - 172.16.0.0/12
+  - 192.168.0.0/16

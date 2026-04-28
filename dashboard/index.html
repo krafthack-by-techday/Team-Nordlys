@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STK — Situasjonsforst&aring;else</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void: #050a12;
+  --deep: #080e1c;
+  --panel: #0d1528;
+  --panel2: #111c35;
+  --ridge: #152244;
+  --ridge-b: #1e3468;
+  --teal: #2dd4bf;
+  --green: #34d399;
+  --cyan: #22d3ee;
+  --purple: #a78bfa;
+  --violet: #818cf8;
+  --red: #ef4444;
+  --orange: #f97316;
+  --yellow: #eab308;
+  --grey: #334155;
+  --text: #e2e8f0;
+  --dim: #64748b;
+  --muted: #475569;
+  --varde: #f59e0b;
+  --mono: 'DM Mono', 'Menlo', monospace;
+  --display: 'Outfit', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{background:var(--void);color:var(--text);font-family:var(--mono);overflow:hidden;height:100vh}
+
+/* scanline */
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999}
+
+/* ── Layout ─────────────────────────────── */
+.shell{display:flex;flex-direction:column;height:100vh}
+
+.header{display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid var(--ridge);gap:16px;flex-shrink:0;z-index:5}
+.logo{font-family:var(--display);font-weight:800;font-size:1.3rem;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--teal),var(--green) 40%,var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-sub{font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase}
+.hdr-spacer{flex:1}
+.hdr-stat{display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--dim)}
+.hdr-stat .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);position:relative}
+.hdr-stat .pulse::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:var(--green);opacity:0;animation:pulse-r 2s ease-out infinite}
+.hdr-stat.warn .pulse{background:var(--yellow)}.hdr-stat.warn .pulse::after{background:var(--yellow)}
+.hdr-stat.danger .pulse{background:var(--red)}.hdr-stat.danger .pulse::after{background:var(--red)}
+@keyframes pulse-r{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.5);opacity:0}}
+.hdr-count{font-family:var(--display);font-weight:600;font-size:1rem;color:var(--green)}
+.hdr-count.warn{color:var(--yellow)}.hdr-count.danger{color:var(--red)}
+.clock{font-size:0.7rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.sim-btn{font-family:var(--mono);font-size:0.65rem;padding:5px 12px;border:1px solid var(--ridge-b);border-radius:4px;background:var(--panel);color:var(--teal);cursor:pointer;transition:all .2s}
+.sim-btn:hover{background:var(--panel2);border-color:var(--teal)}
+
+.alert{display:none;padding:10px 20px;background:rgba(239,68,68,.06);border-bottom:1px solid rgba(239,68,68,.15);gap:12px;align-items:center;flex-shrink:0;font-size:0.72rem}
+.alert.visible{display:flex}
+.alert-icon{width:20px;height:20px;border-radius:50%;background:rgba(239,68,68,.15);color:var(--red);font-family:var(--display);font-weight:700;font-size:0.75rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.alert-title{color:var(--red);font-family:var(--display);font-weight:600}
+.alert-detail{color:var(--dim);font-size:0.65rem}
+
+.main{display:flex;flex:1;overflow:hidden}
+
+/* ── Topology (left) ────────────────────── */
+.topo-wrap{flex:1;position:relative;overflow:hidden}
+canvas{display:block;width:100%;height:100%;cursor:grab}
+canvas:active{cursor:grabbing}
+
+/* ── Sidebar (right) ────────────────────── */
+.sidebar{width:340px;border-left:1px solid var(--ridge);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.sb-section{font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;padding:10px 14px 6px;border-bottom:1px solid var(--ridge)}
+.peer-list{display:flex;flex-direction:column;gap:2px;padding:6px;overflow-y:auto;max-height:45%}
+.peer-card{padding:8px 10px;background:var(--panel);border:1px solid transparent;border-radius:4px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.peer-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--teal),var(--green));opacity:.6;transition:opacity .2s}
+.peer-card:hover{background:var(--panel2);border-color:var(--ridge)}
+.peer-card.kraftcert::before{background:linear-gradient(90deg,var(--purple),var(--violet))}
+.peer-card.revoked{opacity:.6}.peer-card.revoked::before{background:var(--red)}
+.peer-card.offline{opacity:.5}.peer-card.offline::before{background:var(--grey);opacity:.4}
+.pc-row{display:flex;align-items:center;gap:6px}
+.pc-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.pc-dot.online{background:var(--green);box-shadow:0 0 4px var(--green)}
+.pc-dot.offline{background:var(--grey)}
+.pc-dot.revoked{background:var(--red);box-shadow:0 0 4px var(--red)}
+.pc-name{font-family:var(--display);font-weight:600;font-size:0.8rem;flex:1}
+.peer-card.revoked .pc-name{text-decoration:line-through;text-decoration-color:rgba(239,68,68,.5)}
+.pc-badge{font-size:0.5rem;padding:1px 5px;border-radius:2px;background:rgba(167,139,250,.15);color:var(--purple);letter-spacing:.06em;text-transform:uppercase}
+.pc-badge.varde{background:rgba(245,158,11,.12);color:var(--varde)}
+.pc-meta{display:flex;gap:12px;margin-top:4px;font-size:0.6rem;color:var(--muted)}
+.pc-meta span{color:var(--dim)}
+
+.event-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px;padding:6px}
+.ev-row{display:grid;grid-template-columns:6px 90px 1fr;gap:8px;padding:5px 8px;background:var(--panel);border-radius:3px;font-size:0.65rem;align-items:center;animation:ev-in .3s ease-out}
+.ev-row.critical{background:rgba(239,68,68,.05)}
+@keyframes ev-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.ev-pip{width:5px;height:5px;border-radius:2px}
+.ev-pip.critical{background:var(--red);box-shadow:0 0 6px var(--red)}.ev-pip.high{background:var(--orange)}.ev-pip.medium{background:var(--yellow)}.ev-pip.low{background:var(--green)}
+.ev-time{color:var(--muted);font-variant-numeric:tabular-nums}
+.ev-text{color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-text b{color:var(--text);font-weight:500}
+
+/* ── Detail panel ───────────────────────── */
+.detail{position:fixed;top:0;right:-400px;width:380px;height:100vh;background:rgba(10,16,32,.96);border-left:1px solid var(--ridge);backdrop-filter:blur(12px);z-index:20;padding:20px;overflow-y:auto;transition:right .3s ease;display:flex;flex-direction:column;gap:14px}
+.detail.open{right:0}
+.det-head{display:flex;align-items:center;justify-content:space-between}
+.det-company{font-family:var(--display);font-weight:700;font-size:1.05rem}
+.det-close{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px 8px;border-radius:4px}
+.det-close:hover{background:var(--ridge);color:var(--text)}
+.det-badges{display:flex;gap:6px}
+.det-badge{font-size:0.55rem;padding:2px 7px;border-radius:3px;letter-spacing:.08em;text-transform:uppercase}
+.det-badge.online{background:rgba(52,211,153,.12);color:var(--green)}
+.det-badge.offline{background:rgba(51,65,85,.2);color:var(--muted)}
+.det-badge.revoked{background:rgba(239,68,68,.12);color:var(--red)}
+.det-badge.idp{background:rgba(167,139,250,.12);color:var(--purple)}
+.det-section{font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;padding-bottom:4px;border-bottom:1px solid var(--ridge);margin-top:2px}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.det-label{font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.det-val{font-size:0.78rem;color:var(--dim)}
+.det-actions{display:flex;gap:6px}
+.det-btn{font-family:var(--mono);font-size:0.63rem;padding:6px 12px;border:1px solid var(--ridge);border-radius:4px;background:var(--panel);color:var(--teal);cursor:pointer;flex:1;text-align:center;transition:all .2s}
+.det-btn:hover{background:rgba(45,212,191,.08);border-color:var(--teal)}
+.det-btn.danger{color:var(--red)}.det-btn.danger:hover{background:rgba(239,68,68,.08);border-color:var(--red)}
+.det-btn:disabled{opacity:.3;cursor:not-allowed}
+.det-activity{display:flex;flex-direction:column;gap:2px;max-height:160px;overflow-y:auto}
+.act-row{font-size:0.6rem;color:var(--dim);display:flex;gap:6px;align-items:center;padding:2px 0}
+.act-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.act-dot.push{background:var(--teal)}.act-dot.pull{background:var(--violet)}.act-dot.pull_empty{background:var(--muted)}.act-dot.discovery{background:var(--purple)}.act-dot.pull_identity{background:var(--green)}.act-dot.pull_revocation,.act-dot.push_fail,.act-dot.pull_fail{background:var(--red)}
+.act-time{color:var(--muted);font-variant-numeric:tabular-nums;min-width:50px}
+.det-events{display:flex;flex-direction:column;gap:2px;max-height:140px;overflow-y:auto}
+.det-ev{font-size:0.6rem;color:var(--dim);padding:3px 6px;background:rgba(13,21,40,.4);border-radius:3px;display:flex;gap:5px;align-items:center}
+.det-ev .sev{width:4px;height:4px;border-radius:2px;flex-shrink:0}
+.det-ev .sev.critical{background:var(--red)}.det-ev .sev.high{background:var(--orange)}.det-ev .sev.medium{background:var(--yellow)}.det-ev .sev.low{background:var(--green)}
+
+.empty{text-align:center;padding:30px 10px;color:var(--muted);font-size:0.7rem}
+
+@media(max-width:900px){.sidebar{width:280px}.detail{width:300px}}
+@media(max-width:700px){.sidebar{display:none}.detail{width:100%}}
+
+/* ── Help panel ─────────────────────────── */
+.help-btn{font-family:var(--mono);font-size:0.65rem;padding:5px 12px;border:1px solid var(--ridge-b);border-radius:4px;background:var(--panel);color:var(--purple);cursor:pointer;transition:all .2s}
+.help-btn:hover{background:var(--panel2);border-color:var(--purple)}
+.help-overlay{position:fixed;inset:0;background:rgba(5,10,18,.78);backdrop-filter:blur(6px);z-index:30;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 20px}
+.help-overlay.open{display:flex}
+.help-panel{width:100%;max-width:880px;background:var(--panel);border:1px solid var(--ridge-b);border-radius:6px;padding:22px 28px;box-shadow:0 12px 40px rgba(0,0,0,.6);animation:help-in .25s ease-out}
+@keyframes help-in{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.help-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding-bottom:14px;border-bottom:1px solid var(--ridge)}
+.help-title{font-family:var(--display);font-weight:700;font-size:1.15rem;color:var(--text);letter-spacing:-.02em}
+.help-title small{display:block;font-family:var(--mono);font-weight:400;font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-top:3px}
+.help-section{font-size:.55rem;color:var(--purple);text-transform:uppercase;letter-spacing:.12em;padding:18px 0 6px;border-bottom:1px solid var(--ridge);margin-bottom:8px}
+.help-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.help-link{display:block;padding:10px 12px;background:var(--deep);border:1px solid var(--ridge);border-radius:4px;text-decoration:none;color:var(--text);transition:all .15s}
+.help-link:hover{background:var(--panel2);border-color:var(--teal);transform:translateY(-1px)}
+.help-link .h-name{font-family:var(--display);font-weight:600;font-size:.78rem;color:var(--text);display:flex;align-items:center;gap:6px}
+.help-link .h-pill{font-size:.5rem;padding:1px 5px;border-radius:2px;letter-spacing:.06em;text-transform:uppercase;background:rgba(45,212,191,.15);color:var(--teal)}
+.help-link .h-pill.kc{background:rgba(167,139,250,.15);color:var(--purple)}
+.help-link .h-pill.peer{background:rgba(52,211,153,.15);color:var(--green)}
+.help-link .h-pill.rtu{background:rgba(239,68,68,.15);color:var(--red)}
+.help-link .h-pill.dash{background:rgba(34,211,238,.15);color:var(--cyan)}
+.help-link .h-url{font-family:var(--mono);font-size:.65rem;color:var(--dim);margin-top:3px;word-break:break-all}
+.help-link .h-desc{font-size:.65rem;color:var(--muted);margin-top:4px;line-height:1.4}
+.help-cmd{background:var(--deep);border-left:2px solid var(--purple);border-radius:0 3px 3px 0;padding:8px 12px;font-family:var(--mono);font-size:.7rem;color:var(--text);margin-bottom:6px;overflow-x:auto;white-space:nowrap}
+.help-cmd .cmt{color:var(--muted)}
+.help-tbl{width:100%;border-collapse:collapse;font-size:.7rem}
+.help-tbl th,.help-tbl td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--ridge)}
+.help-tbl th{color:var(--muted);font-size:.55rem;text-transform:uppercase;letter-spacing:.1em;font-weight:500}
+.help-tbl td.path{font-family:var(--mono);color:var(--teal)}
+.help-tbl td.desc{color:var(--dim)}
+.help-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;padding:2px 10px;border-radius:4px;line-height:1}
+.help-close:hover{background:var(--ridge);color:var(--text)}
+.help-foot{font-size:.6rem;color:var(--muted);margin-top:18px;padding-top:12px;border-top:1px solid var(--ridge)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="header">
+    <div class="logo">STK</div>
+    <div class="logo-sub">situasjonsforst&aring;else</div>
+    <div class="hdr-spacer"></div>
+    <div class="hdr-stat" id="hdrStat"><span class="pulse"></span><span class="hdr-count" id="hdrCount">&mdash;</span> peers</div>
+    <div class="clock" id="clock">--:--:--</div>
+    <button class="sim-btn" onclick="simulateEvent()">Simuler hendelse</button>
+    <button class="help-btn" onclick="openHelp()">Hjelp</button>
+  </header>
+  <div class="alert" id="alert"><div class="alert-icon">!</div><div id="alertBody"></div></div>
+  <div class="main">
+    <div class="topo-wrap"><canvas id="c"></canvas></div>
+    <div class="sidebar">
+      <div class="sb-section">Peers</div>
+      <div class="peer-list" id="peerList"></div>
+      <div class="sb-section">Hendelser</div>
+      <div class="event-list" id="eventList"><div class="empty">Venter p&aring; data&hellip;</div></div>
+    </div>
+  </div>
+</div>
+<!-- ── Help overlay ──────────────────────────── -->
+<div class="help-overlay" id="helpOverlay" onclick="if(event.target===this)closeHelp()">
+  <div class="help-panel">
+    <div class="help-head">
+      <div class="help-title">Demo-hjelp<small>Endepunkter, dashboards og kjørekommandoer</small></div>
+      <button class="help-close" onclick="closeHelp()" aria-label="Lukk">&times;</button>
+    </div>
+
+    <div class="help-section">STK-noder (web-grensesnitt)</div>
+    <div class="help-grid">
+      <a class="help-link" href="http://localhost:8800/" target="_blank">
+        <div class="h-name">KraftCERT <span class="h-pill kc">IdP</span></div>
+        <div class="h-url">http://localhost:8800/</div>
+        <div class="h-desc">Trust anchor — utsteder invite-tokens og fører revokerings-listen.</div>
+      </a>
+      <a class="help-link" href="http://localhost:8801/" target="_blank">
+        <div class="h-name">Hafslund Kraft <span class="h-pill peer">Peer A</span></div>
+        <div class="h-url">http://localhost:8801/</div>
+        <div class="h-desc">Peeren som blir angrepet i demoen. Kollektor mottar syslog fra RTU-en og signerer events her.</div>
+      </a>
+      <a class="help-link" href="http://localhost:8802/" target="_blank">
+        <div class="h-name">Statkraft <span class="h-pill peer">Peer B</span></div>
+        <div class="h-url">http://localhost:8802/</div>
+        <div class="h-desc">Peer som observerer angrepet via gossip-meshen, ~5–10 sek etter Hafslund.</div>
+      </a>
+    </div>
+
+    <div class="help-section">Demo-utstyr</div>
+    <div class="help-grid">
+      <a class="help-link" href="http://localhost:8888/" target="_blank">
+        <div class="h-name">ABB Relion 615 <span class="h-pill rtu">RTU-sim</span></div>
+        <div class="h-url">http://localhost:8888/</div>
+        <div class="h-desc">Web-HMI til vernreléet som blir kompromittert. Default-creds: <code>admin / admin</code> (kun for demo).</div>
+      </a>
+    </div>
+
+    <div class="help-section">Andre dashboards</div>
+    <div class="help-grid">
+      <a class="help-link" href="index.html">
+        <div class="h-name">Nettverkstopologi <span class="h-pill dash">denne</span></div>
+        <div class="h-url">dashboard/index.html</div>
+        <div class="h-desc">Live mesh-visualisering med peer-helse, gossip-aktivitet og hendelses-pulser.</div>
+      </a>
+      <a class="help-link" href="topology.html">
+        <div class="h-name">Topologi (alternativ)<span class="h-pill dash">eksperimentell</span></div>
+        <div class="h-url">dashboard/topology.html</div>
+        <div class="h-desc">Alternativ visualisering av mesh-tilstand.</div>
+      </a>
+    </div>
+
+    <div class="help-section">JSON-endepunkter per node (bytt ut http://localhost:8801)</div>
+    <table class="help-tbl">
+      <thead><tr><th>Sti</th><th>Beskrivelse</th></tr></thead>
+      <tbody>
+        <tr><td class="path">/health</td><td class="desc">Heartbeat, rolle, varde-status.</td></tr>
+        <tr><td class="path">/.well-known/stk</td><td class="desc">Peer-discovery — node-ID, public-key, kjente peers.</td></tr>
+        <tr><td class="path">/identity</td><td class="desc">Registrerte peers og revokeringer (KraftCERT-kuratert).</td></tr>
+        <tr><td class="path">/peers</td><td class="desc">Live helse-status per gossip-peer.</td></tr>
+        <tr><td class="path">/events</td><td class="desc">Lokal event-DB (signerte, dedupliserte).</td></tr>
+        <tr><td class="path">/events/since/{ISO-tid}</td><td class="desc">Events etter et gitt tidsstempel — brukes av gossip-pull.</td></tr>
+        <tr><td class="path">/gossip/activity?since={t}</td><td class="desc">Push/pull/discovery-aktivitet for visualisering.</td></tr>
+        <tr><td class="path">/events/ingest <small>(POST)</small></td><td class="desc">Kollektor-grenseflate. Krever <code>X-Ingest-Key</code>-header.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="help-section">Demo-kommandoer</div>
+    <div class="help-cmd"><span class="cmt"># Bootstrap hele stacken (KraftCERT + Hafslund + Statkraft + kollektor + RTU)</span></div>
+    <div class="help-cmd">cd demo &amp;&amp; ./run-demo.sh</div>
+    <div class="help-cmd"><span class="cmt"># Kjør angrepet (i en separat terminal)</span></div>
+    <div class="help-cmd">RTU_URL=http://localhost:8888 ./demo/attacker/exploit.sh</div>
+    <div class="help-cmd"><span class="cmt"># Selv-test (raskt, uten naturlige pauser)</span></div>
+    <div class="help-cmd">RTU_URL=http://localhost:8888 ./demo/attacker/exploit.sh --fast</div>
+    <div class="help-cmd"><span class="cmt"># Stopp og rydd opp</span></div>
+    <div class="help-cmd">docker compose -f demo/docker-compose.demo.yml down -v</div>
+
+    <div class="help-section">Test ingest direkte (uten RTU-sim)</div>
+    <div class="help-cmd">curl -X POST http://localhost:8801/events/ingest \</div>
+    <div class="help-cmd">&nbsp;&nbsp;-H "X-Ingest-Key: demo-secret-hafslund" \</div>
+    <div class="help-cmd">&nbsp;&nbsp;-H "Content-Type: application/json" \</div>
+    <div class="help-cmd">&nbsp;&nbsp;-d '{"title":"manuell test","severity":"low","source":"syslog","scenario_id":"manual"}'</div>
+
+    <div class="help-foot">
+      Dashboardet bruker <code>?seed=&lt;url&gt;</code> for å peke på en alternativ KraftCERT
+      (default: <code>http://localhost:8000</code>; for demo bruk <code>?seed=http://localhost:8800</code>).
+    </div>
+  </div>
+</div>
+
+<div class="detail" id="detail">
+  <div class="det-head"><span class="det-company" id="detCompany"></span><button class="det-close" onclick="closeDetail()">&times;</button></div>
+  <div class="det-badges" id="detBadges"></div>
+  <div class="det-section">Detaljer</div>
+  <div class="det-grid" id="detGrid"></div>
+  <div class="det-section">Handlinger</div>
+  <div class="det-actions" id="detActions"></div>
+  <div class="det-section">Gossip-aktivitet</div>
+  <div class="det-activity" id="detActivity"></div>
+  <div class="det-section">Siste hendelser</div>
+  <div class="det-events" id="detEvents"></div>
+</div>
+
+<script>
+// ── Config ─────────────────────────────────────
+const SEED = new URLSearchParams(location.search).get('seed') || 'http://localhost:8000';
+const POLL = 3500;
+
+// ── State ──────────────────────────────────────
+const peers = new Map();    // node_id → {url, company, role, online, revoked, eventCount, heartbeat, identityCount, x, y, vx, vy, gossipPeers}
+const links = [];
+const particles = [];
+const pulses = [];
+const linkAct = new Map();
+let allEvents = [];
+let seenEv = new Set();
+let allRevocations = new Map();
+let actSince = 0;
+let selectedId = null;
+let dragNode = null;
+let dragStart = null;
+let dashOff = 0;
+
+// ── Canvas ─────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+function resize() {
+  const w = canvas.parentElement;
+  canvas.width = w.clientWidth * devicePixelRatio;
+  canvas.height = w.clientHeight * devicePixelRatio;
+  canvas.style.width = w.clientWidth + 'px';
+  canvas.style.height = w.clientHeight + 'px';
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+window.addEventListener('resize', resize);
+setTimeout(resize, 0);
+
+// ── Clock ──────────────────────────────────────
+setInterval(() => {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}, 1000);
+
+// ── Fetch ──────────────────────────────────────
+async function fjson(url, ms=3000) {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  try { const r = await fetch(url,{signal:c.signal}); clearTimeout(t); return await r.json(); }
+  catch { clearTimeout(t); return null; }
+}
+
+// ── Discovery + Poll ───────────────────────────
+async function discover() {
+  // Get identity list from seed to find all peers with public_urls
+  const id = await fjson(`${SEED}/identity`);
+  if (!id) return;
+  for (const p of (id.peers || [])) {
+    if (p.public_url && !peers.has(p.node_id)) {
+      const cx = canvas.clientWidth / 2;
+      const cy = canvas.clientHeight / 2;
+      peers.set(p.node_id, {
+        url: p.public_url, company: p.company, role: '', online: false, revoked: false,
+        eventCount: 0, heartbeat: 0, identityCount: 0, gossipPeers: [],
+        x: cx + (Math.random()-.5)*200, y: cy + (Math.random()-.5)*200, vx: 0, vy: 0, varde: '',
+      });
+    }
+  }
+  // Revocations
+  for (const r of (id.revocations || [])) allRevocations.set(r.node_id, r);
+}
+
+function resolveId(dockerUrl) {
+  for (const [id] of peers) {
+    const stem = id.replace(/-\d+$/, '');
+    if (dockerUrl.includes(stem)) return id;
+  }
+  return null;
+}
+
+async function poll() {
+  await discover();
+
+  for (const [nid, p] of peers) {
+    const [health, prs, evts, act] = await Promise.all([
+      fjson(`${p.url}/health`),
+      fjson(`${p.url}/peers`),
+      fjson(`${p.url}/events`),
+      fjson(`${p.url}/gossip/activity?since=${actSince}`),
+    ]);
+
+    p.online = !!health;
+    if (health) { p.role = health.role; p.company = health.company; p.heartbeat = health.heartbeat; p.varde = health.varde || ''; }
+    p.revoked = allRevocations.has(nid);
+    p.eventCount = evts?.length ?? 0;
+    p.gossipPeers = (prs?.peers ?? []).map(x => x.url);
+
+    // Gossip activity → particles
+    if (act?.activity) {
+      for (const a of act.activity) {
+        const tid = resolveId(a.peer);
+        if (!tid || !peers.has(tid)) continue;
+        const lk = [nid, tid].sort().join('::');
+        linkAct.set(lk, { t: Date.now(), i: 1, fail: a.action.includes('fail') });
+        if (a.action === 'push' && a.count > 0)
+          particles.push({s:nid,t:tid,p:0,sp:.025,c:'#2dd4bf',l:`push ${a.count}`,sz:4+Math.min(a.count,4)});
+        else if (a.action === 'pull' && a.count > 0)
+          particles.push({s:tid,t:nid,p:0,sp:.015,c:'#818cf8',l:`pull ${a.count}`,sz:3+Math.min(a.count,3)});
+        else if (a.action === 'discovery')
+          particles.push({s:tid,t:nid,p:0,sp:.02,c:'#a78bfa',l:'discovery',sz:3});
+        else if (a.action === 'pull_identity')
+          particles.push({s:tid,t:nid,p:0,sp:.018,c:'#34d399',l:`identity \u00d7${a.count}`,sz:3});
+        else if (a.action === 'pull_revocation')
+          particles.push({s:tid,t:nid,p:0,sp:.02,c:'#ef4444',l:'revoke',sz:5});
+        if (a.t > actSince) actSince = a.t;
+      }
+    }
+
+    // Events
+    if (evts) {
+      for (const ev of evts) {
+        if (!seenEv.has(ev.id)) {
+          seenEv.add(ev.id);
+          allEvents.push(ev);
+          const src = peers.get(ev.node_id);
+          if (src) pulses.push({x:src.x,y:src.y,r:0,o:1,c:ev.severity==='critical'?'#ef4444':ev.severity==='high'?'#f97316':'#2dd4bf'});
+        }
+      }
+    }
+  }
+
+  // Re-discover revocations from all peers
+  for (const [, p] of peers) {
+    const id = await fjson(`${p.url}/identity`);
+    if (id?.revocations) for (const r of id.revocations) allRevocations.set(r.node_id, r);
+  }
+  for (const [nid, p] of peers) p.revoked = allRevocations.has(nid);
+
+  // Build links
+  links.length = 0;
+  const ls = new Set();
+  for (const [id, p] of peers) {
+    for (const pu of p.gossipPeers) {
+      const tid = resolveId(pu);
+      if (tid && tid !== id) { const k = [id,tid].sort().join('::'); if (!ls.has(k)) { ls.add(k); links.push({s:id,t:tid}); } }
+    }
+  }
+
+  allEvents.sort((a,b) => b.created_at.localeCompare(a.created_at));
+  if (allEvents.length > 200) allEvents = allEvents.slice(0,200);
+
+  renderSidebar();
+}
+
+// ── Sidebar render ─────────────────────────────
+function esc(s){const d=document.createElement('div');d.textContent=s??'';return d.innerHTML}
+
+function renderSidebar() {
+  const entries = [...peers.entries()];
+  const trusted = entries.filter(([,p])=>p.online&&!p.revoked).length;
+  const total = entries.length;
+  const hasRev = allRevocations.size > 0;
+
+  const hdr = document.getElementById('hdrStat');
+  const cnt = document.getElementById('hdrCount');
+  cnt.textContent = `${trusted}/${total}`;
+  cnt.className = 'hdr-count ' + (hasRev ? 'danger' : trusted===total ? '' : 'warn');
+  hdr.className = 'hdr-stat ' + (hasRev ? 'danger' : trusted===total ? '' : 'warn');
+
+  // Alert
+  const al = document.getElementById('alert');
+  if (hasRev) {
+    const names = [...allRevocations.values()].map(r=>r.company).join(', ');
+    const reasons = [...allRevocations.values()].map(r=>r.reason).filter(Boolean).join('; ');
+    document.getElementById('alertBody').innerHTML = `<div class="alert-title">Peer revokert \u2014 ${esc(names)}</div><div class="alert-detail">${esc(reasons)||'Ingen begrunnelse'} \u2014 hendelser avvises</div>`;
+    al.classList.add('visible');
+  } else { al.classList.remove('visible'); }
+
+  // Peer cards
+  const pl = document.getElementById('peerList');
+  pl.innerHTML = entries.map(([id,p]) => {
+    const st = p.revoked ? 'revoked' : p.online ? 'online' : 'offline';
+    const cls = p.role==='kraftcert' ? 'kraftcert' : '';
+    return `<div class="peer-card ${st} ${cls}" onclick="openDetail('${id}')">
+      <div class="pc-row">
+        <span class="pc-dot ${st}"></span>
+        <span class="pc-name">${esc(p.company)}</span>
+        ${p.role==='kraftcert'?'<span class="pc-badge">IdP</span>':''}
+        ${p.varde?'<span class="pc-badge varde">Varde</span>':''}
+      </div>
+      <div class="pc-meta">
+        <span>${p.revoked?'Revokert':p.online?'Online':'Offline'}</span>
+        ${p.revoked?'':`<span>${p.eventCount} hendelser</span>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Events
+  const el = document.getElementById('eventList');
+  if (allEvents.length===0){el.innerHTML='<div class="empty">Ingen hendelser</div>';return;}
+  el.innerHTML = allEvents.slice(0,40).map(ev => {
+    const ts = new Date(ev.created_at).toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    return `<div class="ev-row ${ev.severity==='critical'?'critical':''}">
+      <span class="ev-pip ${ev.severity}"></span>
+      <span class="ev-time">${ts}</span>
+      <span class="ev-text"><b>${esc(ev.company)}</b> ${esc(ev.title)}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Physics ────────────────────────────────────
+function sim() {
+  const arr = [...peers.values()];
+  const cx = canvas.clientWidth / 2, cy = canvas.clientHeight / 2;
+  for (let i=0;i<arr.length;i++) for (let j=i+1;j<arr.length;j++) {
+    const a=arr[i],b=arr[j]; let dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||1,f=8000/(d*d);
+    a.vx-=(dx/d)*f;a.vy-=(dy/d)*f;b.vx+=(dx/d)*f;b.vy+=(dy/d)*f;
+  }
+  for (const lk of links) {
+    const a=peers.get(lk.s),b=peers.get(lk.t); if(!a||!b) continue;
+    let dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||1,f=(d-180)*.005;
+    a.vx+=(dx/d)*f;a.vy+=(dy/d)*f;b.vx-=(dx/d)*f;b.vy-=(dy/d)*f;
+  }
+  for (const n of arr){n.vx+=(cx-n.x)*.0003;n.vy+=(cy-n.y)*.0003;}
+  for (const n of arr){if(n===dragNode)continue;n.vx*=.85;n.vy*=.85;n.x+=n.vx;n.y+=n.vy;}
+}
+
+// ── Draw ───────────────────────────────────────
+function draw() {
+  const W=canvas.clientWidth,H=canvas.clientHeight;
+  ctx.clearRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='rgba(21,34,68,.25)';ctx.lineWidth=.5;
+  for(let x=0;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  dashOff-=.15;
+  const now=Date.now();
+
+  // Links
+  for(const lk of links){
+    const a=peers.get(lk.s),b=peers.get(lk.t); if(!a||!b) continue;
+    const ok=a.online&&b.online&&!a.revoked&&!b.revoked;
+    const k=[lk.s,lk.t].sort().join('::');
+    const la=linkAct.get(k);
+    const active=la&&(now-la.t<5000);
+    if(la) la.i=Math.max(0,1-(now-la.t)/5000);
+
+    if(la?.fail&&now-la.t<3000){ctx.strokeStyle=`rgba(239,68,68,${.4*la.i})`;ctx.lineWidth=3;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+    else if(active&&ok){ctx.strokeStyle=`rgba(45,212,191,${.12*la.i})`;ctx.lineWidth=7;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+
+    if(active&&ok){ctx.strokeStyle=`rgba(45,212,191,${.2+.3*la.i})`;ctx.lineWidth=1.5;ctx.setLineDash([]);}
+    else{ctx.strokeStyle=ok?'rgba(45,212,191,.08)':'rgba(51,65,85,.12)';ctx.lineWidth=1;ctx.setLineDash([4,8]);ctx.lineDashOffset=dashOff;}
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    ctx.setLineDash([]);ctx.lineDashOffset=0;
+  }
+
+  // Particles
+  for(let i=particles.length-1;i>=0;i--){
+    const q=particles[i]; q.p+=q.sp; if(q.p>=1){particles.splice(i,1);continue;}
+    const s=peers.get(q.s),t=peers.get(q.t); if(!s||!t){particles.splice(i,1);continue;}
+    const x=s.x+(t.x-s.x)*q.p, y=s.y+(t.y-s.y)*q.p;
+    const r=parseInt(q.c.slice(1,3),16),g=parseInt(q.c.slice(3,5),16),b=parseInt(q.c.slice(5,7),16);
+    const grd=ctx.createRadialGradient(x,y,0,x,y,q.sz*3);
+    grd.addColorStop(0,`rgba(${r},${g},${b},.3)`);grd.addColorStop(1,'transparent');
+    ctx.fillStyle=grd;ctx.beginPath();ctx.arc(x,y,q.sz*3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=q.c;ctx.beginPath();ctx.arc(x,y,q.sz,0,Math.PI*2);ctx.fill();
+    const tl=.08,tx=s.x+(t.x-s.x)*Math.max(0,q.p-tl),ty=s.y+(t.y-s.y)*Math.max(0,q.p-tl);
+    const tg=ctx.createLinearGradient(tx,ty,x,y);tg.addColorStop(0,'transparent');tg.addColorStop(1,`rgba(${r},${g},${b},.4)`);
+    ctx.strokeStyle=tg;ctx.lineWidth=q.sz*.7;ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(x,y);ctx.stroke();
+    if(q.l&&q.p>.15&&q.p<.85){ctx.font='9px "DM Mono",monospace';ctx.fillStyle=`rgba(${r},${g},${b},.65)`;ctx.textAlign='center';ctx.fillText(q.l,x,y-q.sz-5);}
+  }
+
+  // Pulses
+  for(let i=pulses.length-1;i>=0;i--){
+    const p=pulses[i];p.r+=2;p.o-=.015;if(p.o<=0){pulses.splice(i,1);continue;}
+    const r=parseInt(p.c.slice(1,3),16),g=parseInt(p.c.slice(3,5),16),b=parseInt(p.c.slice(5,7),16);
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.strokeStyle=`rgba(${r},${g},${b},${p.o})`;ctx.lineWidth=2;ctx.stroke();
+  }
+
+  // Nodes
+  for(const [id,n] of peers){
+    const kc=n.role==='kraftcert', rad=kc?30:22;
+    if(n.online&&!n.revoked){const c=kc?'rgba(167,139,250,.1)':'rgba(52,211,153,.08)';const g=ctx.createRadialGradient(n.x,n.y,rad,n.x,n.y,rad*2.5);g.addColorStop(0,c);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(n.x,n.y,rad*2.5,0,Math.PI*2);ctx.fill();}
+
+    ctx.beginPath();ctx.arc(n.x,n.y,rad,0,Math.PI*2);
+    if(n.revoked){ctx.fillStyle='rgba(239,68,68,.08)';ctx.strokeStyle='rgba(239,68,68,.5)';}
+    else if(!n.online){ctx.fillStyle='rgba(51,65,85,.15)';ctx.strokeStyle='rgba(51,65,85,.3)';}
+    else if(kc){ctx.fillStyle='rgba(167,139,250,.06)';ctx.strokeStyle='rgba(167,139,250,.5)';}
+    else{ctx.fillStyle='rgba(45,212,191,.05)';ctx.strokeStyle='rgba(45,212,191,.4)';}
+    ctx.lineWidth=kc?2:1.5;ctx.fill();ctx.stroke();
+
+    if(kc&&n.online){ctx.beginPath();ctx.arc(n.x,n.y,rad-5,0,Math.PI*2);ctx.strokeStyle='rgba(167,139,250,.2)';ctx.lineWidth=1;ctx.stroke();}
+    if(n.revoked){ctx.strokeStyle='rgba(239,68,68,.6)';ctx.lineWidth=2;const s=rad*.45;ctx.beginPath();ctx.moveTo(n.x-s,n.y-s);ctx.lineTo(n.x+s,n.y+s);ctx.stroke();ctx.beginPath();ctx.moveTo(n.x+s,n.y-s);ctx.lineTo(n.x-s,n.y+s);ctx.stroke();}
+
+    // Varde indicator
+    if(n.varde){ctx.beginPath();ctx.arc(n.x,n.y,rad+9,0,Math.PI*2);ctx.strokeStyle='rgba(245,158,11,.3)';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.lineDashOffset=dashOff*2;ctx.stroke();ctx.setLineDash([]);ctx.lineDashOffset=0;
+    ctx.font='500 6px "DM Mono",monospace';const vt='VARDE',vtw=ctx.measureText(vt).width;ctx.fillStyle='rgba(245,158,11,.1)';ctx.strokeStyle='rgba(245,158,11,.35)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(n.x-vtw/2-3,n.y+rad+30,vtw+6,11,2);ctx.fill();ctx.stroke();ctx.fillStyle='#f59e0b';ctx.textAlign='center';ctx.fillText(vt,n.x,n.y+rad+38);}
+
+    // Selection ring
+    if(id===selectedId){ctx.beginPath();ctx.arc(n.x,n.y,rad+5,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.lineDashOffset=dashOff*3;ctx.stroke();ctx.setLineDash([]);ctx.lineDashOffset=0;}
+
+    ctx.font=`600 ${kc?11:10}px Outfit,sans-serif`;ctx.textAlign='center';
+    ctx.fillStyle=n.revoked?'rgba(239,68,68,.6)':n.online?'#e2e8f0':'#475569';
+    ctx.fillText(n.company,n.x,n.y+rad+14);
+    ctx.font='9px "DM Mono",monospace';ctx.fillStyle=n.revoked?'rgba(239,68,68,.3)':'#475569';
+    ctx.fillText(id,n.x,n.y+rad+26);
+
+    if(kc){ctx.font='500 7px "DM Mono",monospace';const tw=ctx.measureText('IdP').width;ctx.fillStyle='rgba(167,139,250,.12)';ctx.strokeStyle='rgba(167,139,250,.35)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(n.x-tw/2-3,n.y-rad-12,tw+6,12,2);ctx.fill();ctx.stroke();ctx.fillStyle='#a78bfa';ctx.textAlign='center';ctx.fillText('IdP',n.x,n.y-rad-3);}
+    if(n.eventCount>0&&!n.revoked){const b=`${n.eventCount}`;ctx.font='500 8px "DM Mono",monospace';const bw=Math.max(ctx.measureText(b).width+6,16);ctx.fillStyle=kc?'rgba(167,139,250,.75)':'rgba(45,212,191,.75)';ctx.beginPath();ctx.roundRect(n.x+rad-4-bw/2,n.y-rad-4-5,bw,12,6);ctx.fill();ctx.fillStyle='#050a12';ctx.textAlign='center';ctx.fillText(b,n.x+rad-4,n.y-rad-1);}
+  }
+
+  sim();
+  requestAnimationFrame(draw);
+}
+
+// ── Interaction ────────────────────────────────
+function nodeAt(x,y){for(const[id,n]of peers){const d=Math.hypot(x-n.x,y-n.y);if(d<(n.role==='kraftcert'?35:27))return{id,n};}return null;}
+
+canvas.addEventListener('mousedown',e=>{const h=nodeAt(e.offsetX,e.offsetY);if(h){dragNode=h.n;dragStart={x:e.offsetX,y:e.offsetY};canvas.style.cursor='grabbing';}});
+canvas.addEventListener('mousemove',e=>{if(dragNode){dragNode.x=e.offsetX;dragNode.y=e.offsetY;dragNode.vx=0;dragNode.vy=0;}else{canvas.style.cursor=nodeAt(e.offsetX,e.offsetY)?'grab':'default';}});
+canvas.addEventListener('mouseup',e=>{if(dragNode&&dragStart&&Math.hypot(e.offsetX-dragStart.x,e.offsetY-dragStart.y)<5){const h=nodeAt(e.offsetX,e.offsetY);if(h)openDetail(h.id);}dragNode=null;dragStart=null;canvas.style.cursor='default';});
+
+canvas.addEventListener('touchstart',e=>{const r=canvas.getBoundingClientRect();const tx=e.touches[0].clientX-r.left,ty=e.touches[0].clientY-r.top;const h=nodeAt(tx,ty);if(h){dragNode=h.n;dragStart={x:tx,y:ty};e.preventDefault();}},{passive:false});
+canvas.addEventListener('touchmove',e=>{if(dragNode){const r=canvas.getBoundingClientRect();dragNode.x=e.touches[0].clientX-r.left;dragNode.y=e.touches[0].clientY-r.top;dragNode.vx=0;dragNode.vy=0;e.preventDefault();}},{passive:false});
+canvas.addEventListener('touchend',e=>{if(dragNode&&dragStart){const r=canvas.getBoundingClientRect();const tx=e.changedTouches[0].clientX-r.left,ty=e.changedTouches[0].clientY-r.top;if(Math.hypot(tx-dragStart.x,ty-dragStart.y)<5){const h=nodeAt(tx,ty);if(h)openDetail(h.id);}}dragNode=null;dragStart=null;});
+
+// ── Detail panel ───────────────────────────────
+const SIM=[
+  {title:'Uvanlig trafikk p\u00e5 SCADA-grensesnitt',severity:'medium'},
+  {title:'Flere mislykkede innloggingsf\u00f8rs\u00f8k mot RTU',severity:'high'},
+  {title:'Firmware-wiper detektert p\u00e5 nettstasjon',severity:'critical'},
+  {title:'Ukjent enhet oppdaget p\u00e5 OT-nettverk',severity:'high'},
+  {title:'Tap av DSO-kommunikasjon med nettstasjon',severity:'critical'},
+  {title:'Uautorisert VPN-tilkobling fra ekstern IP',severity:'high'},
+  {title:'Avvik i setpunkt-verdier fra EMS',severity:'medium'},
+  {title:'Mistenkelig DNS-oppslag mot kjent C2-domene',severity:'critical'},
+  {title:'Patch-niv\u00e5 under minimumskrav p\u00e5 gateway',severity:'low'},
+  {title:'\u00d8kt latens p\u00e5 gossip-sync mellom noder',severity:'low'},
+];
+
+const ACT_LABELS={push:'Push hendelse',pull:'Pull hendelser',pull_empty:'Pull (tom)',discovery:'Oppdaget peer',pull_identity:'Pull identiteter',pull_revocation:'Pull revokering',push_fail:'Push feilet',pull_fail:'Pull feilet'};
+
+function fmtT(ts){return new Date(ts*1000).toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+
+async function openDetail(id) {
+  selectedId = id;
+  const p = peers.get(id); if (!p) return;
+  document.getElementById('detCompany').textContent = p.company;
+  const st = p.revoked?'revoked':p.online?'online':'offline';
+  document.getElementById('detBadges').innerHTML = `<span class="det-badge ${st}">${p.revoked?'Revokert':p.online?'Online':'Offline'}</span>${p.role==='kraftcert'?'<span class="det-badge idp">IdP</span>':''}${p.varde?'<span class="det-badge" style="background:rgba(245,158,11,.12);color:#f59e0b">'+esc(p.varde)+'</span>':''}`;
+  document.getElementById('detGrid').innerHTML = `
+    <div><div class="det-label">Node ID</div><div class="det-val">${esc(id)}</div></div>
+    <div><div class="det-label">Rolle</div><div class="det-val">${p.role}</div></div>
+    <div><div class="det-label">Hendelser</div><div class="det-val">${p.eventCount}</div></div>
+    <div><div class="det-label">Heartbeat</div><div class="det-val">${p.heartbeat}</div></div>
+    ${p.varde?'<div><div class="det-label">Varde</div><div class="det-val" style="color:#f59e0b">'+esc(p.varde)+'</div></div>':''}`;
+
+  const acts = [];
+  if (!p.revoked && p.online) acts.push(`<button class="det-btn" onclick="sendEvent('${id}')">Send hendelse</button>`);
+  if (!p.revoked && p.role !== 'kraftcert') acts.push(`<button class="det-btn danger" onclick="revokeNode('${id}')">Revoker</button>`);
+  if (p.revoked) acts.push(`<button class="det-btn" disabled>Revokert</button>`);
+  document.getElementById('detActions').innerHTML = acts.join('');
+
+  const ad = await fjson(`${p.url}/gossip/activity?since=0`);
+  const al = (ad?.activity??[]).slice(-12).reverse();
+  document.getElementById('detActivity').innerHTML = al.length===0?'<div style="font-size:.6rem;color:var(--muted)">Ingen</div>':al.map(a=>`<div class="act-row"><span class="act-dot ${a.action}"></span><span class="act-time">${fmtT(a.t)}</span><span>${ACT_LABELS[a.action]??a.action}${a.count?` (${a.count})`:''}</span></div>`).join('');
+
+  const ed = await fjson(`${p.url}/events`);
+  const el = (ed??[]).slice(0,6);
+  document.getElementById('detEvents').innerHTML = el.length===0?'<div style="font-size:.6rem;color:var(--muted)">Ingen</div>':el.map(e=>`<div class="det-ev"><span class="sev ${e.severity}"></span>${esc(e.title)}</div>`).join('');
+
+  document.getElementById('detail').classList.add('open');
+}
+
+function closeDetail(){document.getElementById('detail').classList.remove('open');selectedId=null;}
+function openHelp(){document.getElementById('helpOverlay').classList.add('open');}
+function closeHelp(){document.getElementById('helpOverlay').classList.remove('open');}
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  const help = document.getElementById('helpOverlay');
+  if(help.classList.contains('open')) closeHelp();
+  else closeDetail();
+});
+
+async function sendEvent(id) {
+  const p = peers.get(id); if (!p) return;
+  const ev = SIM[Math.floor(Math.random()*SIM.length)];
+  try { await fetch(`${p.url}/events`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ev)}); } catch {}
+  setTimeout(()=>openDetail(id),500);
+}
+
+async function revokeNode(id) {
+  let kc=null; for(const[,p]of peers)if(p.role==='kraftcert'){kc=p.url;break;} if(!kc) return;
+  try { await fetch(`${kc}/revoke`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({node_id:id,reason:'Manuell revokering'})}); } catch {}
+  setTimeout(()=>openDetail(id),1000);
+}
+
+async function simulateEvent() {
+  const online = [...peers.entries()].filter(([,p])=>p.online&&!p.revoked);
+  if (!online.length) return;
+  const [,p] = online[Math.floor(Math.random()*online.length)];
+  const ev = SIM[Math.floor(Math.random()*SIM.length)];
+  const btn = document.querySelector('.sim-btn');
+  btn.textContent = 'Sender...';
+  try { await fetch(`${p.url}/events`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ev)}); btn.textContent='Sendt!'; } catch { btn.textContent='Feil'; }
+  setTimeout(()=>{btn.textContent='Simuler hendelse';},1000);
+}
+
+// ── Init ───────────────────────────────────────
+poll();
+setInterval(poll, POLL);
+draw();
+</script>
+</body>
+</html>

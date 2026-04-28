@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STK - Interview Analysis Krafthack 2026</title>
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --surface2: #1a2236;
+      --border: #1e3a5f;
+      --accent: #38bdf8;
+      --accent2: #818cf8;
+      --accent3: #34d399;
+      --warn: #fb923c;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --red: #f87171;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    header {
+      position: relative;
+      overflow: hidden;
+      padding: 60px 40px 50px;
+      text-align: center;
+      background: linear-gradient(180deg, #020817 0%, #0a0e1a 100%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .aurora {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .aurora-band {
+      position: absolute;
+      left: -10%;
+      width: 120%;
+      height: 60px;
+      border-radius: 50%;
+      filter: blur(28px);
+      opacity: 0.35;
+      animation: drift 8s ease-in-out infinite alternate;
+    }
+
+    .a1 { top: 10%; background: linear-gradient(90deg, #22d3ee, #6366f1); animation-delay: 0s; }
+    .a2 { top: 28%; background: linear-gradient(90deg, #34d399, #38bdf8); animation-delay: 1.5s; opacity: 0.25; }
+    .a3 { top: 48%; background: linear-gradient(90deg, #818cf8, #22d3ee); animation-delay: 3s; opacity: 0.2; }
+
+    @keyframes drift {
+      from { transform: translateX(-4%) scaleY(1); }
+      to   { transform: translateX(4%) scaleY(1.3); }
+    }
+
+    .team-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #1e3a5f, #1e2d4a);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 4px 18px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    header h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #38bdf8, #818cf8, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+    }
+
+    header p {
+      color: var(--muted);
+      margin-top: 10px;
+      font-size: 14px;
+      position: relative;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    section { margin-bottom: 56px; }
+
+    h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h2::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+
+    .card:hover { border-color: var(--accent); }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .card-meta { flex: 1; min-width: 0; }
+    .card-name { font-weight: 600; font-size: 14px; }
+    .card-role { font-size: 12px; color: var(--muted); }
+
+    .card p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+
+    .tag {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .tag-blue  { background: #1e3a5f; color: var(--accent); }
+    .tag-green { background: #134e40; color: var(--accent3); }
+    .tag-purple{ background: #2d2b5e; color: var(--accent2); }
+    .tag-orange{ background: #3b2210; color: var(--warn); }
+    .tag-red   { background: #3b1515; color: var(--red); }
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .theme-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .theme-card h3 {
+      font-size: 13px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .theme-icon { font-size: 18px; }
+
+    .theme-card p { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+
+    .mention-dots {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .matrix {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .matrix th {
+      background: var(--surface2);
+      color: var(--muted);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .matrix td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #1a2236;
+      vertical-align: middle;
+    }
+
+    .matrix tr:last-child td { border-bottom: none; }
+    .matrix tr:hover td { background: var(--surface2); }
+
+    .check { color: var(--accent3); font-size: 16px; text-align: center; }
+    .strong-check { color: var(--warn); font-size: 18px; text-align: center; font-weight: bold; }
+
+    .quote-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .quote-card {
+      background: var(--surface);
+      border-left: 3px solid var(--accent2);
+      border-radius: 0 12px 12px 0;
+      padding: 16px 20px;
+    }
+
+    .quote-card blockquote {
+      font-size: 13px;
+      color: var(--text);
+      font-style: italic;
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    .quote-source {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 40px 20px 36px; }
+      header h1 { font-size: 1.7rem; }
+      main { padding: 24px 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="aurora">
+    <div class="aurora-band a1"></div>
+    <div class="aurora-band a2"></div>
+    <div class="aurora-band a3"></div>
+  </div>
+  <div class="team-badge">Team STK - Krafthack 2026</div>
+  <h1>Interview Analysis: Cybersecurity in the Power Sector</h1>
+  <p>Based on transcripts from 6 expert interviews - transcribed with Whisper and analyzed by Team STK</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>Interview Participants</h2>
+    <div class="card-grid">
+
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar" style="background:#1e3a5f; color:#38bdf8;">EG</div>
+          <div class="card-meta">
+            <div class="card-name">Esben Gudbrandsen</div>
+            <div class="card-role">Head of Digital Security and CISO - Statnett</div>
+          </div>
+        </div>
+        <p>CISO at Statnett since 2018, with company experience since 1994. Focuses on complexity as a security challenge, baseline security, and AI for defense.</p>
+        <div class="tags">
+          <span class="tag tag-blue">Baseline security</span>
+          <span class="tag tag-blue">False positives</span>
+          <span class="tag tag-blue">AI in defense</span>
+          <span class="tag tag-blue">Information sharing</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar" style="background:#2d2b5e; color:#818cf8;">HN</div>
+          <div class="card-meta">
+            <div class="card-name">Haugstoyl</div>
+            <div class="card-role">Director - NSM (Norwegian National Security Authority)</div>
+          </div>
+        </div>
+        <p>Leads NSM and describes sabotage as the top threat. Highlights VDI systems, IT/OT segmentation, and cross-sector collaboration as key mechanisms.</p>
+        <div class="tags">
+          <span class="tag tag-purple">Sabotage</span>
+          <span class="tag tag-purple">IT/OT segmentation</span>
+          <span class="tag tag-purple">VDI</span>
+          <span class="tag tag-purple">Poland attack</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar" style="background:#134e40; color:#34d399;">TB</div>
+          <div class="card-meta">
+            <div class="card-name">Torbjorn</div>
+            <div class="card-role">Operations Control Center Manager - Hafslund Kraft</div>
+          </div>
+        </div>
+        <p>Leads the operations center controlling power production. Sees automation as a major risk, including internal system failures, and requests a smart setpoint and schedule-value filter.</p>
+        <div class="tags">
+          <span class="tag tag-green">Automation</span>
+          <span class="tag tag-green">Setpoint filtering</span>
+          <span class="tag tag-green">SCADA failures</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar" style="background:#3b2210; color:#fb923c;">TH</div>
+          <div class="card-meta">
+            <div class="card-name">Tor Heiberg</div>
+            <div class="card-role">Security Manager - Power Industry</div>
+          </div>
+        </div>
+        <p>Concerned about supply-chain attacks (SolarWinds 2019, F5 2025). Calls for real-time vulnerability visibility and notes that severe zero-day vulnerabilities are discovered too late.</p>
+        <div class="tags">
+          <span class="tag tag-orange">Supply chain</span>
+          <span class="tag tag-orange">Zero-day</span>
+          <span class="tag tag-orange">Vulnerability scanning</span>
+          <span class="tag tag-orange">Isolation</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar" style="background:#1e3a5f; color:#38bdf8;">VG</div>
+          <div class="card-meta">
+            <div class="card-name">Vetle</div>
+            <div class="card-role">Grid Control Center - Glitrenett</div>
+          </div>
+        </div>
+        <p>Operates the control system for all grid infrastructure at Glitrenett. Identifies centralized control systems as a single point of failure and argues for decentralization.</p>
+        <div class="tags">
+          <span class="tag tag-blue">Decentralization</span>
+          <span class="tag tag-blue">Vendor lock-in</span>
+          <span class="tag tag-blue">SCADA</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar" style="background:#3b1515; color:#f87171;">EK</div>
+          <div class="card-meta">
+            <div class="card-name">Erland Kolstad</div>
+            <div class="card-role">CISO - Aenergi</div>
+          </div>
+        </div>
+        <p>Points to lack of shared situational awareness as the biggest issue in coordinated attacks. Information sharing still happens over email and phone, which is too slow. Requests joint exercises and simulation.</p>
+        <div class="tags">
+          <span class="tag tag-red">Situational awareness</span>
+          <span class="tag tag-red">Information sharing</span>
+          <span class="tag tag-red">Exercises</span>
+          <span class="tag tag-red">Poland attack</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Correlated Themes Across Interviews</h2>
+    <div class="theme-grid">
+
+      <div class="theme-card">
+        <h3><span class="theme-icon">🌐</span> Situational Awareness and Information Sharing</h3>
+        <p>During coordinated attacks, no one has a shared operational overview. Information sharing happens over email and phone, too slowly to coordinate response.</p>
+        <div class="mention-dots">
+          <div class="dot" style="background:#1e3a5f; border: 1px solid #38bdf8;" title="Esben Gudbrandsen">EG</div>
+          <div class="dot" style="background:#2d2b5e; border: 1px solid #818cf8;" title="Haugstoyl NSM">HN</div>
+          <div class="dot" style="background:#3b1515; border: 1px solid #f87171;" title="Erland Kolstad">EK</div>
+          <div class="dot" style="background:#3b2210; border: 1px solid #fb923c;" title="Tor Heiberg">TH</div>
+        </div>
+      </div>
+
+      <div class="theme-card">
+        <h3><span class="theme-icon">⚡</span> Automation Expands the Attack Surface</h3>
+        <p>Faster automation in production and grid operations increases exposure, not only to attacks, but also to unintended failures between internal systems.</p>
+        <div class="mention-dots">
+          <div class="dot" style="background:#134e40; border: 1px solid #34d399;" title="Torbjorn Hafslund">TB</div>
+          <div class="dot" style="background:#1e3a5f; border: 1px solid #38bdf8;" title="Esben Gudbrandsen">EG</div>
+          <div class="dot" style="background:#1e3a5f; border: 1px solid #38bdf8;" title="Vetle Glitrenett">VG</div>
+        </div>
+      </div>
+
+      <div class="theme-card">
+        <h3><span class="theme-icon">🔗</span> Supply-Chain Attacks</h3>
+        <p>SolarWinds (2019) and F5 (2025) show sector-wide exposure to compromised vendors. Shared dependencies create systemic risk.</p>
+        <div class="mention-dots">
+          <div class="dot" style="background:#3b2210; border: 1px solid #fb923c;" title="Tor Heiberg">TH</div>
+          <div class="dot" style="background:#1e3a5f; border: 1px solid #38bdf8;" title="Vetle Glitrenett">VG</div>
+          <div class="dot" style="background:#2d2b5e; border: 1px solid #818cf8;" title="Haugstoyl NSM">HN</div>
+        </div>
+      </div>
+
+      <div class="theme-card">
+        <h3><span class="theme-icon">🧱</span> IT/OT Segmentation</h3>
+        <p>Separating business IT from operational OT systems is critical. Isolation during incidents can halt power trading, creating an operational dilemma.</p>
+        <div class="mention-dots">
+          <div class="dot" style="background:#2d2b5e; border: 1px solid #818cf8;" title="Haugstoyl NSM">HN</div>
+          <div class="dot" style="background:#3b2210; border: 1px solid #fb923c;" title="Tor Heiberg">TH</div>
+        </div>
+      </div>
+
+      <div class="theme-card">
+        <h3><span class="theme-icon">🔍</span> Real-Time Vulnerability Visibility</h3>
+        <p>Zero-day vulnerabilities are discovered too late. Continuous, automated visibility into current software and firmware weaknesses is missing.</p>
+        <div class="mention-dots">
+          <div class="dot" style="background:#3b2210; border: 1px solid #fb923c;" title="Tor Heiberg">TH</div>
+          <div class="dot" style="background:#1e3a5f; border: 1px solid #38bdf8;" title="Esben Gudbrandsen">EG</div>
+        </div>
+      </div>
+
+      <div class="theme-card">
+        <h3><span class="theme-icon">🛡️</span> Baseline Security Is Undervalued</h3>
+        <p>The sector chases new technology and AI, while practical fundamentals such as patching, updates, and access control remain the strongest protection.</p>
+        <div class="mention-dots">
+          <div class="dot" style="background:#1e3a5f; border: 1px solid #38bdf8;" title="Esben Gudbrandsen">EG</div>
+          <div class="dot" style="background:#2d2b5e; border: 1px solid #818cf8;" title="Haugstoyl NSM">HN</div>
+        </div>
+      </div>
+
+      <div class="theme-card">
+        <h3><span class="theme-icon">🚨</span> Alert Fatigue and False Positives</h3>
+        <p>High alert volume makes critical detection harder. Operator competence is as important as tooling quality.</p>
+        <div class="mention-dots">
+          <div class="dot" style="background:#1e3a5f; border: 1px solid #38bdf8;" title="Esben Gudbrandsen">EG</div>
+          <div class="dot" style="background:#134e40; border: 1px solid #34d399;" title="Torbjorn Hafslund">TB</div>
+        </div>
+      </div>
+
+      <div class="theme-card">
+        <h3><span class="theme-icon">🏗️</span> Centralization as a Vulnerability</h3>
+        <p>A unified control system is efficient but becomes an ideal target. If trust in telemetry is lost, operations fall back to manual control.</p>
+        <div class="mention-dots">
+          <div class="dot" style="background:#1e3a5f; border: 1px solid #38bdf8;" title="Vetle Glitrenett">VG</div>
+          <div class="dot" style="background:#134e40; border: 1px solid #34d399;" title="Torbjorn Hafslund">TB</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Correlation Matrix</h2>
+    <div style="overflow-x:auto;">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>Theme</th>
+            <th>Esben (Statnett)</th>
+            <th>Haugstoyl (NSM)</th>
+            <th>Torbjorn (Hafslund)</th>
+            <th>Tor Heiberg</th>
+            <th>Vetle (Glitrenett)</th>
+            <th>Erland (Aenergi)</th>
+            <th>Support</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Situational awareness and sharing</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td></td>
+            <td class="check">✓</td>
+            <td></td>
+            <td class="strong-check">★</td>
+            <td><span class="tag tag-orange">4/6</span></td>
+          </tr>
+          <tr>
+            <td>Automation and exposure</td>
+            <td class="check">✓</td>
+            <td></td>
+            <td class="strong-check">★</td>
+            <td></td>
+            <td class="check">✓</td>
+            <td></td>
+            <td><span class="tag tag-blue">3/6</span></td>
+          </tr>
+          <tr>
+            <td>Supply-chain attacks</td>
+            <td></td>
+            <td class="check">✓</td>
+            <td></td>
+            <td class="strong-check">★</td>
+            <td class="check">✓</td>
+            <td></td>
+            <td><span class="tag tag-blue">3/6</span></td>
+          </tr>
+          <tr>
+            <td>IT/OT segmentation</td>
+            <td></td>
+            <td class="strong-check">★</td>
+            <td></td>
+            <td class="check">✓</td>
+            <td></td>
+            <td></td>
+            <td><span class="tag tag-purple">2/6</span></td>
+          </tr>
+          <tr>
+            <td>Real-time vulnerability visibility</td>
+            <td class="check">✓</td>
+            <td></td>
+            <td></td>
+            <td class="strong-check">★</td>
+            <td></td>
+            <td></td>
+            <td><span class="tag tag-purple">2/6</span></td>
+          </tr>
+          <tr>
+            <td>Baseline security undervalued</td>
+            <td class="strong-check">★</td>
+            <td class="check">✓</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><span class="tag tag-purple">2/6</span></td>
+          </tr>
+          <tr>
+            <td>Alert fatigue / false positives</td>
+            <td class="strong-check">★</td>
+            <td></td>
+            <td class="check">✓</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><span class="tag tag-purple">2/6</span></td>
+          </tr>
+          <tr>
+            <td>Centralization as risk</td>
+            <td></td>
+            <td></td>
+            <td class="check">✓</td>
+            <td></td>
+            <td class="strong-check">★</td>
+            <td></td>
+            <td><span class="tag tag-purple">2/6</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin-top:10px;">★ = primary theme for the person | ✓ = mentioned/relevant</p>
+  </section>
+
+  <section>
+    <h2>Key Statements</h2>
+    <div class="quote-grid">
+
+      <div class="quote-card">
+        <blockquote>"Baseline security is probably what protects you best - make sure it is in place. That may be the single most important thing you do."</blockquote>
+        <div class="quote-source">Esben Gudbrandsen - CISO, Statnett</div>
+      </div>
+
+      <div class="quote-card" style="border-left-color: #818cf8;">
+        <blockquote>"Sabotage is the biggest challenge. It is very easy to enter critical systems because some basic security controls are not in place."</blockquote>
+        <div class="quote-source">Haugstoyl - Director, NSM</div>
+      </div>
+
+      <div class="quote-card" style="border-left-color: #34d399;">
+        <blockquote>"I would ask for a filter that prevents wrong setpoints from being sent from our aggregates. With such a filter, I would feel even more confident about increased automation."</blockquote>
+        <div class="quote-source">Torbjorn - Operations Control Center Manager, Hafslund Kraft</div>
+      </div>
+
+      <div class="quote-card" style="border-left-color: #fb923c;">
+        <blockquote>"Severe zero-day vulnerabilities are discovered too late. I want a super-software that continuously scans and gives near real-time vulnerability status."</blockquote>
+        <div class="quote-source">Tor Heiberg - Security Manager</div>
+      </div>
+
+      <div class="quote-card" style="border-left-color: #38bdf8;">
+        <blockquote>"If we can no longer trust the data we see, we can no longer trust the control system. Then we shut everything down and run stations manually by phone."</blockquote>
+        <div class="quote-source">Vetle - Grid Control Center, Glitrenett</div>
+      </div>
+
+      <div class="quote-card" style="border-left-color: #f87171;">
+        <blockquote>"We handle symptoms instead of understanding what is actually happening. We lack an environment that can connect the dots and understand the real situation."</blockquote>
+        <div class="quote-source">Erland Kolstad - CISO, Aenergi</div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Team STK - Krafthack 2026 - Transcribed with whisper-cpp - Analysis only
+</footer>
+
+</body>
+</html>

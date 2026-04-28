@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STK — Angrepsscenario</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg: #020817;
+      --bg2: #050d1a;
+      --border: #0f2847;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --dim: #334155;
+      --green: #22c55e;
+      --green-glow: rgba(34,197,94,0.25);
+      --red: #ef4444;
+      --red-glow: rgba(239,68,68,0.3);
+      --orange: #fb923c;
+      --orange-glow: rgba(251,146,60,0.25);
+      --blue: #38bdf8;
+      --blue-glow: rgba(56,189,248,0.25);
+      --purple: #818cf8;
+      --teal: #34d399;
+      --teal-glow: rgba(52,211,153,0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    .brand {
+      font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--blue); font-weight: 700;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .brand::before {
+      content: ''; display: inline-block; width: 8px; height: 8px;
+      background: var(--blue); border-radius: 50%; box-shadow: 0 0 8px var(--blue-glow);
+    }
+
+    .clock {
+      font-family: 'JetBrains Mono', monospace; font-size: 28px;
+      color: var(--text); letter-spacing: 4px; font-weight: 500;
+    }
+
+    .phase-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); text-align: right; }
+    .phase-label span { display: block; font-size: 14px; font-weight: 600; color: var(--text); letter-spacing: 0.5px; margin-top: 2px; }
+
+    #main { display: flex; flex: 1; overflow: hidden; }
+
+    #map-wrap {
+      flex: 1; position: relative; overflow: hidden;
+      background: radial-gradient(ellipse at 50% 30%, #071428 0%, #020817 70%);
+    }
+
+    #map-wrap > svg#map { width: 100%; height: 100%; position: relative; z-index: 2; }
+
+    #aurora-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .aurora-band {
+      position: absolute; left: -10%; width: 120%; height: 180px;
+      border-radius: 50%; filter: blur(60px); opacity: 0;
+      animation: aurora-drift 12s ease-in-out infinite alternate;
+    }
+    .ab1 { top: 5%;  background: rgba(56,189,248,0.12); animation-delay: 0s;    animation-duration: 14s; }
+    .ab2 { top: 12%; background: rgba(129,140,248,0.09); animation-delay: -3s;   animation-duration: 18s; }
+    .ab3 { top: 2%;  background: rgba(52,211,153,0.07);  animation-delay: -7s;   animation-duration: 16s; }
+    .ab4 { top: 18%; background: rgba(56,189,248,0.06);  animation-delay: -10s;  animation-duration: 20s; }
+
+    @keyframes aurora-drift {
+      0%   { transform: translateX(-8%) scaleY(1);   opacity: 0.6; }
+      25%  { transform: translateX(3%) scaleY(1.3);  opacity: 1; }
+      50%  { transform: translateX(8%) scaleY(0.8);  opacity: 0.7; }
+      75%  { transform: translateX(-3%) scaleY(1.1); opacity: 0.9; }
+      100% { transform: translateX(-8%) scaleY(1);   opacity: 0.6; }
+    }
+
+    .power-line {
+      stroke: #1a3355; stroke-width: 1; fill: none; opacity: 0.3;
+      transition: stroke 0.8s, opacity 0.8s, stroke-width 0.8s;
+    }
+    .power-line.active   { stroke: #1e5a3f; opacity: 0.5; stroke-width: 1; }
+    .power-line.attacked { stroke: var(--red); opacity: 0.8; stroke-width: 1.5; filter: url(#glow-red); }
+    .power-line.isolated { stroke: var(--orange); opacity: 0.5; stroke-width: 1; stroke-dasharray: 5 3; }
+    .power-line.stk  { stroke: var(--blue); opacity: 0.9; stroke-width: 1.5; filter: url(#glow-blue); }
+    .power-line.restored { stroke: var(--teal); opacity: 0.6; stroke-width: 1; }
+
+    .node-halo { fill: none; stroke-width: 1; opacity: 0; transition: opacity 0.6s; }
+    .node-ring {
+      fill: #0a1525; stroke: #1e4a7f; stroke-width: 1.5;
+      transition: fill 0.6s, stroke 0.6s;
+    }
+    .node-icon-text { text-anchor: middle; dominant-baseline: central; pointer-events: none; user-select: none; }
+    .node-name {
+      font-family: 'Inter', sans-serif; font-weight: 600; fill: #94a3b8;
+      text-anchor: middle; pointer-events: none; transition: fill 0.5s;
+    }
+    .node-sub {
+      font-family: 'Inter', sans-serif; font-weight: 400; fill: #475569;
+      text-anchor: middle; pointer-events: none;
+    }
+
+    .node-group[data-state="ok"] .node-ring       { fill: #071f12; stroke: var(--green); }
+    .node-group[data-state="ok"] .node-halo        { stroke: var(--green); opacity: 0.15; }
+    .node-group[data-state="ok"] .node-name        { fill: #86efac; }
+    .node-group[data-state="warning"] .node-ring   { fill: #1f1500; stroke: var(--orange); }
+    .node-group[data-state="warning"] .node-halo   { stroke: var(--orange); opacity: 0.4; animation: halo-pulse-warn 1s infinite; }
+    .node-group[data-state="warning"] .node-name   { fill: var(--orange); }
+    .node-group[data-state="attacked"] .node-ring  { fill: #2a0808; stroke: var(--red); }
+    .node-group[data-state="attacked"] .node-halo  { stroke: var(--red); opacity: 0.5; animation: halo-pulse-red 0.7s infinite; }
+    .node-group[data-state="attacked"] .node-name  { fill: #fca5a5; }
+    .node-group[data-state="isolated"] .node-ring  { fill: #1a1200; stroke: var(--orange); stroke-dasharray: 3 2; }
+    .node-group[data-state="isolated"] .node-halo  { stroke: var(--orange); opacity: 0.2; }
+    .node-group[data-state="isolated"] .node-name  { fill: #fcd34d; }
+    .node-group[data-state="stk"] .node-ring   { fill: #041525; stroke: var(--blue); stroke-width: 2; }
+    .node-group[data-state="stk"] .node-halo   { stroke: var(--blue); opacity: 0.35; animation: halo-pulse-blue 1.5s infinite; }
+    .node-group[data-state="stk"] .node-name   { fill: var(--blue); }
+    .node-group[data-state="restored"] .node-ring  { fill: #041f12; stroke: var(--teal); }
+    .node-group[data-state="restored"] .node-halo  { stroke: var(--teal); opacity: 0.3; animation: halo-pulse-green 2s infinite; }
+    .node-group[data-state="restored"] .node-name  { fill: var(--teal); }
+
+    @keyframes halo-pulse-red   { 0%,100%{ r: 22; opacity:0.5; } 50%{ r: 30; opacity:0.15; } }
+    @keyframes halo-pulse-warn  { 0%,100%{ r: 22; opacity:0.4; } 50%{ r: 28; opacity:0.1; } }
+    @keyframes halo-pulse-blue  { 0%,100%{ r: 22; opacity:0.35;} 50%{ r: 30; opacity:0.1; } }
+    @keyframes halo-pulse-green { 0%,100%{ r: 22; opacity:0.3; } 50%{ r: 28; opacity:0.1; } }
+
+    .ripple-ring { fill: none; stroke-width: 1.5; opacity: 0; pointer-events: none; }
+
+    #narration {
+      position: absolute; bottom: 24px; left: 24px; z-index: 10;
+      background: rgba(5,13,26,0.92); backdrop-filter: blur(12px);
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px 22px; max-width: 420px;
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.5s, transform 0.5s; pointer-events: none;
+    }
+    #narration.visible { opacity: 1; transform: translateY(0); }
+    #narration .nar-phase { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
+    #narration .nar-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    #narration .nar-desc  { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+    #stk-overlay {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: rgba(4,21,37,0.96); backdrop-filter: blur(16px);
+      border: 2px solid var(--blue); border-radius: 16px;
+      padding: 28px 36px; text-align: center;
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.6s, transform 0.6s; z-index: 15;
+      box-shadow: 0 0 60px var(--blue-glow), 0 0 120px rgba(56,189,248,0.1);
+    }
+    #stk-overlay.visible { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    #stk-overlay .alert-icon { font-size: 36px; margin-bottom: 8px; }
+    #stk-overlay h3 { color: var(--blue); font-size: 16px; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; font-weight: 700; }
+    #stk-overlay p  { color: #94a3b8; font-size: 13px; line-height: 1.6; }
+    #stk-overlay .rec { color: var(--teal); font-size: 13px; margin-top: 12px; font-weight: 600; }
+
+    #zoom-indicator {
+      position: absolute; top: 12px; left: 12px; z-index: 10;
+      background: rgba(5,13,26,0.85); backdrop-filter: blur(8px);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 6px 12px; font-size: 10px; color: var(--muted);
+      letter-spacing: 1px; text-transform: uppercase; font-weight: 600;
+      opacity: 0; transition: opacity 0.4s; pointer-events: none;
+    }
+    #zoom-indicator.visible { opacity: 1; }
+
+    #sidebar {
+      width: 320px; border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; flex-shrink: 0; background: var(--bg2);
+    }
+
+    #legend {
+      padding: 12px 14px; border-bottom: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; gap: 6px 12px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+    .legend-dot  { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+    #status-panel { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    #status-header { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--dim); margin-bottom: 8px; font-weight: 600; }
+    #status-indicator {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border-radius: 8px;
+      background: #071f12; border: 1px solid var(--green); transition: all 0.5s;
+    }
+    #status-indicator.alert         { background:#1f0808; border-color:var(--red); }
+    #status-indicator.warn          { background:#1f1500; border-color:var(--orange); }
+    #status-indicator.stk-active{ background:#041525; border-color:var(--blue); }
+    #status-indicator.response      { background:#041f12; border-color:var(--teal); }
+
+    #status-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0; transition: background 0.5s;
+      box-shadow: 0 0 6px var(--green-glow);
+    }
+    #status-indicator.alert   #status-dot { background: var(--red);    box-shadow: 0 0 8px var(--red-glow);    animation: dot-pulse-red 0.6s infinite; }
+    #status-indicator.warn    #status-dot { background: var(--orange); box-shadow: 0 0 8px var(--orange-glow); }
+    #status-indicator.stk-active #status-dot { background: var(--blue); box-shadow: 0 0 8px var(--blue-glow); animation: dot-pulse-blue 1s infinite; }
+    #status-indicator.response #status-dot { background: var(--teal);  box-shadow: 0 0 6px var(--teal-glow); }
+
+    @keyframes dot-pulse-red  { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    @keyframes dot-pulse-blue { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    #status-text { font-size: 13px; font-weight: 600; }
+
+    #node-status-grid {
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    }
+    .ns-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 6px; border-radius: 5px; background: #0a1120;
+      font-size: 10px; transition: all 0.4s;
+    }
+    .ns-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0;
+      transition: background 0.4s, box-shadow 0.4s;
+    }
+    .ns-item[data-state="ok"] .ns-dot       { background: var(--green); }
+    .ns-item[data-state="warning"] .ns-dot   { background: var(--orange); box-shadow: 0 0 4px var(--orange-glow); }
+    .ns-item[data-state="attacked"] .ns-dot  { background: var(--red);    box-shadow: 0 0 6px var(--red-glow); }
+    .ns-item[data-state="isolated"] .ns-dot  { background: var(--orange); }
+    .ns-item[data-state="stk"] .ns-dot   { background: var(--blue);   box-shadow: 0 0 4px var(--blue-glow); }
+    .ns-item[data-state="restored"] .ns-dot  { background: var(--teal); }
+    .ns-name  { flex: 1; color: var(--text); font-weight: 500; }
+    .ns-state {
+      font-family: 'JetBrains Mono', monospace; font-size: 8px;
+      text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); transition: color 0.4s;
+    }
+    .ns-item[data-state="ok"] .ns-state       { color: #4ade80; }
+    .ns-item[data-state="warning"] .ns-state   { color: var(--orange); }
+    .ns-item[data-state="attacked"] .ns-state  { color: var(--red); }
+    .ns-item[data-state="isolated"] .ns-state  { color: #fbbf24; }
+    .ns-item[data-state="stk"] .ns-state   { color: var(--blue); }
+    .ns-item[data-state="restored"] .ns-state  { color: var(--teal); }
+
+    #event-log {
+      flex: 1; overflow-y: auto; padding: 8px 10px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    #event-log::-webkit-scrollbar       { width: 4px; }
+    #event-log::-webkit-scrollbar-track  { background: transparent; }
+    #event-log::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 2px; }
+    #event-log-header {
+      font-size: 9px; text-transform: uppercase; letter-spacing: 2px;
+      color: var(--dim); padding: 0 4px 6px; border-bottom: 1px solid var(--border);
+      margin-bottom: 3px; font-weight: 600;
+    }
+    .event {
+      display: flex; gap: 6px; padding: 5px 8px; border-radius: 5px;
+      font-size: 10px; line-height: 1.5; border-left: 3px solid transparent;
+      background: #080f1e; opacity: 0; transform: translateX(16px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .event.visible { opacity: 1; transform: translateX(0); }
+    .event.red    { border-left-color: var(--red); }
+    .event.orange { border-left-color: var(--orange); }
+    .event.blue   { border-left-color: var(--blue); }
+    .event.green  { border-left-color: var(--green); }
+    .event.purple { border-left-color: var(--purple); }
+    .event-time { color: var(--dim); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; font-size: 9px; margin-top: 1px; }
+    .event-body { color: #cbd5e1; }
+    .event-body strong { display: block; font-size: 10px; margin-bottom: 1px; color: var(--text); }
+    .event-body span   { color: var(--muted); font-size: 9.5px; }
+
+    #bottom-bar {
+      border-top: 1px solid var(--border); padding: 10px 24px;
+      display: flex; align-items: center; gap: 14px; flex-shrink: 0; background: var(--bg);
+    }
+    #phase-steps { display: flex; gap: 4px; flex-shrink: 0; }
+    .phase-step {
+      padding: 4px 12px; border-radius: 12px; border: 1px solid var(--border);
+      font-size: 10px; font-weight: 500; color: var(--dim);
+      text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s; cursor: default;
+    }
+    .phase-step.active { border-color: var(--blue); color: var(--blue); background: rgba(56,189,248,0.08); }
+    .phase-step.done   { border-color: var(--dim);  color: var(--dim);  background: rgba(51,65,85,0.1); }
+    #progress-wrap { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    #progress-bar { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 2px; width: 0%; transition: width 1s linear; }
+    #replay-btn {
+      background: rgba(56,189,248,0.08); border: 1px solid var(--blue); color: var(--blue);
+      border-radius: 8px; padding: 7px 20px; font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; flex-shrink: 0;
+    }
+    #replay-btn:hover { background: rgba(56,189,248,0.15); box-shadow: 0 0 16px var(--blue-glow); }
+
+    @keyframes screen-shake {
+      0%,100% { transform: translate(0,0); }
+      10% { transform: translate(-2px, 1px); }
+      30% { transform: translate(2px, -1px); }
+      50% { transform: translate(-1px, 2px); }
+      70% { transform: translate(1px, -2px); }
+      90% { transform: translate(-1px, 0px); }
+    }
+    body.shake { animation: screen-shake 0.35s ease-out; }
+  </style>
+</head>
+<body>
+
+<div id="top-bar">
+  <div class="brand">STK &mdash; Krafthack 2026</div>
+  <div class="clock" id="clock">09:00:00</div>
+  <div class="phase-label">Scenario<br><span id="phase-name">Normal drift</span></div>
+</div>
+
+<div id="main">
+  <div id="map-wrap">
+    <div id="aurora-bg">
+      <div class="aurora-band ab1"></div>
+      <div class="aurora-band ab2"></div>
+      <div class="aurora-band ab3"></div>
+      <div class="aurora-band ab4"></div>
+    </div>
+    <div id="zoom-indicator">&#128269; Østlandet</div>
+
+    <svg id="map" viewBox="0 0 500 800" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-blue" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="node-shadow" x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
+        </filter>
+      </defs>
+
+      <!-- NORWAY MAP BACKGROUND -->
+      <g id="norway-bg" opacity="0.18">
+        <image href="https://upload.wikimedia.org/wikipedia/commons/c/c3/Norway_Counties_Blank.svg"
+               x="30" y="0" width="420" height="800"
+               style="filter: saturate(0) brightness(0.4) contrast(1.8);"
+               preserveAspectRatio="xMidYMid meet"/>
+      </g>
+
+      <g opacity="0.06">
+        <line x1="0" y1="100" x2="500" y2="100" stroke="#1e3a5f" stroke-width="0.5"/>
+        <line x1="0" y1="200" x2="500" y2="200" stroke="#1e3a5f" stroke-width="0.5"/>
+        <line x1="0" y1="300" x2="500" y2="300" stroke="#1e3a5f" stroke-width="0.5"/>
+        <line x1="0" y1="400" x2="500" y2="400" stroke="#1e3a5f" stroke-width="0.5"/>
+        <line x1="0" y1="500" x2="500" y2="500" stroke="#1e3a5f" stroke-width="0.5"/>
+        <line x1="0" y1="600" x2="500" y2="600" stroke="#1e3a5f" stroke-width="0.5"/>
+        <line x1="0" y1="700" x2="500" y2="700" stroke="#1e3a5f" stroke-width="0.5"/>
+        <line x1="100" y1="0" x2="100" y2="800" stroke="#1e3a5f" stroke-width="0.5"/>
+        <line x1="200" y1="0" x2="200" y2="800" stroke="#1e3a5f" stroke-width="0.5"/>
+        <line x1="300" y1="0" x2="300" y2="800" stroke="#1e3a5f" stroke-width="0.5"/>
+        <line x1="400" y1="0" x2="400" y2="800" stroke="#1e3a5f" stroke-width="0.5"/>
+      </g>
+
+      <text x="250" y="24" text-anchor="middle" font-family="'Inter',sans-serif" font-size="8" font-weight="600" fill="#1e3a5f" letter-spacing="4">NORGE — KRAFTNETT</text>
+
+      <!--
+        GEOGRAFISKE POSISJONER (kilde SVG 740x790 → viewBox 500x800):
+        image: x=30, y=0, w=420, h=800
+        vx = 30 + (sx/740)*420, vy = 0 + (sy/790)*800
+
+        Troms Kraft (Tromsø):    sx≈440,sy≈125 → vx≈280, vy≈127
+        Nordkraft (Narvik):      sx≈380,sy≈235 → vx≈246, vy≈238
+        Lofotkraft (Lofoten):    sx≈340,sy≈300 → vx≈223, vy≈304
+        Tensio (Trondheim):      sx≈250,sy≈455 → vx≈172, vy≈461
+        BKK (Bergen):            sx≈70, sy≈620 → vx≈70,  vy≈628
+        Lyse (Stavanger):        sx≈55, sy≈735 → vx≈61,  vy≈744
+        Lede (Stavanger-nord):   sx≈62, sy≈715 → vx≈65,  vy≈724
+        Elvia (Hamar/Innlandet): sx≈200,sy≈610 → vx≈144, vy≈618
+        Statnett (Oslo):         sx≈190,sy≈685 → vx≈138, vy≈694
+        Hafslund (Oslo-øst):     sx≈205,sy≈678 → vx≈146, vy≈687
+        Glitrenett (Drammen):    sx≈150,sy≈705 → vx≈115, vy≈714
+        Aenergi (Agder):         sx≈115,sy≈755 → vx≈95,  vy≈765
+        KraftCERT (Sandvika):    sx≈175,sy≈688 → vx≈129, vy≈697
+
+        Justerte posisjoner for lesbarhet (spread ut tette klynger):
+      -->
+
+      <!-- ── MESH POWER LINES ── -->
+      <!-- Nord -->
+      <line id="line-tromskraft-nordkraft"  class="power-line" x1="290" y1="125" x2="255" y2="230"/>
+      <line id="line-nordkraft-lofotkraft"  class="power-line" x1="255" y1="230" x2="220" y2="300"/>
+      <line id="line-lofotkraft-tensio"     class="power-line" x1="220" y1="300" x2="185" y2="455"/>
+      <line id="line-tromskraft-tensio"     class="power-line" x1="290" y1="125" x2="185" y2="455"/>
+      <!-- Midt → Sør -->
+      <line id="line-tensio-bkk"            class="power-line" x1="185" y1="455" x2="72"  y2="615"/>
+      <line id="line-tensio-elvia"          class="power-line" x1="185" y1="455" x2="175" y2="600"/>
+      <line id="line-elvia-statnett"        class="power-line" x1="175" y1="600" x2="148" y2="680"/>
+      <line id="line-bkk-lyse"             class="power-line" x1="72"  y1="615" x2="58"  y2="725"/>
+      <line id="line-bkk-lede"             class="power-line" x1="72"  y1="615" x2="75"  y2="700"/>
+      <!-- Østlandet mesh -->
+      <line id="line-statnett-hafslund"     class="power-line" x1="148" y1="680" x2="195" y2="670"/>
+      <line id="line-statnett-glitrenett"   class="power-line" x1="148" y1="680" x2="115" y2="710"/>
+      <line id="line-statnett-bkk"          class="power-line" x1="148" y1="680" x2="72"  y2="615"/>
+      <line id="line-hafslund-glitrenett"   class="power-line" x1="195" y1="670" x2="115" y2="710"/>
+      <line id="line-hafslund-elvia"        class="power-line" x1="195" y1="670" x2="175" y2="600"/>
+      <line id="line-glitrenett-aenergi"    class="power-line" x1="115" y1="710" x2="90"  y2="760"/>
+      <line id="line-hafslund-aenergi"      class="power-line" x1="195" y1="670" x2="90"  y2="760"/>
+      <line id="line-aenergi-lede"          class="power-line" x1="90"  y1="760" x2="75"  y2="700"/>
+      <line id="line-aenergi-lyse"          class="power-line" x1="90"  y1="760" x2="58"  y2="725"/>
+      <!-- KraftCERT peer links -->
+      <line id="line-statnett-kraftcert"    class="power-line" x1="148" y1="680" x2="260" y2="650"/>
+      <line id="line-kraftcert-hafslund"    class="power-line" x1="260" y1="650" x2="195" y2="670"/>
+      <line id="line-kraftcert-elvia"       class="power-line" x1="260" y1="650" x2="175" y2="600"/>
+      <line id="line-kraftcert-lofotkraft"  class="power-line" x1="260" y1="650" x2="220" y2="300"/>
+
+      <!-- PARTICLE LAYER -->
+      <g id="particles"></g>
+
+      <!-- RIPPLE LAYER -->
+      <circle id="r-tromskraft"  cx="290" cy="125" r="16" class="ripple-ring"/>
+      <circle id="r-nordkraft"   cx="255" cy="230" r="16" class="ripple-ring"/>
+      <circle id="r-lofotkraft"  cx="220" cy="300" r="16" class="ripple-ring"/>
+      <circle id="r-tensio"      cx="185" cy="455" r="16" class="ripple-ring"/>
+      <circle id="r-bkk"         cx="72"  cy="615" r="16" class="ripple-ring"/>
+      <circle id="r-elvia"       cx="175" cy="600" r="16" class="ripple-ring"/>
+      <circle id="r-lyse"        cx="58"  cy="725" r="16" class="ripple-ring"/>
+      <circle id="r-lede"        cx="75"  cy="700" r="16" class="ripple-ring"/>
+      <circle id="r-statnett"    cx="148" cy="680" r="16" class="ripple-ring"/>
+      <circle id="r-hafslund"    cx="195" cy="670" r="16" class="ripple-ring"/>
+      <circle id="r-glitrenett"  cx="115" cy="710" r="16" class="ripple-ring"/>
+      <circle id="r-aenergi"     cx="90"  cy="760" r="16" class="ripple-ring"/>
+      <circle id="r-kraftcert"   cx="260" cy="650" r="16" class="ripple-ring"/>
+
+      <!-- ── NODES (small — r=14 base, scales with zoom) ── -->
+
+      <g class="node-group" id="node-tromskraft" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="290" cy="125" r="22" stroke="var(--green)"/>
+        <circle class="node-ring" cx="290" cy="125" r="14"/>
+        <text class="node-icon-text" x="290" y="125" font-size="11">&#10052;</text>
+        <text class="node-name" x="290" y="148" font-size="8">Troms Kraft</text>
+        <text class="node-sub" x="290" y="157" font-size="6">Tromsø</text>
+      </g>
+
+      <g class="node-group" id="node-nordkraft" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="255" cy="230" r="22" stroke="var(--green)"/>
+        <circle class="node-ring" cx="255" cy="230" r="14"/>
+        <text class="node-icon-text" x="255" y="230" font-size="11">&#9968;</text>
+        <text class="node-name" x="255" y="253" font-size="8">Nordkraft</text>
+        <text class="node-sub" x="255" y="262" font-size="6">Narvik</text>
+      </g>
+
+      <g class="node-group" id="node-lofotkraft" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="220" cy="300" r="22" stroke="var(--green)"/>
+        <circle class="node-ring" cx="220" cy="300" r="14"/>
+        <text class="node-icon-text" x="220" y="300" font-size="11">&#127754;</text>
+        <text class="node-name" x="220" y="323" font-size="8">Lofotkraft</text>
+        <text class="node-sub" x="220" y="332" font-size="6">Lofoten</text>
+      </g>
+
+      <g class="node-group" id="node-tensio" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="185" cy="455" r="22" stroke="var(--green)"/>
+        <circle class="node-ring" cx="185" cy="455" r="14"/>
+        <text class="node-icon-text" x="185" y="455" font-size="11">&#127794;</text>
+        <text class="node-name" x="185" y="478" font-size="8">Tensio</text>
+        <text class="node-sub" x="185" y="487" font-size="6">Trondheim</text>
+      </g>
+
+      <g class="node-group" id="node-bkk" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="72" cy="615" r="22" stroke="var(--green)"/>
+        <circle class="node-ring" cx="72" cy="615" r="14"/>
+        <text class="node-icon-text" x="72" y="615" font-size="11">&#128167;</text>
+        <text class="node-name" x="42" y="612" font-size="8">BKK</text>
+        <text class="node-sub" x="42" y="621" font-size="6">Bergen</text>
+      </g>
+
+      <g class="node-group" id="node-elvia" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="175" cy="600" r="22" stroke="var(--green)"/>
+        <circle class="node-ring" cx="175" cy="600" r="14"/>
+        <text class="node-icon-text" x="175" y="600" font-size="11">&#127968;</text>
+        <text class="node-name" x="200" y="595" font-size="8">Elvia</text>
+        <text class="node-sub" x="200" y="604" font-size="6">Innlandet</text>
+      </g>
+
+      <g class="node-group" id="node-lede" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="75" cy="700" r="22" stroke="var(--green)"/>
+        <circle class="node-ring" cx="75" cy="700" r="14"/>
+        <text class="node-icon-text" x="75" y="700" font-size="11">&#128268;</text>
+        <text class="node-name" x="45" y="698" font-size="8">Lede</text>
+        <text class="node-sub" x="45" y="707" font-size="6">Stavanger</text>
+      </g>
+
+      <g class="node-group" id="node-lyse" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="58" cy="725" r="22" stroke="var(--green)"/>
+        <circle class="node-ring" cx="58" cy="725" r="14"/>
+        <text class="node-icon-text" x="58" y="725" font-size="11">&#128161;</text>
+        <text class="node-name" x="28" y="725" font-size="8">Lyse</text>
+        <text class="node-sub" x="28" y="734" font-size="6">Rogaland</text>
+      </g>
+
+      <g class="node-group" id="node-statnett" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="148" cy="680" r="26" stroke="var(--green)"/>
+        <circle class="node-ring" cx="148" cy="680" r="17"/>
+        <text class="node-icon-text" x="148" y="680" font-size="14">&#9889;</text>
+        <text class="node-name" x="148" y="706" font-size="9" font-weight="700">Statnett</text>
+        <text class="node-sub" x="148" y="716" font-size="6">TSO — Oslo</text>
+      </g>
+
+      <g class="node-group" id="node-hafslund" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="195" cy="670" r="22" stroke="var(--green)"/>
+        <circle class="node-ring" cx="195" cy="670" r="14"/>
+        <text class="node-icon-text" x="195" y="670" font-size="11">&#127981;</text>
+        <text class="node-name" x="220" y="662" font-size="8">Hafslund</text>
+        <text class="node-sub" x="220" y="671" font-size="6">Oslo</text>
+      </g>
+
+      <g class="node-group" id="node-glitrenett" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="115" cy="710" r="22" stroke="var(--green)"/>
+        <circle class="node-ring" cx="115" cy="710" r="14"/>
+        <text class="node-icon-text" x="115" y="710" font-size="11">&#9881;</text>
+        <text class="node-name" x="115" y="733" font-size="8">Glitrenett</text>
+        <text class="node-sub" x="115" y="742" font-size="6">Drammen</text>
+      </g>
+
+      <g class="node-group" id="node-aenergi" data-state="ok" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="90" cy="760" r="22" stroke="var(--green)"/>
+        <circle class="node-ring" cx="90" cy="760" r="14"/>
+        <text class="node-icon-text" x="90" y="760" font-size="11">&#9889;</text>
+        <text class="node-name" x="115" y="760" font-size="8">Aenergi</text>
+        <text class="node-sub" x="115" y="769" font-size="6">Agder</text>
+      </g>
+
+      <g class="node-group" id="node-kraftcert" data-state="stk" filter="url(#node-shadow)">
+        <circle class="node-halo" cx="260" cy="650" r="26" stroke="var(--blue)"/>
+        <circle class="node-ring" cx="260" cy="650" r="17"/>
+        <text class="node-icon-text" x="260" y="650" font-size="14">&#128737;</text>
+        <text class="node-name" x="260" y="676" font-size="9" font-weight="700">KraftCERT</text>
+        <text class="node-sub" x="260" y="686" font-size="6">Peer-node</text>
+      </g>
+
+      <text x="10" y="792" font-family="'Inter',sans-serif" font-size="6" fill="#1e3a5f" opacity="0.6">Kilde: CERT Polska 29.12.2025 — Attribuert: Berserk Bear / Ghost Blizzard (FSB)</text>
+    </svg>
+
+    <div id="stk-overlay">
+      <div class="alert-icon">&#128737;</div>
+      <h3>STK Mesh — Koordinert angrep detektert</h3>
+      <p>6 peer-noder berørt &bull; Gossip-korrelering: Berserk Bear TTPs<br>Konfidensgrad: <strong style="color:var(--red);">KRITISK</strong></p>
+      <div class="rec">&#10003; Handlingsforslag propagert via gossip til alle 13 peers</div>
+    </div>
+
+    <div id="narration">
+      <div class="nar-phase" id="nar-phase"></div>
+      <div class="nar-title" id="nar-title"></div>
+      <div class="nar-desc" id="nar-desc"></div>
+    </div>
+  </div>
+
+  <div id="sidebar">
+    <div id="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div>Online</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--orange);"></div>Advarsel</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red);"></div>Angrep</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--blue);"></div>STK</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--teal);"></div>Gjenopprettet</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;"></div>Isolert</div>
+    </div>
+
+    <div id="status-panel">
+      <div id="status-header">Systemstatus</div>
+      <div id="status-indicator" class="ok">
+        <div id="status-dot"></div>
+        <div id="status-text">Normal drift</div>
+      </div>
+    </div>
+
+    <div id="node-status-grid">
+      <div class="ns-item" data-state="stk" id="ns-kraftcert"><div class="ns-dot"></div><div class="ns-name">KraftCERT</div><div class="ns-state">STK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-statnett"><div class="ns-dot"></div><div class="ns-name">Statnett</div><div class="ns-state">OK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-hafslund"><div class="ns-dot"></div><div class="ns-name">Hafslund</div><div class="ns-state">OK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-glitrenett"><div class="ns-dot"></div><div class="ns-name">Glitrenett</div><div class="ns-state">OK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-aenergi"><div class="ns-dot"></div><div class="ns-name">Aenergi</div><div class="ns-state">OK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-bkk"><div class="ns-dot"></div><div class="ns-name">BKK</div><div class="ns-state">OK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-elvia"><div class="ns-dot"></div><div class="ns-name">Elvia</div><div class="ns-state">OK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-tensio"><div class="ns-dot"></div><div class="ns-name">Tensio</div><div class="ns-state">OK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-lofotkraft"><div class="ns-dot"></div><div class="ns-name">Lofotkraft</div><div class="ns-state">OK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-nordkraft"><div class="ns-dot"></div><div class="ns-name">Nordkraft</div><div class="ns-state">OK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-tromskraft"><div class="ns-dot"></div><div class="ns-name">Troms Kraft</div><div class="ns-state">OK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-lede"><div class="ns-dot"></div><div class="ns-name">Lede</div><div class="ns-state">OK</div></div>
+      <div class="ns-item" data-state="ok" id="ns-lyse"><div class="ns-dot"></div><div class="ns-name">Lyse</div><div class="ns-state">OK</div></div>
+    </div>
+
+    <div id="event-log">
+      <div id="event-log-header">Hendelseslogg</div>
+    </div>
+  </div>
+</div>
+
+<div id="bottom-bar">
+  <div id="phase-steps">
+    <div class="phase-step active" id="ps-0">Normal</div>
+    <div class="phase-step" id="ps-1">Angrep</div>
+    <div class="phase-step" id="ps-2">Eskalering</div>
+    <div class="phase-step" id="ps-3">Deteksjon</div>
+    <div class="phase-step" id="ps-4">Respons</div>
+  </div>
+  <div id="progress-wrap"><div id="progress-bar"></div></div>
+  <button id="replay-btn" onclick="startScenario()">&#9654; Start scenario</button>
+</div>
+
+<script>
+const NODE_POS = {
+  tromskraft:  { x: 290, y: 125 },
+  nordkraft:   { x: 255, y: 230 },
+  lofotkraft:  { x: 220, y: 300 },
+  tensio:      { x: 185, y: 455 },
+  bkk:         { x: 72,  y: 615 },
+  elvia:       { x: 175, y: 600 },
+  lede:        { x: 75,  y: 700 },
+  lyse:        { x: 58,  y: 725 },
+  statnett:    { x: 148, y: 680 },
+  hafslund:    { x: 195, y: 670 },
+  glitrenett:  { x: 115, y: 710 },
+  aenergi:     { x: 90,  y: 760 },
+  kraftcert:   { x: 260, y: 650 },
+};
+
+const ALL_NODES = Object.keys(NODE_POS);
+
+const STATE_LABELS = {
+  ok: 'OK', warning: 'ALARM', attacked: 'KRITISK',
+  isolated: 'ISOLERT', stk: 'STK', restored: 'OK',
+};
+
+// ══════════ ZOOM / PAN ══════════
+const VIEWS = {
+  all:   { x: 0,   y: 0,   w: 500, h: 800 },
+  south: { x: 20,  y: 580, w: 280, h: 220 },
+  mid:   { x: 0,   y: 350, w: 400, h: 480 },
+};
+
+const mapSvg = document.getElementById('map');
+const zoomInd = document.getElementById('zoom-indicator');
+let curView = { ...VIEWS.all };
+let zoomAnim = null;
+
+function animateViewBox(target, duration) {
+  if (zoomAnim) cancelAnimationFrame(zoomAnim);
+  const start = { ...curView };
+  const t0 = performance.now();
+
+  if (target !== VIEWS.all) {
+    zoomInd.textContent = target === VIEWS.south ? '🔍 Østlandet' : '🔍 Sør-Norge';
+    zoomInd.classList.add('visible');
+  } else {
+    zoomInd.classList.remove('visible');
+  }
+
+  function tick(now) {
+    let t = Math.min((now - t0) / duration, 1);
+    t = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+    curView.x = start.x + (target.x - start.x) * t;
+    curView.y = start.y + (target.y - start.y) * t;
+    curView.w = start.w + (target.w - start.w) * t;
+    curView.h = start.h + (target.h - start.h) * t;
+    mapSvg.setAttribute('viewBox', `${curView.x} ${curView.y} ${curView.w} ${curView.h}`);
+    if (t < 1) zoomAnim = requestAnimationFrame(tick);
+    else zoomAnim = null;
+  }
+  zoomAnim = requestAnimationFrame(tick);
+}
+
+function zoomTo(v, dur=1500) { if (VIEWS[v]) animateViewBox(VIEWS[v], dur); }
+
+// ══════════ PARTICLES ══════════
+const particles = [];
+const particleG = document.getElementById('particles');
+let particleRAF;
+
+function spawnParticle(from, to, color, dur) {
+  const f = NODE_POS[from], t = NODE_POS[to];
+  if (!f || !t) return;
+  const el = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  el.setAttribute('r', '2');
+  el.setAttribute('fill', color);
+  el.setAttribute('opacity', '0');
+  particleG.appendChild(el);
+  particles.push({ el, fx:f.x, fy:f.y, tx:t.x, ty:t.y, start:performance.now(), dur });
+}
+
+function tickParticles(now) {
+  for (let i = particles.length-1; i >= 0; i--) {
+    const p = particles[i];
+    const prog = (now - p.start) / p.dur;
+    if (prog > 1) { p.el.remove(); particles.splice(i,1); continue; }
+    const ease = prog < 0.5 ? 2*prog*prog : -1+(4-2*prog)*prog;
+    p.el.setAttribute('cx', p.fx + (p.tx-p.fx)*ease);
+    p.el.setAttribute('cy', p.fy + (p.ty-p.fy)*ease);
+    const op = prog < 0.1 ? prog/0.1 : prog > 0.85 ? (1-prog)/0.15 : 0.9;
+    p.el.setAttribute('opacity', op);
+  }
+  particleRAF = requestAnimationFrame(tickParticles);
+}
+particleRAF = requestAnimationFrame(tickParticles);
+
+function pBurst(from, to, color, n, dur) {
+  for (let i = 0; i < n; i++) setTimeout(() => spawnParticle(from, to, color, dur), i*100);
+}
+
+// ══════════ HELPERS ══════════
+function setNode(id, state) {
+  const g = document.getElementById('node-'+id);
+  if (g) g.setAttribute('data-state', state);
+  const ns = document.getElementById('ns-'+id);
+  if (ns) {
+    ns.setAttribute('data-state', state);
+    ns.querySelector('.ns-state').textContent = STATE_LABELS[state] || state.toUpperCase();
+  }
+}
+
+function setLine(id, state) {
+  const el = document.getElementById('line-'+id);
+  if (el) el.className.baseVal = 'power-line ' + state;
+}
+
+function ripple(id, color) {
+  const el = document.getElementById('r-'+id);
+  if (!el) return;
+  el.setAttribute('r', 16); el.setAttribute('stroke', color);
+  el.setAttribute('stroke-width', '1.5'); el.style.opacity = '0.7';
+  let r = 16, op = 0.7;
+  const iv = setInterval(() => {
+    r += 2; op -= 0.04;
+    el.setAttribute('r', r); el.style.opacity = Math.max(0, op);
+    if (op <= 0) { clearInterval(iv); el.style.opacity = '0'; }
+  }, 30);
+}
+
+function multiRipple(id, color, n) {
+  for (let i = 0; i < n; i++) setTimeout(() => ripple(id, color), i*250);
+}
+
+function shake() { document.body.classList.add('shake'); setTimeout(() => document.body.classList.remove('shake'), 400); }
+
+function addEvent(time, cls, title, body) {
+  const log = document.getElementById('event-log');
+  const ev = document.createElement('div');
+  ev.className = 'event ' + cls;
+  ev.innerHTML = `<div class="event-time">${time}</div><div class="event-body"><strong>${title}</strong><span>${body}</span></div>`;
+  log.appendChild(ev);
+  setTimeout(() => ev.classList.add('visible'), 30);
+  log.scrollTop = log.scrollHeight;
+}
+
+function setClock(t) { document.getElementById('clock').textContent = t; }
+function setStatus(cls, txt) { document.getElementById('status-indicator').className = cls; document.getElementById('status-text').textContent = txt; }
+function setPhaseName(n) { document.getElementById('phase-name').textContent = n; }
+function setPhaseStep(a) { for (let i=0;i<=4;i++) { document.getElementById('ps-'+i).className = i<a?'phase-step done':i===a?'phase-step active':'phase-step'; } }
+function setProgress(p) { document.getElementById('progress-bar').style.width = p+'%'; }
+function showNarration(phase, title, desc) {
+  document.getElementById('nar-phase').textContent = phase;
+  document.getElementById('nar-title').textContent = title;
+  document.getElementById('nar-desc').textContent = desc;
+  document.getElementById('narration').classList.add('visible');
+}
+function hideNarration() { document.getElementById('narration').classList.remove('visible'); }
+
+function resetAll() {
+  ALL_NODES.forEach(id => setNode(id, id === 'kraftcert' ? 'stk' : 'ok'));
+  document.querySelectorAll('.power-line').forEach(l => l.className.baseVal = 'power-line');
+  document.querySelectorAll('.ripple-ring').forEach(r => r.style.opacity = '0');
+  document.getElementById('event-log').innerHTML = '<div id="event-log-header">Hendelseslogg</div>';
+  document.getElementById('stk-overlay').classList.remove('visible');
+  hideNarration();
+  setStatus('ok', 'Normal drift');
+  setPhaseName('Normal drift');
+  setClock('09:00:00');
+  setPhaseStep(0);
+  setProgress(0);
+  document.getElementById('replay-btn').innerHTML = '&#9654; Start scenario';
+  zoomTo('all', 800);
+}
+
+// ══════════ SCENARIO ══════════
+let timers = [];
+function delay(ms, fn) { timers.push(setTimeout(fn, ms)); }
+function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+function startScenario() {
+  clearTimers();
+  resetAll();
+  document.getElementById('replay-btn').innerHTML = '&#8635; Start p&aring; nytt';
+
+  // ── FASE 0: NORMAL DRIFT ──
+  delay(300, () => {
+    showNarration('Fase 0', 'Normal drift', 'Alle 13 noder er likeverdige peers i gossip-nettverket. Fra Tromsø til Agder — informasjon spres desentralisert mellom naboer.');
+    addEvent('09:00', 'green', 'Systemstart', 'Alle 13 peer-noder online. Desentralisert gossip aktiv.');
+    setProgress(3);
+    pBurst('statnett','hafslund','var(--green)',3,2000);
+    pBurst('kraftcert','statnett','var(--blue)',2,2500);
+    pBurst('tensio','elvia','var(--green)',2,2200);
+    pBurst('bkk','lede','var(--green)',2,2000);
+  });
+
+  delay(1500, () => {
+    addEvent('09:01', 'green', 'Gossip-sync', '13 noder synkronisert. Latens: 12ms gjennomsnitt.');
+    pBurst('statnett','aenergi','var(--green)',2,2000);
+    pBurst('tromskraft','nordkraft','var(--green)',2,2200);
+    setProgress(6);
+  });
+
+  delay(2800, () => {
+    addEvent('09:02', 'green', 'Kapasitet normal', 'Hafslund, Glitrenett, Aenergi, Lede, Lyse — full drift.');
+    setProgress(10);
+    hideNarration();
+  });
+
+  // ── FASE 1: ANGREP — zoom til Østlandet ──
+  delay(3500, () => { zoomTo('south', 1800); });
+
+  delay(3800, () => {
+    shake();
+    setPhaseStep(1); setPhaseName('Angrep detektert'); setProgress(18);
+    setStatus('alert', 'ALARM — Hafslund');
+    setNode('hafslund', 'warning');
+    multiRipple('hafslund', 'var(--red)', 3);
+    setLine('statnett-hafslund', 'attacked');
+    setClock('09:03:14');
+    showNarration('Fase 1', 'Angrep — Hafslund', 'RTU-kommunikasjon avbrutt. Firmware-manipulering detektert på 3 nettstasjoner i Oslo-området. Signaturen matcher Berserk Bear TTPs fra Polen-angrepet.');
+    addEvent('09:03', 'red', 'Hafslund — ALARM', 'RTU-kommunikasjon avbrutt. Firmware-manipulering detektert.');
+    pBurst('hafslund','statnett','var(--red)',4,1500);
+  });
+
+  delay(5200, () => {
+    shake();
+    setNode('hafslund', 'attacked');
+    multiRipple('hafslund', 'var(--red)', 2);
+    setLine('hafslund-glitrenett', 'attacked');
+    setLine('hafslund-aenergi', 'attacked');
+    setClock('09:04:02');
+    addEvent('09:04', 'red', 'Hafslund — KRITISK', 'Wiper-malware aktivert. 12 RTU-er offline. DSO-kommunikasjon tapt.');
+    setProgress(22);
+  });
+
+  delay(5800, () => {
+    setNode('glitrenett', 'warning');
+    multiRipple('glitrenett', 'var(--red)', 2);
+    setLine('statnett-glitrenett', 'attacked');
+    setClock('09:04:31');
+    addEvent('09:04', 'red', 'Glitrenett — ALARM', 'HMI-er mister tilkobling. Ukjent prosess på kontrollsystem.');
+    pBurst('glitrenett','statnett','var(--red)',3,1500);
+    setProgress(25);
+  });
+
+  // ── FASE 2: ESKALERING — zoom ut for å vise Bergen/Stavanger ──
+  delay(6800, () => { zoomTo('mid', 2000); });
+
+  delay(7000, () => {
+    setPhaseStep(2); setPhaseName('Eskalering'); setProgress(32);
+    hideNarration();
+    setTimeout(() => showNarration('Fase 2', 'Angrepet sprer seg', 'Identiske angrepsmetoder dukker opp i 5 nye selskaper. Koordinert kampanje bekreftet — uten STK håndterer hvert selskap dette isolert.'), 400);
+  });
+
+  delay(8000, () => {
+    shake();
+    setNode('glitrenett', 'attacked');
+    setNode('aenergi', 'warning');
+    multiRipple('aenergi', 'var(--red)', 2);
+    setLine('glitrenett-aenergi', 'attacked');
+    setClock('09:05:47');
+    addEvent('09:05', 'red', 'Aenergi — ALARM', 'Uautorisert tilgang. Lateral bevegelse pågår.');
+    pBurst('aenergi','statnett','var(--red)',3,1500);
+    setProgress(38);
+  });
+
+  delay(9000, () => {
+    shake();
+    setNode('aenergi', 'attacked');
+    setNode('lede', 'warning');
+    multiRipple('lede', 'var(--red)', 2);
+    setLine('aenergi-lede', 'attacked');
+    setClock('09:06:12');
+    addEvent('09:06', 'red', 'Lede — ALARM', 'Phishing-payload aktivert i Stavanger. OT-gateway kompromittert.');
+    pBurst('lede','bkk','var(--red)',3,1800);
+    setProgress(42);
+  });
+
+  delay(10000, () => {
+    shake();
+    setNode('bkk', 'warning');
+    setNode('lede', 'attacked');
+    multiRipple('bkk', 'var(--red)', 3);
+    setLine('statnett-bkk', 'attacked');
+    setClock('09:07:22');
+    addEvent('09:07', 'red', 'BKK — ALARM', 'Identiske TTPs i Bergen. 6 selskaper nå berørt.');
+    setProgress(48);
+    pBurst('bkk','statnett','var(--red)',3,1500);
+    hideNarration();
+  });
+
+  delay(11000, () => {
+    setNode('elvia', 'warning');
+    multiRipple('elvia', 'var(--red)', 2);
+    setLine('hafslund-elvia', 'attacked');
+    setClock('09:07:55');
+    addEvent('09:07', 'red', 'Elvia — ALARM', 'Malware spredt via delt leverandørportal. Innlandet berørt.');
+    setProgress(52);
+  });
+
+  // ── FASE 3: STK DETEKTERER — zoom ut til hele Norge ──
+  delay(12000, () => { zoomTo('all', 2000); });
+
+  delay(12500, () => {
+    setPhaseStep(3); setPhaseName('STK — deteksjon'); setProgress(58);
+    multiRipple('kraftcert', 'var(--blue)', 4);
+    // STK mesh lyser opp
+    setLine('statnett-kraftcert', 'stk');
+    setLine('kraftcert-hafslund', 'stk');
+    setLine('kraftcert-elvia', 'stk');
+    setLine('kraftcert-lofotkraft', 'stk');
+    setStatus('stk-active', 'STK — Mønster korrelert');
+    setClock('09:08:05');
+    // Partikler fra KraftCERT til alle noder
+    ALL_NODES.filter(n => n !== 'kraftcert').forEach((n, i) => {
+      pBurst('kraftcert', n, 'var(--blue)', 3, 2000 + i*200);
+    });
+    showNarration('Fase 3', 'STK AI korrelerer', 'Gossip-meldinger fra 6 berørte noder propageres gjennom mesh. Lokal mønstergjenkjenning identifiserer Berserk Bear TTPs. Konfidensgrad: KRITISK.');
+    addEvent('09:08', 'blue', 'STK MESH — KORRELERING', '6 peers berørt. Gossip-analyse: Berserk Bear TTPs. KRITISK.');
+    setTimeout(() => document.getElementById('stk-overlay').classList.add('visible'), 600);
+  });
+
+  delay(14500, () => {
+    addEvent('09:08', 'purple', 'NSM varslet via gossip', 'STIX/TAXII-rapport propagert til NSM innen 90 sek.');
+    setClock('09:08:52');
+  });
+
+  delay(15500, () => {
+    document.getElementById('stk-overlay').classList.remove('visible');
+    hideNarration();
+    addEvent('09:09', 'blue', 'Handlingsforslag sendt', '1) Isoler OT  2) Bekreft EDR  3) Ikke restart  4) DSO direkte');
+    setClock('09:09:11');
+    setProgress(65);
+    showNarration('Fase 3', 'Handlingsforslag via gossip', 'Troms Kraft, Nordkraft, Lofotkraft, Tensio og Lyse — som ikke er angrepet — mottar preventive tiltak fra naboene sine i mesh-nettverket.');
+  });
+
+  // ── FASE 4: KOORDINERT RESPONS ──
+  delay(17500, () => {
+    setPhaseStep(4); setPhaseName('Koordinert respons'); setProgress(72);
+    setStatus('response', 'Koordinert respons aktiv');
+    hideNarration();
+    // Preventiv isolering av uberørte nordlige noder
+    ['tensio','lofotkraft','nordkraft','tromskraft','lyse'].forEach(id => setNode(id, 'isolated'));
+    setLine('lofotkraft-tensio', 'isolated');
+    setLine('tromskraft-tensio', 'isolated');
+    setLine('tromskraft-nordkraft', 'isolated');
+    setLine('nordkraft-lofotkraft', 'isolated');
+    setLine('bkk-lyse', 'isolated');
+    multiRipple('tensio', 'var(--orange)', 2);
+    multiRipple('lofotkraft', 'var(--orange)', 2);
+    multiRipple('tromskraft', 'var(--orange)', 2);
+    setClock('09:10:03');
+    addEvent('09:10', 'orange', 'Preventiv isolering', '5 noder isolerer OT preventivt etter STK-anbefaling.');
+    setTimeout(() => showNarration('Fase 4', 'Koordinert respons', 'Alle 13 selskaper har felles situasjonsforståelse. Preventiv isolering hindrer spredning. EDR blokkerer wiper hos Aenergi og Lede.'), 500);
+  });
+
+  delay(19000, () => {
+    zoomTo('south', 1500);
+    setNode('aenergi', 'isolated');
+    setNode('elvia', 'isolated');
+    multiRipple('aenergi', 'var(--blue)', 2);
+    addEvent('09:10', 'orange', 'Aenergi — OT isolert', 'EDR blokkerte wiper. Angrep stoppet.');
+    addEvent('09:10', 'orange', 'Elvia — isolert', 'Malware fjernet. Leverandørportal stengt.');
+    setClock('09:10:44');
+    pBurst('aenergi','kraftcert','var(--teal)',3,1800);
+    setProgress(82);
+  });
+
+  delay(20500, () => {
+    setNode('bkk', 'isolated');
+    setNode('lede', 'isolated');
+    addEvent('09:11', 'blue', 'Statnett — Situasjonsbilde', '6 angrepet, 5 preventivt isolert. Kraftproduksjon upåvirket.');
+    setClock('09:11:18');
+    setProgress(88);
+    hideNarration();
+  });
+
+  delay(22000, () => {
+    setNode('bkk', 'restored'); setNode('lede', 'restored');
+    multiRipple('bkk', 'var(--teal)', 2);
+    multiRipple('lede', 'var(--teal)', 2);
+    addEvent('09:13', 'green', 'BKK + Lede — Gjenopprettet', 'Backup-RTU aktivert. DSO-kommunikasjon oppe.');
+    setClock('09:13:05');
+    setProgress(93);
+  });
+
+  delay(23500, () => { zoomTo('all', 2000); });
+
+  delay(24000, () => {
+    setProgress(100);
+    setClock('09:21:00');
+    addEvent('09:21', 'green', 'Scenario fullført', 'Responstid: 18 min — 13 selskaper koordinert via STK mesh.');
+    showNarration('Resultat', '18 min med STK — 97 min uten', 'Uten STK: isolerte telefonsamtaler, 97 min. Med STK: 13 selskaper koordinert via desentralisert gossip-mesh på 18 min. Preventiv isolering hindret spredning til 5 nordlige noder.');
+    setPhaseName('Scenario fullført');
+    setTimeout(() => { setNode('hafslund','restored'); multiRipple('hafslund','var(--teal)',2); }, 500);
+    setTimeout(() => { setNode('glitrenett','restored'); multiRipple('glitrenett','var(--teal)',2); }, 1000);
+    setTimeout(() => { setNode('aenergi','restored'); multiRipple('aenergi','var(--teal)',2); }, 1500);
+    setTimeout(() => { setNode('elvia','ok'); }, 2000);
+    setTimeout(() => { ['tensio','lofotkraft','nordkraft','tromskraft','lyse'].forEach(id => setNode(id,'ok')); }, 2500);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => resetAll());
+</script>
+</body>
+</html>
