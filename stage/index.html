@@ -282,42 +282,17 @@ body { min-height: 100%; }
   position: relative;
   width: 100%;
   aspect-ratio: 4/3;
-  border: 1px solid var(--line-hi);
-  background: var(--bg-2);
-  overflow: hidden;
-  transform: translateY(-1.5rem) rotate(-0.4deg);
-  box-shadow:
-    0 30px 80px -22px rgba(14,18,24,0.25),
-    0 0 0 1px rgba(14,143,110,0.08);
 }
-.photo::before {
-  content: '';
-  position: absolute;
-  inset: 0.7rem;
-  border: 1px dashed rgba(244,241,234,0.18);
-  pointer-events: none;
-  z-index: 3;
-}
-.photo__corners::before,
-.photo__corners::after,
-.photo__cornerb::before,
-.photo__cornerb::after {
-  content: '';
-  position: absolute;
-  width: 14px; height: 14px;
-  border-color: var(--aurora-1);
-  border-style: solid;
-  z-index: 4;
-}
-.photo__corners::before { top: 0.4rem; left: 0.4rem;  border-width: 1px 0 0 1px; }
-.photo__corners::after  { top: 0.4rem; right: 0.4rem; border-width: 1px 1px 0 0; }
-.photo__cornerb::before { bottom: 0.4rem; left: 0.4rem;  border-width: 0 0 1px 1px; }
-.photo__cornerb::after  { bottom: 0.4rem; right: 0.4rem; border-width: 0 1px 1px 0; }
-
 .photo img {
   width: 100%; height: 100%;
   object-fit: cover;
   display: block;
+  -webkit-mask-image: radial-gradient(ellipse 70% 75% at 50% 55%, #000 45%, transparent 100%);
+          mask-image: radial-gradient(ellipse 70% 75% at 50% 55%, #000 45%, transparent 100%);
+  filter:
+    drop-shadow(0 0 50px rgba(127,220,181,0.45))
+    drop-shadow(0 0 110px rgba(143,195,223,0.28))
+    drop-shadow(0 30px 60px rgba(0,0,0,0.7));
 }
 .photo__fallback {
   position: absolute;
@@ -577,7 +552,19 @@ body { min-height: 100%; }
   50%      { transform: translateX(8px); }
 }
 
-/* ── 04 · PRICE ──────────────────────────────────────────── */
+/* ── 04 · MESH ───────────────────────────────────────────── */
+.s-mesh { padding: 0; }
+.mesh__frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: var(--bg);
+}
+
+/* ── 05 · PRICE ──────────────────────────────────────────── */
 .s-price .problem__headline { max-width: 18ch; }
 .problem__item .sub {
   display: block;
@@ -591,7 +578,7 @@ body { min-height: 100%; }
   
 }
 
-/* ── 05 · OUTTRO ─────────────────────────────────────────── */
+/* ── 06 · OUTTRO ─────────────────────────────────────────── */
 .s-outtro {
   flex-direction: column;
   justify-content: center;
@@ -732,7 +719,7 @@ body { min-height: 100%; }
 
 <!-- ═══════════════════ 01 · TEAM ═══════════════════ -->
 <section class="section s-team" id="s-team">
-  <div class="section__tag"><b>01</b> / 05 — Team</div>
+  <div class="section__tag"><b>01</b> / 06 — Team</div>
 
   <div class="team-block">
     <h1 class="team__name">
@@ -747,9 +734,7 @@ body { min-height: 100%; }
   </div>
 
   <div class="photo reveal d3">
-    <div class="photo__corners"></div>
-    <div class="photo__cornerb"></div>
-    <img src="../team_profile.jpeg" alt="Team Nordlys"
+    <img src="../Image.jpeg" alt="Team Nordlys"
          onerror="this.style.display='none';this.parentElement.querySelector('.photo__fallback').style.display='flex'">
     <div class="photo__fallback">
       <div class="ph-tag">Photo Slot</div>
@@ -766,7 +751,7 @@ body { min-height: 100%; }
 
 <!-- ═══════════════════ 02 · PROBLEM ═══════════════════ -->
 <section class="section s-problem" id="s-problem">
-  <div class="section__tag"><b>02</b> / 05 — Problem</div>
+  <div class="section__tag"><b>02</b> / 06 — Problem</div>
 
   <h2 class="problem__headline reveal">
     Norsk kraftsektor er sårbar for <em>koordinerte cyberangrep.</em>
@@ -776,7 +761,7 @@ body { min-height: 100%; }
 
 <!-- ═══════════════════ 03 · DEMO ═══════════════════ -->
 <section class="section s-demo" id="s-demo">
-  <div class="section__tag"><b>03</b> / 05 — Demo</div>
+  <div class="section__tag"><b>03</b> / 06 — Demo</div>
 
   <div class="demo__left">
     <div class="demo__head">
@@ -803,9 +788,15 @@ body { min-height: 100%; }
   </ol>
 </section>
 
-<!-- ═══════════════════ 04 · PRICE ═══════════════════ -->
+<!-- ═══════════════════ 04 · MESH ═══════════════════ -->
+<section class="section s-mesh" id="s-mesh">
+  <div class="section__tag"><b>04</b> / 06 — Mesh</div>
+  <iframe class="mesh__frame" src="../dashboard/topology.html" title="STK Mesh — live gossip-topologi"></iframe>
+</section>
+
+<!-- ═══════════════════ 05 · PRICE ═══════════════════ -->
 <section class="section s-problem s-price" id="s-price">
-  <div class="section__tag"><b>04</b> / 05 — Pris</div>
+  <div class="section__tag"><b>05</b> / 06 — Distrubusjon</div>
 
   <h2 class="problem__headline reveal">
     Sammarbeid</em>
@@ -844,9 +835,9 @@ body { min-height: 100%; }
   </ol>
 </section>
 
-<!-- ═══════════════════ 05 · OUTTRO ═══════════════════ -->
+<!-- ═══════════════════ 06 · OUTTRO ═══════════════════ -->
 <section class="section s-outtro" id="s-outtro">
-  <div class="section__tag"><b>05</b> / 05 — Takk</div>
+  <div class="section__tag"><b>06</b> / 06 — Takk</div>
 
   <h2 class="outtro__name">
     <span class="l1 reveal d1">Sammen lyser vi opp</span>
@@ -863,10 +854,6 @@ body { min-height: 100%; }
     <span>Oslo</span>
   </div>
 
-  <div class="outtro__url reveal d5">
-    <span class="label">join</span>
-    <span>github.com/team-nordlys/stk</span>
-  </div>
 </section>
 
 <script>

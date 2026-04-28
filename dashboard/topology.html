@@ -117,21 +117,21 @@ const TOPOLOGY = [
   { id: 'kraftcert-01', company: 'KraftCERT',     role: 'kraftcert', varde: '' },
   { id: 'hafslund-01',  company: 'Hafslund Kraft', role: 'peer',      varde: '' },
   { id: 'glitre-01',    company: 'Glitrenett',     role: 'peer',      varde: '' },
-  { id: 'elvia-01',     company: 'Elvia',          role: 'peer',      varde: '' },
+  { id: 'elhub-01',     company: 'Elhub',          role: 'peer',      varde: '' },
   { id: 'statkraft-01', company: 'Statkraft',      role: 'peer',      varde: 'varde-oslo' },
-  { id: 'agder-01',     company: 'Agder Energi',   role: 'peer',      varde: 'varde-kristiansand' },
+  { id: 'skagerak-01',     company: 'Skagerak Energi', role: 'peer',     varde: 'varde-kristiansand' },
 ];
 const LINKS = [
   ['kraftcert-01', 'hafslund-01'],
   ['kraftcert-01', 'glitre-01'],
-  ['kraftcert-01', 'elvia-01'],
+  ['kraftcert-01', 'elhub-01'],
   ['kraftcert-01', 'statkraft-01'],
-  ['kraftcert-01', 'agder-01'],
+  ['kraftcert-01', 'skagerak-01'],
   ['hafslund-01',  'glitre-01'],
-  ['glitre-01',    'elvia-01'],
-  ['elvia-01',     'statkraft-01'],
-  ['statkraft-01', 'agder-01'],
-  ['agder-01',     'hafslund-01'],
+  ['glitre-01',    'elhub-01'],
+  ['elhub-01',     'statkraft-01'],
+  ['statkraft-01', 'skagerak-01'],
+  ['skagerak-01',     'hafslund-01'],
 ];
 
 function init() {
