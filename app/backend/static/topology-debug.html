@@ -343,7 +343,7 @@ canvas:active { cursor: grabbing; }
 <div class="stats">
   <div class="stats-line">Peers <span class="stats-val" id="statPeers">—</span></div>
   <div class="stats-line">Hendelser <span class="stats-val" id="statEvents">—</span></div>
-  <div class="stats-line">Gossip-linker <span class="stats-val" id="statLinks">—</span></div>
+  <div class="stats-line">Gossip-lenker <span class="stats-val" id="statLinks">—</span></div>
 </div>
 
 <div class="legend">
@@ -1074,7 +1074,7 @@ async function openPanel(nodeId) {
   const actData = await fetchJSON(`${n.url}/gossip/activity?since=0`);
   const actList = (actData?.activity ?? []).slice(-15).reverse();
   document.getElementById('panelActivity').innerHTML = actList.length === 0
-    ? '<div style="font-size:0.65rem;color:var(--text-muted)">Ingen aktivitet enda</div>'
+    ? '<div style="font-size:0.65rem;color:var(--text-muted)">Ingen aktivitet ennå</div>'
     : actList.map(a => `
       <div class="activity-row">
         <span class="activity-dot ${a.action}"></span>

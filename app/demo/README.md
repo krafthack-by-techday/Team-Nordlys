@@ -17,7 +17,11 @@ energi- og vannselskaper i 2024–2025 (Z-Pentest / Sector 16).
 
 - Docker Desktop (eller annen `docker compose`-implementasjon)
 - `python3` og `curl` for bootstrap-scriptet
-- Porter ledige: 8800, 8801, 8802, 8888, og UDP 5514
+- Porter ledige: 8800, 8801, 8802, 8888 og UDP 5514
+- `.sh`-skriptene må være kjørbare. Får du `permission denied`, kjør:
+  ```bash
+  chmod +x run-demo.sh attacker/exploit.sh
+  ```
 
 ## Kjør demoen
 
@@ -26,7 +30,7 @@ cd demo
 ./run-demo.sh                 # bootstrapper alt (~30 sek første gang)
 # (i en annen terminal)
 ./attacker/exploit.sh         # kjør angrepet, ~3 min med naturlig demo-tempo
-./attacker/exploit.sh --fast  # raskt for selv-test
+./attacker/exploit.sh --fast  # raskt for selvtest
 ```
 
 Stopp og rydd opp:
@@ -54,9 +58,9 @@ markert med Hafslunds selskapsnavn og verifisert signatur.
   fysisk nett.
 - **Default-credsene (`admin`/`admin`) er innebygd og dokumentert som demo-only.**
   De aktiveres ikke utenfor denne compose-filen.
-- **Ingen reelle OT-systemer involvert.** Hele angreps-overflaten er en Flask-app
+- **Ingen reelle OT-systemer involvert.** Hele angrepsflaten er en Flask-app
   (`rtu-sim/rtu.py`) som etterligner Relions web-HMI for visuell troverdighet.
-- **Ingen ekte kraft-data, ingen ekte setpunkter.** Setpunkt-endringer oppdaterer
+- **Ingen ekte kraftdata, ingen ekte setpunkter.** Setpunkt-endringer oppdaterer
   kun en in-memory dict.
 
 ## Filstruktur
@@ -82,7 +86,7 @@ demo/
 - `docker compose -f docker-compose.demo.yml logs hafslund-kollektor`
 
 **Events vises ikke på Hafslund?**
-- Sjekk kollektor-logs: `docker compose -f docker-compose.demo.yml logs hafslund-kollektor`
+- Sjekk kollektor-loggene: `docker compose -f docker-compose.demo.yml logs hafslund-kollektor`
 - Verifiser at scenario-pakkene lastes (skal logge "loaded N scenarios").
 - Test ingest direkte:
   ```bash

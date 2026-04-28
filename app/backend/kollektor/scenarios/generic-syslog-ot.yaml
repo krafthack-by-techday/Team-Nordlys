@@ -6,7 +6,7 @@ version: "2026.04.1"
 description: |
   Utstyrs-uavhengige deteksjonsregler som matcher mønstre i RFC 5424/3164 syslog
   fra de fleste OT-produkter (RTU-er, vernrelé, switcher, gatewayer). Tjener som
-  default-pakke for peers som ikke har lastet inn produsent-spesifikke pakker enda.
+  default-pakke for peers som ikke har lastet inn produsent-spesifikke pakker ennå.
 
 scenarios:
   - id: ot-bruteforce-burst

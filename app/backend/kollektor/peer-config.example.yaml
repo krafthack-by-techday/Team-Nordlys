@@ -2,7 +2,7 @@
 # Kopier til peer-config.yaml og tilpass for din installasjon.
 
 node:
-  # URL til STK-noden (vanligvis same host, ulik port).
+  # URL til STK-noden (vanligvis samme host, ulik port).
   ingest_url: http://localhost:8000/events/ingest
   # Delt hemmelighet — må matche en oppføring i nodens INGEST_KEYS env-var.
   ingest_key: REPLACE-ME

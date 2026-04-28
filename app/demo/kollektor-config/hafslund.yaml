@@ -8,7 +8,7 @@ active_packs:
   - generic-syslog-ot
   - abb-relion
 
-# Ingen overstyringer for demoen — bruk pakkenes defaults.
+# Ingen overstyringer for demoen — bruk pakkenes standardverdier.
 overrides: {}
 
 internal_networks:

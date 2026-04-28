@@ -314,7 +314,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
           <div class="k">Rolle</div><div class="v" id="stRole">—</div>
           <div class="k">Heartbeat</div><div class="v" id="stHb">—</div>
           <div class="k">Egne hendelser</div><div class="v green" id="stOwn">0</div>
-          <div class="k">Total i lokal DB</div><div class="v" id="stTotal">0</div>
+          <div class="k">Totalt i lokal DB</div><div class="v" id="stTotal">0</div>
           <div class="k">Kjente peers</div><div class="v" id="stPeers">0</div>
           <div class="k" id="stVardeK" style="display:none">Varde-relay</div>
           <div class="v varde" id="stVardeV" style="display:none">—</div>
@@ -385,10 +385,10 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 const POLL_MS = 3000;
 const SAMPLE = [
   {title:"Uvanlig SCADA-trafikk fra ekstern IP", desc:"Observert 47 pakker mot port 2404 fra 185.220.x.x i løpet av 3 minutter.", sev:"high"},
-  {title:"Mislykkede innloggingsforsøk mot RTU", desc:"12 mislykkede forsøk på admin-konto siste time. Brute-force mistenkt.", sev:"high"},
+  {title:"Mislykkede innloggingsforsøk mot RTU", desc:"12 mislykkede forsøk på admin-konto siste timen. Mistanke om brute-force.", sev:"high"},
   {title:"Firmware-wiper detektert på nettstasjon", desc:"AV-løsning slo ut på sletting av kontrollsystemfiler. Isolert.", sev:"critical"},
   {title:"Avvik i setpunkt-verdier fra EMS", desc:"Spenningsregulator viser uventet drift på 0.05 pu over 10 minutter.", sev:"medium"},
-  {title:"Patch-nivå under minimumskrav på gateway", desc:"Edge-gateway mangler siste 2 sikkerhetsoppdateringer.", sev:"low"},
+  {title:"Patch-nivå under minimumskrav på gateway", desc:"Edge-gateway mangler de to siste sikkerhetsoppdateringene.", sev:"low"},
 ];
 
 // ── State ──────────────────────────────────────

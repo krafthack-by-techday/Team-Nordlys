@@ -27,7 +27,7 @@ scenarios:
 
   - id: relion-default-cred-success
     title: "Vellykket innlogging på Relion fra ekstern IP"
-    description: "Web/SSH-innlogging fra ikke-RFC1918 kilde — mistanke om default-credential utnyttelse"
+    description: "Web/SSH-innlogging fra ikke-RFC1918-kilde — mistanke om utnyttelse av default-credentials"
     maturity: stable
     fp_likelihood: medium
     mitre: [T0812, T0883]

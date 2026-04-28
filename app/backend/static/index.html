@@ -160,9 +160,9 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       <span class="c-sub">av <b id="metricPeersTotal">—</b> registrert i meshen</span>
     </div>
     <div class="counter" data-accent="green">
-      <span class="c-label">Events siste 24t</span>
+      <span class="c-label">Hendelser siste 24t</span>
       <span class="c-value" id="metricEvents24h">—</span>
-      <span class="c-sub"><b id="metricEventsCritical">—</b> kritiske / høy alvorlighet</span>
+      <span class="c-sub"><b id="metricEventsCritical">—</b> kritiske / høy alvorlighetsgrad</span>
     </div>
     <div class="counter" data-accent="orange">
       <span class="c-label">Åpne sårbarheter</span>
@@ -175,7 +175,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       <span class="c-sub"><b id="metricIocRed">—</b> TLP RED · <b id="metricIocAmber">—</b> AMBER</span>
     </div>
     <div class="counter" data-accent="purple">
-      <span class="c-label">Åpne incidents</span>
+      <span class="c-label">Åpne hendelser</span>
       <span class="c-value" id="metricIncidents">—</span>
       <span class="c-sub">koordineres i Chat</span>
     </div>
@@ -189,7 +189,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
   <!-- Component cards -->
   <div class="section-h">
     <h2>Komponenter</h2>
-    <span class="sh-meta">7 kjernemoduler · sprint 1 i progress</span>
+    <span class="sh-meta">7 kjernemoduler · sprint 1 pågår</span>
   </div>
   <section class="cards" id="cards">
 
@@ -204,7 +204,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
           <div class="card-sub">Mesh-kart · live topologi · gossip-aktivitet</div>
         </div>
       </div>
-      <div class="card-body">Visualisert <strong>force-directed mesh-kart</strong> over alle peers, med live event-puls, signaturverifisering og gossip-aktivitet i sanntid.</div>
+      <div class="card-body">Visualisert <strong>force-directed mesh-kart</strong> over alle peers, med live hendelsespuls, signaturverifisering og gossip-aktivitet i sanntid.</div>
       <div class="card-foot">
         <span class="status active"><span class="pulse"></span>Aktiv</span>
         <a class="card-cta" href="/topology">Åpne kart <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
@@ -225,7 +225,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       <div class="card-body">Sårbarheter funnet på egne assets, korrelert mot <strong>NVD og leverandør-PSIRT</strong>. Filter på CVSS, status og kilde. Spor D leverer i sprint 1.</div>
       <div class="card-foot">
         <span class="status wip"><span class="pulse"></span>Under arbeid</span>
-        <span class="card-cta muted" style="cursor:default" title="Se docs/worklist-sprint1.md i repoet">Sprint 1</span>
+        <span class="card-cta muted" style="cursor:default" title="Sprint 1">Sprint 1</span>
       </div>
     </article>
 
@@ -240,10 +240,10 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
           <div class="card-sub">nmap · interne og eksponerte IP-er</div>
         </div>
       </div>
-      <div class="card-body">Aktiv scan av nett-segmenter etter sårbart utstyr. Resultater lagres i <strong>vulnerability-tabellen</strong> og pushes til alle peers via gossip. Spor C i sprint 1.</div>
+      <div class="card-body">Aktiv skann av nettverkssegmenter etter sårbart utstyr. Resultater lagres i <strong>sårbarhetstabellen</strong> og distribueres til alle peers via gossip. Spor C i sprint 1.</div>
       <div class="card-foot">
         <span class="status wip"><span class="pulse"></span>Under arbeid</span>
-        <span class="card-cta muted" style="cursor:default" title="Se docs/worklist-sprint1.md i repoet">Sprint 1</span>
+        <span class="card-cta muted" style="cursor:default" title="Sprint 1">Sprint 1</span>
       </div>
     </article>
 
@@ -258,10 +258,10 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
           <div class="card-sub">Plugin-katalog · YAML-manifest</div>
         </div>
       </div>
-      <div class="card-body">Bidragsytere publiserer tools (scannere, IoC-oppslag, sanitisering) som <strong>signerte YAML-manifest</strong>. Bygger på samme format som scenario-pakkene. Spor D leverer.</div>
+      <div class="card-body">Bidragsytere publiserer tools (skannere, IoC-oppslag, sanering) som <strong>signerte YAML-manifest</strong>. Bygger på samme format som scenario-pakkene. Spor D leverer.</div>
       <div class="card-foot">
         <span class="status wip"><span class="pulse"></span>Under arbeid</span>
-        <span class="card-cta muted" style="cursor:default" title="Se docs/worklist-sprint1.md i repoet">Sprint 1</span>
+        <span class="card-cta muted" style="cursor:default" title="Sprint 1">Sprint 1</span>
       </div>
     </article>
 
@@ -276,10 +276,10 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
           <div class="card-sub">IoC-er · TLP-merket · gossipet</div>
         </div>
       </div>
-      <div class="card-body">IP-er, hash-er, domener og TTP-er fra meshen — med <strong>TLP-styring</strong> (CLEAR / GREEN / AMBER / RED) og automatisk matching mot egne logger. Spor B + E.</div>
+      <div class="card-body">IP-er, hasher, domener og TTP-er fra meshen — med <strong>TLP-styring</strong> (CLEAR / GREEN / AMBER / RED) og automatisk matching mot egne logger. Spor B + E.</div>
       <div class="card-foot">
         <span class="status wip"><span class="pulse"></span>Under arbeid</span>
-        <span class="card-cta muted" style="cursor:default" title="Se docs/worklist-sprint1.md i repoet">Sprint 1</span>
+        <span class="card-cta muted" style="cursor:default" title="Sprint 1">Sprint 1</span>
       </div>
     </article>
 
@@ -291,13 +291,13 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
         </div>
         <div class="card-title-wrap">
           <div class="card-title">Chat / Discussion</div>
-          <div class="card-sub">Per incident · gossipet · signert</div>
+          <div class="card-sub">Per hendelse · gossipet · signert</div>
         </div>
       </div>
-      <div class="card-body">Operatører hos forskjellige aktører koordinerer i <strong>signerte tråder per incident</strong>. Meldinger gossipes som vanlige events, så hele meshen ser samtalen i sanntid.</div>
+      <div class="card-body">Operatører hos forskjellige aktører koordinerer i <strong>signerte tråder per hendelse</strong>. Meldinger gossipes som vanlige events, så hele meshen ser samtalen i sanntid.</div>
       <div class="card-foot">
         <span class="status wip"><span class="pulse"></span>Under arbeid</span>
-        <span class="card-cta muted" style="cursor:default" title="Se docs/worklist-sprint1.md i repoet">Sprint 1</span>
+        <span class="card-cta muted" style="cursor:default" title="Sprint 1">Sprint 1</span>
       </div>
     </article>
 
@@ -315,7 +315,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       <div class="card-body">Sidecar som leser <strong>RFC 5424/3164-syslog</strong> fra OT-utstyr og oversetter til signerte STK-events via scenario-pakker. Backend er allerede aktiv — UI-oversikt leveres av Spor E.</div>
       <div class="card-foot">
         <span class="status active"><span class="pulse"></span>Backend aktiv</span>
-        <span class="card-cta muted" style="cursor:default" title="Se docs/worklist-sprint1.md i repoet">Sprint 1</span>
+        <span class="card-cta muted" style="cursor:default" title="Sprint 1">Sprint 1</span>
       </div>
     </article>
 
@@ -325,11 +325,11 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
   <section class="mesh">
     <div class="mesh-info">
       <div class="mesh-title">Mesh</div>
-      <div class="mesh-sub">STK kjører desentralisert — hver peer eier sin egen historikk og signerer egne events. Mesh-topologien og rådata-eventloggen ligger i node-visningen.</div>
+      <div class="mesh-sub">STK kjører desentralisert — hver peer eier sin egen historikk og signerer egne events. Mesh-topologien og den rå hendelsesloggen ligger i nodevisningen.</div>
     </div>
     <div class="mesh-actions">
       <a class="mesh-link" href="/topology">Mesh-kart</a>
-      <a class="mesh-link" href="/node">Detalj-visning</a>
+      <a class="mesh-link" href="/node">Detaljvisning</a>
       <a class="mesh-link secondary" href="/topology/debug" target="_blank">Gossip-debug</a>
       <a class="mesh-link secondary" href="/identity" target="_blank">Identiteter</a>
       <a class="mesh-link secondary" href="/peers" target="_blank">Peers</a>

@@ -1,6 +1,6 @@
 """HTTP-poster mot STK-nodens /events/ingest med backoff og lokal disk-kø.
 
-Hvis noden er nede beholder vi events i en filkø og spiller dem av igjen når
+Hvis noden er nede, beholder vi events i en filkø og spiller dem av når
 forbindelsen er tilbake. Det betyr at en kortvarig restart av noden ikke fører
 til tap av OT-signaler — relevant for små peers som ikke har eksterne lagre."""
 

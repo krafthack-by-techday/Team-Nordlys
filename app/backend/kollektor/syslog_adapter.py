@@ -3,10 +3,10 @@
 Lytter på UDP for syslog (RFC 5424 og RFC 3164), evaluerer hver melding mot
 de aktive scenario-pakkene, og POST-er kvalifiserte hendelser til den lokale
 STK-noden via /events/ingest. Default-mode for risikable regler er
-shadow — disse logges lokalt men gossipes ikke. Dette er falsk-positiv-vernet
+shadow — disse logges lokalt, men gossipes ikke. Dette er falsk-positiv-vernet
 som hindrer at en feilkonfigurert peer oversvømmer meshen.
 
-Kjøring (fra inne i samme container/working dir som noden — backend/):
+Kjøring (fra samme container/working dir som noden — backend/):
     python -m kollektor.syslog_adapter \\
         --node http://localhost:8000 \\
         --key s3cret \\
@@ -197,7 +197,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--kraftcert-pubkey", default="",
                         help="Sti til KraftCERT public key (PEM) for pakke-signaturverifikasjon")
     parser.add_argument("--shadow-log", default="/tmp/stk-kollektor-shadow.log",
-                        help="Fil hvor shadow-events skrives lokalt")
+                        help="Fil der shadow-events skrives lokalt")
     args = parser.parse_args(argv)
 
     logging.basicConfig(

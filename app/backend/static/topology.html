@@ -207,7 +207,7 @@ canvas:active{cursor:grabbing}
       <a class="help-link" href="http://localhost:8800/" target="_blank">
         <div class="h-name">KraftCERT <span class="h-pill kc">IdP</span></div>
         <div class="h-url">http://localhost:8800/</div>
-        <div class="h-desc">Trust anchor — utsteder invite-tokens og fører revokerings-listen.</div>
+        <div class="h-desc">Trust anchor — utsteder invite-tokens og fører revokeringslisten.</div>
       </a>
       <a class="help-link" href="http://localhost:8801/" target="_blank">
         <div class="h-name">Hafslund Kraft <span class="h-pill peer">Peer A</span></div>
@@ -226,21 +226,7 @@ canvas:active{cursor:grabbing}
       <a class="help-link" href="http://localhost:8888/" target="_blank">
         <div class="h-name">ABB Relion 615 <span class="h-pill rtu">RTU-sim</span></div>
         <div class="h-url">http://localhost:8888/</div>
-        <div class="h-desc">Web-HMI til vernreléet som blir kompromittert. Default-creds: <code>admin / admin</code> (kun for demo).</div>
-      </a>
-    </div>
-
-    <div class="help-section">Andre dashboards</div>
-    <div class="help-grid">
-      <a class="help-link" href="index.html">
-        <div class="h-name">Nettverkstopologi <span class="h-pill dash">denne</span></div>
-        <div class="h-url">dashboard/index.html</div>
-        <div class="h-desc">Live mesh-visualisering med peer-helse, gossip-aktivitet og hendelses-pulser.</div>
-      </a>
-      <a class="help-link" href="topology.html">
-        <div class="h-name">Topologi (alternativ)<span class="h-pill dash">eksperimentell</span></div>
-        <div class="h-url">dashboard/topology.html</div>
-        <div class="h-desc">Alternativ visualisering av mesh-tilstand.</div>
+        <div class="h-desc">Web-HMI til vernreleet som blir kompromittert. Standardpålogging: <code>admin / admin</code> (kun for demo).</div>
       </a>
     </div>
 
@@ -251,7 +237,7 @@ canvas:active{cursor:grabbing}
         <tr><td class="path">/health</td><td class="desc">Heartbeat, rolle, varde-status.</td></tr>
         <tr><td class="path">/.well-known/stk</td><td class="desc">Peer-discovery — node-ID, public-key, kjente peers.</td></tr>
         <tr><td class="path">/identity</td><td class="desc">Registrerte peers og revokeringer (KraftCERT-kuratert).</td></tr>
-        <tr><td class="path">/peers</td><td class="desc">Live helse-status per gossip-peer.</td></tr>
+        <tr><td class="path">/peers</td><td class="desc">Live helsestatus per gossip-peer.</td></tr>
         <tr><td class="path">/events</td><td class="desc">Lokal event-DB (signerte, dedupliserte).</td></tr>
         <tr><td class="path">/events/since/{ISO-tid}</td><td class="desc">Events etter et gitt tidsstempel — brukes av gossip-pull.</td></tr>
         <tr><td class="path">/gossip/activity?since={t}</td><td class="desc">Push/pull/discovery-aktivitet for visualisering.</td></tr>
@@ -264,7 +250,7 @@ canvas:active{cursor:grabbing}
     <div class="help-cmd">cd demo &amp;&amp; ./run-demo.sh</div>
     <div class="help-cmd"><span class="cmt"># Kjør angrepet (i en separat terminal)</span></div>
     <div class="help-cmd">RTU_URL=http://localhost:8888 ./demo/attacker/exploit.sh</div>
-    <div class="help-cmd"><span class="cmt"># Selv-test (raskt, uten naturlige pauser)</span></div>
+    <div class="help-cmd"><span class="cmt"># Selvtest (raskt, uten naturlige pauser)</span></div>
     <div class="help-cmd">RTU_URL=http://localhost:8888 ./demo/attacker/exploit.sh --fast</div>
     <div class="help-cmd"><span class="cmt"># Stopp og rydd opp</span></div>
     <div class="help-cmd">docker compose -f demo/docker-compose.demo.yml down -v</div>
@@ -277,7 +263,7 @@ canvas:active{cursor:grabbing}
 
     <div class="help-foot">
       Dashboardet bruker <code>?seed=&lt;url&gt;</code> for å peke på en alternativ KraftCERT
-      (default: <code>http://localhost:8000</code>; for demo bruk <code>?seed=http://localhost:8800</code>).
+      (standard: <code>http://localhost:8000</code>; for demo bruk <code>?seed=http://localhost:8800</code>).
     </div>
   </div>
 </div>
