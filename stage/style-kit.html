@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Style Kit — Team Nordlys</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════════════════
+   TEAM NORDLYS — STYLE KIT
+   Single source of truth. Copy variables and snippets from here
+   into any new page that should match the stage presentation.
+   ════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Surfaces ─────────────────────────────── */
+  --bg:        #060912;          /* deep midnight — body background */
+  --bg-2:      #0e1524;          /* raised surface (tiles, photo) */
+
+  /* ── Text ─────────────────────────────────── */
+  --fg:        #e8e3d4;          /* warm parchment — primary text (NOT pure white) */
+  --fg-dim:    #9a9789;          /* secondary text, labels */
+
+  /* ── Aurora — primary accents (text/borders on dark) ── */
+  --aurora-1:  #7fdcb5;          /* mint — main accent */
+  --aurora-2:  #8fc3df;          /* arctic cyan */
+  --aurora-3:  #d8c98a;          /* warm lichen */
+
+  /* ── Aurora — soft tones (atmospheric blobs) ─ */
+  --aurora-1-soft: #5fe4b7;
+  --aurora-2-soft: #6fb7e0;
+  --aurora-3-soft: #d6e3a8;
+
+  /* ── Lines ────────────────────────────────── */
+  --line:      rgba(232,227,212,0.14);
+  --line-hi:   rgba(232,227,212,0.30);
+
+  /* ── Spacing scale ────────────────────────── */
+  --pad-section: 5rem 5.5rem 4rem;
+
+  /* ── Type scale (clamp for fluid sizing) ──── */
+  --t-display: clamp(5rem, 13vw, 13rem);
+  --t-h1:      clamp(3rem, 5.6vw, 6.6rem);
+  --t-h2:      clamp(1.6rem, 2.4vw, 2.6rem);
+  --t-body-lg: clamp(1.4rem, 2vw, 2.1rem);
+  --t-body:    clamp(1.1rem, 1.4vw, 1.4rem);
+  --t-mono-sm: 0.78rem;
+  --t-mono:    1rem;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-feature-settings: 'ss01', 'ss02';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+html { scroll-behavior: smooth; }
+body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 auto; position: relative; }
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--line-hi); border-radius: 10px; }
+
+/* ── Atmosphere (same as stage) ────────────────────────── */
+.aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.aurora__blob { position: absolute; border-radius: 50%; filter: blur(140px); mix-blend-mode: screen; will-change: transform; }
+.aurora__blob--a { top: -25vh; left: -15vw; width: 95vw; height: 95vh;
+  background: radial-gradient(circle at 30% 30%, var(--aurora-1-soft) 0%, transparent 60%);
+  opacity: 0.40; animation: drift-a 26s ease-in-out infinite alternate; }
+.aurora__blob--b { bottom: -30vh; right: -20vw; width: 100vw; height: 100vh;
+  background: radial-gradient(circle at 70% 70%, var(--aurora-2-soft) 0%, transparent 55%);
+  opacity: 0.32; animation: drift-b 32s ease-in-out infinite alternate; }
+.aurora__blob--c { top: 25%; left: 35%; width: 65vw; height: 65vh;
+  background: radial-gradient(circle, var(--aurora-3-soft) 0%, transparent 60%);
+  opacity: 0.18; animation: drift-c 40s ease-in-out infinite alternate; }
+@keyframes drift-a { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(22vw,12vh) scale(1.18);} }
+@keyframes drift-b { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(-18vw,-22vh) scale(1.12);} }
+@keyframes drift-c { 0%{transform:translate(0,0) scale(1) rotate(0deg);} 100%{transform:translate(-12vw,14vh) scale(0.85) rotate(50deg);} }
+.grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.06; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+
+/* ── Layout primitives ─────────────────────────────────── */
+.kit-header { position: relative; z-index: 5; margin-bottom: 5rem; }
+.kit-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; letter-spacing: 0.28em;
+  color: var(--fg-dim); text-transform: uppercase; margin-bottom: 1.6rem;
+  display: flex; align-items: center; gap: 1rem; }
+.kit-eyebrow::before { content:''; width: 2.4rem; height: 1px; background: var(--aurora-1); }
+.kit-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-variation-settings: 'opsz' 96, 'wght' 700;
+  font-size: clamp(3.5rem, 8vw, 7.5rem);
+  line-height: 0.86; letter-spacing: -0.04em;
+  background: linear-gradient(110deg, var(--aurora-3) 0%, var(--aurora-1) 50%, var(--aurora-2) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  background-size: 220% 100%; animation: shimmer 9s ease-in-out infinite alternate;
+  margin-bottom: 1rem;
+}
+@keyframes shimmer { 0%{background-position:0% 50%;} 100%{background-position:100% 50%;} }
+.kit-lede { font-size: var(--t-body-lg); max-width: 60ch; color: var(--fg); font-weight: 300; line-height: 1.4; }
+
+.kit-toc {
+  margin-top: 3rem;
+  display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; letter-spacing: 0.06em;
+}
+.kit-toc a {
+  color: var(--fg-dim); text-decoration: none;
+  border-bottom: 1px dashed transparent;
+  padding-bottom: 2px; transition: color 0.25s, border-color 0.25s;
+}
+.kit-toc a:hover { color: var(--aurora-1); border-color: var(--aurora-1); }
+
+.kit-section { position: relative; z-index: 5; margin-bottom: 6rem; }
+.kit-section__num {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; letter-spacing: 0.22em;
+  color: var(--aurora-1); text-transform: uppercase; margin-bottom: 0.6rem;
+}
+.kit-section__title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-variation-settings: 'opsz' 96, 'wght' 600;
+  font-size: clamp(2rem, 3.4vw, 3.8rem);
+  line-height: 1; letter-spacing: -0.025em;
+  margin-bottom: 0.6rem; color: var(--fg);
+}
+.kit-section__desc {
+  font-size: var(--t-body); color: var(--fg-dim); max-width: 65ch; line-height: 1.55;
+  margin-bottom: 2.5rem;
+}
+
+/* ── Reusable pieces ───────────────────────────────────── */
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.swatch {
+  border: 1px solid var(--line);
+  background: rgba(14,21,36,0.55);
+  backdrop-filter: blur(6px);
+  display: flex; flex-direction: column;
+  cursor: copy; user-select: none;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.swatch:hover { border-color: var(--aurora-1); transform: translateY(-2px); }
+.swatch__chip { height: 110px; border-bottom: 1px solid var(--line); }
+.swatch__meta { padding: 0.85rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.15rem; }
+.swatch__name { font-size: 1rem; font-weight: 500; color: var(--fg); }
+.swatch__var  { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--aurora-1); }
+.swatch__hex  { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--fg-dim); margin-top: 0.2rem; }
+
+.type-row {
+  display: grid;
+  grid-template-columns: 16ch 1fr;
+  gap: 2rem; align-items: baseline;
+  padding: 1.6rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.type-row:last-child { border-bottom: none; }
+.type-row__meta {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+  color: var(--fg-dim); letter-spacing: 0.1em; text-transform: uppercase;
+  display: flex; flex-direction: column; gap: 0.3rem;
+}
+.type-row__meta b { color: var(--aurora-1); font-weight: 500; }
+.type-row__sample { color: var(--fg); }
+
+.t-display { font-family: 'Bricolage Grotesque'; font-variation-settings: 'opsz' 96, 'wght' 700;
+  font-size: clamp(4rem, 9vw, 8rem); line-height: 0.86; letter-spacing: -0.045em; text-transform: uppercase;
+  background: linear-gradient(110deg, var(--aurora-3), var(--aurora-1) 50%, var(--aurora-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  background-size: 220% 100%; animation: shimmer 9s ease-in-out infinite alternate; }
+.t-h1 { font-family: 'Bricolage Grotesque'; font-variation-settings: 'opsz' 96, 'wght' 600;
+  font-size: var(--t-h1); line-height: 0.96; letter-spacing: -0.025em; }
+.t-h2 { font-family: 'Bricolage Grotesque'; font-size: var(--t-h2); line-height: 1.15; font-weight: 500; letter-spacing: -0.01em; }
+.t-body-lg { font-family: 'Bricolage Grotesque'; font-size: var(--t-body-lg); line-height: 1.3; font-weight: 400; }
+.t-body { font-family: 'Bricolage Grotesque'; font-size: var(--t-body); line-height: 1.55; font-weight: 400; }
+.t-mono { font-family: 'JetBrains Mono', monospace; font-size: var(--t-mono); letter-spacing: 0.05em; }
+.t-mono-sm { font-family: 'JetBrains Mono', monospace; font-size: var(--t-mono-sm); letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-dim); }
+
+/* Component examples */
+.example {
+  margin-bottom: 1.4rem;
+  padding: 2.4rem; min-height: 200px;
+  border: 1px solid var(--line);
+  background: rgba(6,9,18,0.4);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 1.5rem;
+  position: relative;
+}
+.example::before {
+  content: 'EXAMPLE'; position: absolute; top: 0.7rem; left: 0.9rem;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.25em; color: var(--fg-dim);
+}
+
+/* Code block */
+.code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem; line-height: 1.65;
+  background: #02050b;
+  border: 1px solid var(--line);
+  color: var(--fg);
+  padding: 1.4rem 1.6rem;
+  overflow-x: auto;
+  white-space: pre;
+  position: relative;
+}
+.code::before {
+  content: attr(data-lang);
+  position: absolute; top: 0.6rem; right: 0.9rem;
+  font-size: 0.65rem; letter-spacing: 0.22em; color: var(--fg-dim); text-transform: uppercase;
+}
+.code .com { color: var(--fg-dim); font-style: italic; }
+.code .var { color: var(--aurora-1); }
+.code .val { color: var(--aurora-3); }
+.code .key { color: var(--aurora-2); }
+
+/* Side-by-side: example + code */
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.4rem;
+  margin-bottom: 1.6rem;
+}
+@media (max-width: 1000px) { .pair { grid-template-columns: 1fr; } }
+
+/* Toast for copy feedback */
+.toast {
+  position: fixed; bottom: 2rem; left: 50%;
+  transform: translate(-50%, 30px);
+  padding: 0.7rem 1.4rem;
+  background: rgba(127,220,181,0.95); color: #02050b;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 600;
+  letter-spacing: 0.1em; border-radius: 999px;
+  pointer-events: none;
+  opacity: 0; transition: opacity 0.25s, transform 0.25s;
+  z-index: 200;
+  box-shadow: 0 12px 40px -10px rgba(127,220,181,0.4);
+}
+.toast.in { opacity: 1; transform: translate(-50%, 0); }
+
+/* ── Live component clones (matching stage/index.html) ──── */
+
+/* Badge */
+.demo-badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg);
+  padding: 0.55rem 1rem 0.55rem 0.9rem;
+  border: 1px solid var(--line-hi); border-radius: 999px;
+  background: rgba(6,9,18,0.55);
+  backdrop-filter: blur(14px);
+  display: inline-flex; align-items: center; gap: 0.7rem;
+}
+.demo-badge__dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--aurora-1);
+  box-shadow: 0 0 14px var(--aurora-1);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.25); }
+}
+
+/* Tile */
+.demo-tile {
+  width: 200px; min-height: 8rem;
+  padding: 1.4rem 1.2rem;
+  border: 1px solid var(--line-hi);
+  background: rgba(14,21,36,0.55);
+  backdrop-filter: blur(8px);
+  display: flex; flex-direction: column; justify-content: space-between;
+  transition: border-color 0.4s, background 0.4s, transform 0.4s;
+}
+.demo-tile:hover {
+  border-color: var(--aurora-1);
+  background: rgba(127,220,181,0.10);
+  transform: translateY(-2px);
+}
+.demo-tile__num { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--aurora-1); letter-spacing: 0.18em; }
+.demo-tile__name { font-size: 1.4rem; font-weight: 500; letter-spacing: -0.01em; line-height: 1.05; }
+
+/* URL pill */
+.demo-url {
+  display: inline-flex; align-items: center; gap: 1.5rem;
+  padding: 1rem 1.6rem;
+  border: 1px solid var(--aurora-1);
+  background: rgba(127,220,181,0.08);
+  font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; letter-spacing: 0.02em; color: var(--fg);
+  box-shadow: 0 0 36px -12px rgba(127,220,181,0.45);
+}
+.demo-url .arrow { color: var(--aurora-1); }
+.demo-url .label { color: var(--aurora-1); text-transform: uppercase; font-size: 0.65em; letter-spacing: 0.22em;
+  border-right: 1px solid rgba(127,220,181,0.32); padding-right: 1.2rem; }
+
+/* Section tag */
+.demo-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+  letter-spacing: 0.18em; color: var(--fg-dim); text-transform: uppercase; }
+.demo-tag b { font-weight: 500; color: var(--aurora-1); margin-right: 0.4rem; }
+
+/* Problem item */
+.demo-problem { display: grid; grid-template-columns: 4rem 1fr; gap: 1.5rem; padding: 1.4rem 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); width: 100%; max-width: 700px; }
+.demo-problem .n { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: var(--aurora-1); letter-spacing: 0.12em; }
+.demo-problem .t { font-size: clamp(1.4rem, 2vw, 1.9rem); line-height: 1.25; font-weight: 500; color: var(--fg); }
+
+/* Rule line */
+.demo-rule { width: 4.5rem; height: 2px; background: var(--aurora-1); }
+
+/* Footer */
+.kit-foot { position: relative; z-index: 5; margin-top: 8rem; padding-top: 3rem;
+  border-top: 1px solid var(--line); color: var(--fg-dim); font-size: 0.9rem; line-height: 1.6;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+.kit-foot a { color: var(--aurora-1); text-decoration: none; border-bottom: 1px dashed var(--aurora-1); }
+</style>
+</head>
+<body>
+
+<div class="aurora">
+  <div class="aurora__blob aurora__blob--a"></div>
+  <div class="aurora__blob aurora__blob--b"></div>
+  <div class="aurora__blob aurora__blob--c"></div>
+</div>
+<div class="grain"></div>
+
+<header class="kit-header">
+  <div class="kit-eyebrow">Team Nordlys · Style Kit · v1.0</div>
+  <h1 class="kit-title">Style Kit</h1>
+  <p class="kit-lede">
+    Felles designgrunnlag for alt vi viser fra scenen og dashbordene.
+    Klikk på en swatch eller en kodeblokk for å kopiere verdien. Alt er bygget med vanilje-CSS — ingen byggesteg, ingen rammeverk.
+  </p>
+  <nav class="kit-toc">
+    <a href="#tokens">01 — Tokens</a>
+    <a href="#typography">02 — Typografi</a>
+    <a href="#atmosphere">03 — Atmosfære</a>
+    <a href="#components">04 — Komponenter</a>
+    <a href="#usage">05 — Bruk</a>
+  </nav>
+</header>
+
+<!-- ════════════ 01 · TOKENS ════════════ -->
+<section class="kit-section" id="tokens">
+  <div class="kit-section__num">01 · Tokens</div>
+  <h2 class="kit-section__title">Farger og variabler</h2>
+  <p class="kit-section__desc">
+    Alle farger bor i CSS-variabler under <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">:root</code>.
+    Klikk en swatch for å kopiere variabelnavnet — bruk det heller enn rå hex-verdier i ny kode.
+  </p>
+
+  <h3 class="t-mono-sm" style="margin-bottom:1rem">Surfaces</h3>
+  <div class="swatch-grid" style="margin-bottom:2.4rem">
+    <div class="swatch" data-copy="var(--bg)"><div class="swatch__chip" style="background:#060912"></div><div class="swatch__meta"><span class="swatch__name">Midnight</span><span class="swatch__var">--bg</span><span class="swatch__hex">#060912</span></div></div>
+    <div class="swatch" data-copy="var(--bg-2)"><div class="swatch__chip" style="background:#0e1524"></div><div class="swatch__meta"><span class="swatch__name">Raised</span><span class="swatch__var">--bg-2</span><span class="swatch__hex">#0e1524</span></div></div>
+  </div>
+
+  <h3 class="t-mono-sm" style="margin-bottom:1rem">Text</h3>
+  <div class="swatch-grid" style="margin-bottom:2.4rem">
+    <div class="swatch" data-copy="var(--fg)"><div class="swatch__chip" style="background:#e8e3d4"></div><div class="swatch__meta"><span class="swatch__name">Parchment</span><span class="swatch__var">--fg</span><span class="swatch__hex">#e8e3d4</span></div></div>
+    <div class="swatch" data-copy="var(--fg-dim)"><div class="swatch__chip" style="background:#9a9789"></div><div class="swatch__meta"><span class="swatch__name">Slate</span><span class="swatch__var">--fg-dim</span><span class="swatch__hex">#9a9789</span></div></div>
+  </div>
+
+  <h3 class="t-mono-sm" style="margin-bottom:1rem">Aurora — solid (tekst, kanter, ikoner)</h3>
+  <div class="swatch-grid" style="margin-bottom:2.4rem">
+    <div class="swatch" data-copy="var(--aurora-1)"><div class="swatch__chip" style="background:#7fdcb5"></div><div class="swatch__meta"><span class="swatch__name">Mint</span><span class="swatch__var">--aurora-1</span><span class="swatch__hex">#7fdcb5</span></div></div>
+    <div class="swatch" data-copy="var(--aurora-2)"><div class="swatch__chip" style="background:#8fc3df"></div><div class="swatch__meta"><span class="swatch__name">Arctic</span><span class="swatch__var">--aurora-2</span><span class="swatch__hex">#8fc3df</span></div></div>
+    <div class="swatch" data-copy="var(--aurora-3)"><div class="swatch__chip" style="background:#d8c98a"></div><div class="swatch__meta"><span class="swatch__name">Lichen</span><span class="swatch__var">--aurora-3</span><span class="swatch__hex">#d8c98a</span></div></div>
+  </div>
+
+  <h3 class="t-mono-sm" style="margin-bottom:1rem">Aurora — soft (atmosfæriske blobs)</h3>
+  <div class="swatch-grid" style="margin-bottom:2.4rem">
+    <div class="swatch" data-copy="var(--aurora-1-soft)"><div class="swatch__chip" style="background:#5fe4b7"></div><div class="swatch__meta"><span class="swatch__name">Mint soft</span><span class="swatch__var">--aurora-1-soft</span><span class="swatch__hex">#5fe4b7</span></div></div>
+    <div class="swatch" data-copy="var(--aurora-2-soft)"><div class="swatch__chip" style="background:#6fb7e0"></div><div class="swatch__meta"><span class="swatch__name">Arctic soft</span><span class="swatch__var">--aurora-2-soft</span><span class="swatch__hex">#6fb7e0</span></div></div>
+    <div class="swatch" data-copy="var(--aurora-3-soft)"><div class="swatch__chip" style="background:#d6e3a8"></div><div class="swatch__meta"><span class="swatch__name">Lichen soft</span><span class="swatch__var">--aurora-3-soft</span><span class="swatch__hex">#d6e3a8</span></div></div>
+  </div>
+
+  <h3 class="t-mono-sm" style="margin-bottom:1rem">Lines</h3>
+  <div class="swatch-grid" style="margin-bottom:2.4rem">
+    <div class="swatch" data-copy="var(--line)"><div class="swatch__chip" style="background:rgba(232,227,212,0.14)"></div><div class="swatch__meta"><span class="swatch__name">Subtle line</span><span class="swatch__var">--line</span><span class="swatch__hex">rgba(232,227,212,0.14)</span></div></div>
+    <div class="swatch" data-copy="var(--line-hi)"><div class="swatch__chip" style="background:rgba(232,227,212,0.30)"></div><div class="swatch__meta"><span class="swatch__name">Strong line</span><span class="swatch__var">--line-hi</span><span class="swatch__hex">rgba(232,227,212,0.30)</span></div></div>
+  </div>
+
+  <h3 class="t-mono-sm" style="margin-bottom:1rem">CSS-snutt — :root</h3>
+  <div class="code" data-lang="CSS" data-copy=":root {
+  --bg:        #060912;
+  --bg-2:      #0e1524;
+  --fg:        #e8e3d4;
+  --fg-dim:    #9a9789;
+  --aurora-1:  #7fdcb5;
+  --aurora-2:  #8fc3df;
+  --aurora-3:  #d8c98a;
+  --aurora-1-soft: #5fe4b7;
+  --aurora-2-soft: #6fb7e0;
+  --aurora-3-soft: #d6e3a8;
+  --line:      rgba(232,227,212,0.14);
+  --line-hi:   rgba(232,227,212,0.30);
+}"><span class="key">:root</span> {
+  <span class="var">--bg</span>:        <span class="val">#060912</span>;        <span class="com">/* midnight */</span>
+  <span class="var">--bg-2</span>:      <span class="val">#0e1524</span>;        <span class="com">/* raised */</span>
+  <span class="var">--fg</span>:        <span class="val">#e8e3d4</span>;        <span class="com">/* parchment */</span>
+  <span class="var">--fg-dim</span>:    <span class="val">#9a9789</span>;        <span class="com">/* slate */</span>
+  <span class="var">--aurora-1</span>:  <span class="val">#7fdcb5</span>;        <span class="com">/* mint */</span>
+  <span class="var">--aurora-2</span>:  <span class="val">#8fc3df</span>;        <span class="com">/* arctic */</span>
+  <span class="var">--aurora-3</span>:  <span class="val">#d8c98a</span>;        <span class="com">/* lichen */</span>
+  <span class="var">--aurora-1-soft</span>: <span class="val">#5fe4b7</span>;
+  <span class="var">--aurora-2-soft</span>: <span class="val">#6fb7e0</span>;
+  <span class="var">--aurora-3-soft</span>: <span class="val">#d6e3a8</span>;
+  <span class="var">--line</span>:      <span class="val">rgba(232,227,212,0.14)</span>;
+  <span class="var">--line-hi</span>:   <span class="val">rgba(232,227,212,0.30)</span>;
+}</div>
+</section>
+
+<!-- ════════════ 02 · TYPOGRAPHY ════════════ -->
+<section class="kit-section" id="typography">
+  <div class="kit-section__num">02 · Typografi</div>
+  <h2 class="kit-section__title">Skrift</h2>
+  <p class="kit-section__desc">
+    To familier: <strong>Bricolage Grotesque</strong> (variabel display + brødtekst) og <strong>JetBrains Mono</strong> (etiketter, tall, URL-er).
+    Bruk store størrelser for noe som skal leses fra scenen — minimum 1.4rem for brødtekst, 5rem for hero.
+  </p>
+
+  <div class="code" data-lang="HTML" data-copy='<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">' style="margin-bottom:2.4rem">&lt;link rel="preconnect" href="https://fonts.googleapis.com"&gt;
+&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;
+&lt;link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"&gt;</div>
+
+  <div class="type-row">
+    <div class="type-row__meta"><b>Display</b><span>--t-display</span><span>clamp(5rem, 13vw, 13rem)</span></div>
+    <div class="type-row__sample t-display">Nordlys</div>
+  </div>
+  <div class="type-row">
+    <div class="type-row__meta"><b>H1</b><span>--t-h1</span><span>clamp(3rem, 5.6vw, 6.6rem)</span></div>
+    <div class="type-row__sample t-h1">Norsk kraftsektor</div>
+  </div>
+  <div class="type-row">
+    <div class="type-row__meta"><b>H2</b><span>--t-h2</span><span>clamp(1.6rem, 2.4vw, 2.6rem)</span></div>
+    <div class="type-row__sample t-h2">Security Toolkit</div>
+  </div>
+  <div class="type-row">
+    <div class="type-row__meta"><b>Body large</b><span>--t-body-lg</span><span>clamp(1.4rem, 2vw, 2.1rem)</span></div>
+    <div class="type-row__sample t-body-lg">Ingen felles situasjonsforståelse på tvers av selskaper.</div>
+  </div>
+  <div class="type-row">
+    <div class="type-row__meta"><b>Body</b><span>--t-body</span><span>clamp(1.1rem, 1.4vw, 1.4rem)</span></div>
+    <div class="type-row__sample t-body">Mesh-protokoll med signerte hendelser. Hver node er sin egen sannhet.</div>
+  </div>
+  <div class="type-row">
+    <div class="type-row__meta"><b>Mono</b><span>--t-mono</span><span>1rem</span></div>
+    <div class="type-row__sample t-mono">localhost:8001</div>
+  </div>
+  <div class="type-row">
+    <div class="type-row__meta"><b>Mono small</b><span>--t-mono-sm</span><span>0.78rem · uppercase</span></div>
+    <div class="type-row__sample t-mono-sm">Demo · Krafthack 2026</div>
+  </div>
+</section>
+
+<!-- ════════════ 03 · ATMOSPHERE ════════════ -->
+<section class="kit-section" id="atmosphere">
+  <div class="kit-section__num">03 · Atmosfære</div>
+  <h2 class="kit-section__title">Nordlys-bakgrunn</h2>
+  <p class="kit-section__desc">
+    Tre lag: tre store, blurrede gradient-blobs (mint, arctic, lichen) som driver i loop, et film-grain-overlay,
+    og en vignett som drar fokus mot midten. Bruk <em>screen</em>-blend for blobs på mørk bakgrunn.
+  </p>
+
+  <div class="code" data-lang="HTML" data-copy='<div class="aurora">
+  <div class="aurora__blob aurora__blob--a"></div>
+  <div class="aurora__blob aurora__blob--b"></div>
+  <div class="aurora__blob aurora__blob--c"></div>
+</div>
+<div class="grain"></div>
+<div class="vignette"></div>' style="margin-bottom:1.4rem">&lt;div class="aurora"&gt;
+  &lt;div class="aurora__blob aurora__blob--a"&gt;&lt;/div&gt;
+  &lt;div class="aurora__blob aurora__blob--b"&gt;&lt;/div&gt;
+  &lt;div class="aurora__blob aurora__blob--c"&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="grain"&gt;&lt;/div&gt;
+&lt;div class="vignette"&gt;&lt;/div&gt;</div>
+
+  <div class="code" data-lang="CSS" data-copy=".aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.aurora__blob { position: absolute; border-radius: 50%; filter: blur(140px); mix-blend-mode: screen; will-change: transform; }
+.aurora__blob--a { top: -25vh; left: -15vw; width: 95vw; height: 95vh; opacity: 0.55;
+  background: radial-gradient(circle at 30% 30%, var(--aurora-1-soft) 0%, transparent 60%);
+  animation: drift-a 26s ease-in-out infinite alternate; }
+.aurora__blob--b { bottom: -30vh; right: -20vw; width: 100vw; height: 100vh; opacity: 0.45;
+  background: radial-gradient(circle at 70% 70%, var(--aurora-2-soft) 0%, transparent 55%);
+  animation: drift-b 32s ease-in-out infinite alternate; }
+.aurora__blob--c { top: 25%; left: 35%; width: 65vw; height: 65vh; opacity: 0.22;
+  background: radial-gradient(circle, var(--aurora-3-soft) 0%, transparent 60%);
+  animation: drift-c 40s ease-in-out infinite alternate; }
+@keyframes drift-a { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(22vw,12vh) scale(1.18);} }
+@keyframes drift-b { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(-18vw,-22vh) scale(1.12);} }
+@keyframes drift-c { 0%{transform:translate(0,0) scale(1) rotate(0);} 100%{transform:translate(-12vw,14vh) scale(0.85) rotate(50deg);} }
+.grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.06; mix-blend-mode: overlay;
+  background-image: url(&quot;data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'&gt;&lt;filter id='n'&gt;&lt;feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2'/&gt;&lt;/filter&gt;&lt;rect width='100%25' height='100%25' filter='url(%23n)'/&gt;&lt;/svg&gt;&quot;); }
+.vignette { position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.50) 100%); }">.aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.aurora__blob { position: absolute; border-radius: 50%; filter: blur(140px); mix-blend-mode: screen; }
+.aurora__blob--a { top: -25vh; left: -15vw; width: 95vw; height: 95vh; opacity: 0.55;
+  background: radial-gradient(circle at 30% 30%, var(--aurora-1-soft) 0%, transparent 60%);
+  animation: drift-a 26s ease-in-out infinite alternate; }
+.aurora__blob--b { bottom: -30vh; right: -20vw; width: 100vw; height: 100vh; opacity: 0.45;
+  background: radial-gradient(circle at 70% 70%, var(--aurora-2-soft) 0%, transparent 55%);
+  animation: drift-b 32s ease-in-out infinite alternate; }
+.aurora__blob--c { top: 25%; left: 35%; width: 65vw; height: 65vh; opacity: 0.22;
+  background: radial-gradient(circle, var(--aurora-3-soft) 0%, transparent 60%);
+  animation: drift-c 40s ease-in-out infinite alternate; }
+@keyframes drift-a { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(22vw,12vh) scale(1.18);} }
+@keyframes drift-b { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(-18vw,-22vh) scale(1.12);} }
+@keyframes drift-c { 0%{transform:translate(0,0) scale(1) rotate(0);} 100%{transform:translate(-12vw,14vh) scale(0.85) rotate(50deg);} }
+.grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.06; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,&lt;svg ...&gt;"); }
+.vignette { position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.50) 100%); }</div>
+</section>
+
+<!-- ════════════ 04 · COMPONENTS ════════════ -->
+<section class="kit-section" id="components">
+  <div class="kit-section__num">04 · Komponenter</div>
+  <h2 class="kit-section__title">Byggeklosser</h2>
+  <p class="kit-section__desc">Klikk en kodeblokk for å kopiere markup. Komponentene er rene HTML — ingen scripts, bare klasser.</p>
+
+  <h3 class="t-h2" style="margin:1rem 0 0.6rem">Badge</h3>
+  <div class="pair">
+    <div class="example">
+      <div class="demo-badge"><span class="demo-badge__dot"></span>Team Nordlys · Krafthack 2026</div>
+    </div>
+    <div class="code" data-lang="HTML" data-copy='<div class="badge">
+  <span class="badge__dot"></span>
+  Team Nordlys · Krafthack 2026
+</div>'>&lt;div class="badge"&gt;
+  &lt;span class="badge__dot"&gt;&lt;/span&gt;
+  Team Nordlys · Krafthack 2026
+&lt;/div&gt;</div>
+  </div>
+
+  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Section tag</h3>
+  <div class="pair">
+    <div class="example"><div class="demo-tag"><b>02</b> / 03 — Problem</div></div>
+    <div class="code" data-lang="HTML" data-copy='<div class="section__tag"><b>02</b> / 03 — Problem</div>'>&lt;div class="section__tag"&gt;&lt;b&gt;02&lt;/b&gt; / 03 — Problem&lt;/div&gt;</div>
+  </div>
+
+  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Tile (komponent-rute)</h3>
+  <div class="pair">
+    <div class="example">
+      <div class="demo-tile"><span class="demo-tile__num">01</span><span class="demo-tile__name">Dashboard</span></div>
+      <div class="demo-tile"><span class="demo-tile__num">02</span><span class="demo-tile__name">Vulnerability<br>Dashboard</span></div>
+    </div>
+    <div class="code" data-lang="HTML" data-copy='<div class="tile">
+  <span class="num">01</span>
+  <span class="name">Dashboard</span>
+</div>'>&lt;div class="tile"&gt;
+  &lt;span class="num"&gt;01&lt;/span&gt;
+  &lt;span class="name"&gt;Dashboard&lt;/span&gt;
+&lt;/div&gt;</div>
+  </div>
+
+  <h3 class="t-h2" style="margin:2rem 0 0.6rem">URL-pille (call to action)</h3>
+  <div class="pair">
+    <div class="example">
+      <div class="demo-url"><span class="arrow">→</span><span class="label">demo</span><span>localhost:8001</span></div>
+    </div>
+    <div class="code" data-lang="HTML" data-copy='<div class="demo__url">
+  <span class="arrow">→</span>
+  <span class="label">demo</span>
+  <span>localhost:8001</span>
+</div>'>&lt;div class="demo__url"&gt;
+  &lt;span class="arrow"&gt;→&lt;/span&gt;
+  &lt;span class="label"&gt;demo&lt;/span&gt;
+  &lt;span&gt;localhost:8001&lt;/span&gt;
+&lt;/div&gt;</div>
+  </div>
+
+  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Problem item (nummerert linje)</h3>
+  <div class="pair">
+    <div class="example">
+      <div class="demo-problem"><span class="n">01</span><span class="t">Ingen felles situasjonsforståelse på tvers av selskaper.</span></div>
+    </div>
+    <div class="code" data-lang="HTML" data-copy='<li class="problem__item">
+  <span class="n">01</span>
+  <span class="t">Ingen felles situasjonsforståelse på tvers av selskaper.</span>
+</li>'>&lt;li class="problem__item"&gt;
+  &lt;span class="n"&gt;01&lt;/span&gt;
+  &lt;span class="t"&gt;Ingen felles situasjonsforståelse på tvers av selskaper.&lt;/span&gt;
+&lt;/li&gt;</div>
+  </div>
+
+  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Aurora-rule (aksent-linje)</h3>
+  <div class="pair">
+    <div class="example"><div class="demo-rule"></div></div>
+    <div class="code" data-lang="HTML" data-copy='<div class="problem__rule"></div>'>&lt;div class="problem__rule"&gt;&lt;/div&gt;</div>
+  </div>
+
+  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Hero shimmer (gradient-tekst)</h3>
+  <div class="pair">
+    <div class="example"><span class="t-display" style="font-size:clamp(3rem,7vw,5rem)">Nordlys</span></div>
+    <div class="code" data-lang="CSS" data-copy=".shimmer {
+  background: linear-gradient(110deg, var(--aurora-3) 0%, var(--aurora-1) 50%, var(--aurora-2) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  background-size: 220% 100%;
+  animation: shimmer 9s ease-in-out infinite alternate;
+}
+@keyframes shimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}">.shimmer {
+  background: linear-gradient(110deg, var(--aurora-3) 0%, var(--aurora-1) 50%, var(--aurora-2) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  background-size: 220% 100%;
+  animation: shimmer 9s ease-in-out infinite alternate;
+}
+@keyframes shimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}</div>
+  </div>
+</section>
+
+<!-- ════════════ 05 · USAGE ════════════ -->
+<section class="kit-section" id="usage">
+  <div class="kit-section__num">05 · Bruk</div>
+  <h2 class="kit-section__title">Slik tar du dette i bruk</h2>
+  <p class="kit-section__desc">Tre steg for å starte en ny side med Nordlys-stilen:</p>
+
+  <ol class="t-body" style="padding-left:1.4rem;display:flex;flex-direction:column;gap:0.8rem;max-width:65ch;margin-bottom:2rem">
+    <li>Kopier <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">stage/index.html</code> som mal — den inneholder hele atmosfæren og typografioppsettet.</li>
+    <li>Hent ut <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">:root</code>-blokken og <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">.aurora</code>-stilene fra denne style-kit-en.</li>
+    <li>Bruk komponentklassene over (<code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">.tile</code>, <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">.badge</code>, osv.) heller enn å lage egne varianter.</li>
+  </ol>
+
+  <h3 class="t-mono-sm" style="margin-bottom:1rem">Minimal HTML-skjelett</h3>
+  <div class="code" data-lang="HTML" data-copy='<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Side · Team Nordlys</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ... lim inn :root + .aurora + .grain + .vignette fra style-kit ... */
+  body { background: var(--bg); color: var(--fg); font-family: "Bricolage Grotesque", system-ui, sans-serif; }
+</style>
+</head>
+<body>
+  <div class="aurora">
+    <div class="aurora__blob aurora__blob--a"></div>
+    <div class="aurora__blob aurora__blob--b"></div>
+    <div class="aurora__blob aurora__blob--c"></div>
+  </div>
+  <div class="grain"></div>
+  <div class="vignette"></div>
+
+  <main>
+    <!-- ditt innhold her -->
+  </main>
+</body>
+</html>'>&lt;!DOCTYPE html&gt;
+&lt;html lang="no"&gt;
+&lt;head&gt;
+&lt;meta charset="utf-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+&lt;title&gt;Side · Team Nordlys&lt;/title&gt;
+&lt;link rel="preconnect" href="https://fonts.googleapis.com"&gt;
+&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;
+&lt;link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"&gt;
+&lt;style&gt;
+  <span class="com">/* lim inn :root + .aurora + .grain + .vignette fra style-kit */</span>
+  body { background: <span class="var">var(--bg)</span>; color: <span class="var">var(--fg)</span>;
+         font-family: <span class="val">"Bricolage Grotesque"</span>, system-ui, sans-serif; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class="aurora"&gt;
+    &lt;div class="aurora__blob aurora__blob--a"&gt;&lt;/div&gt;
+    &lt;div class="aurora__blob aurora__blob--b"&gt;&lt;/div&gt;
+    &lt;div class="aurora__blob aurora__blob--c"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="grain"&gt;&lt;/div&gt;
+  &lt;div class="vignette"&gt;&lt;/div&gt;
+
+  &lt;main&gt;
+    <span class="com">&lt;!-- ditt innhold her --&gt;</span>
+  &lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+
+  <h3 class="t-mono-sm" style="margin:2rem 0 1rem">Regler å holde seg til</h3>
+  <ul class="t-body" style="padding-left:1.4rem;display:flex;flex-direction:column;gap:0.6rem;max-width:65ch">
+    <li>Aldri ren hvit (<code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">#fff</code>) — bruk <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">--fg</code>. Skjermen står i mørk sal.</li>
+    <li>Brødtekst er minst <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">1.4rem</code>. Sceneslides minst <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">2rem</code>.</li>
+    <li>Mono er for tall, etiketter, URL-er — aldri lange setninger.</li>
+    <li>Hold maks én shimmer-gradient per skjermbilde. Resten av teksten er solid <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">--fg</code>.</li>
+    <li>Bruk <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">--aurora-1</code> som hovedaksent. <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">--aurora-2</code> og <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">--aurora-3</code> kun til gradients eller variasjon.</li>
+  </ul>
+</section>
+
+<footer class="kit-foot">
+  <div>Team Nordlys · Krafthack 2026 · Style Kit v1.0</div>
+  <div style="margin-top:0.4rem">Referanse: <a href="index.html">stage/index.html</a></div>
+</footer>
+
+<div class="toast" id="toast">KOPIERT</div>
+
+<script>
+const toast = document.getElementById('toast');
+let toastTimer;
+function flash(msg) {
+  toast.textContent = msg;
+  toast.classList.add('in');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('in'), 1400);
+}
+function copy(text, label) {
+  navigator.clipboard.writeText(text).then(
+    () => flash(label || 'KOPIERT'),
+    () => flash('KUNNE IKKE KOPIERE')
+  );
+}
+document.querySelectorAll('.swatch').forEach(el => {
+  el.addEventListener('click', () => copy(el.dataset.copy, el.dataset.copy + ' · KOPIERT'));
+});
+document.querySelectorAll('[data-copy]').forEach(el => {
+  if (el.classList.contains('swatch')) return;
+  el.addEventListener('click', () => copy(el.dataset.copy, 'KOPIERT'));
+  el.style.cursor = 'copy';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STK node</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void: #050a12;
+  --deep: #080e1c;
+  --panel: #0d1528;
+  --panel2: #111c35;
+  --ridge: #152244;
+  --ridge-b: #1e3468;
+  --teal: #2dd4bf;
+  --green: #34d399;
+  --cyan: #22d3ee;
+  --purple: #a78bfa;
+  --violet: #818cf8;
+  --red: #ef4444;
+  --orange: #f97316;
+  --yellow: #eab308;
+  --grey: #334155;
+  --text: #e2e8f0;
+  --dim: #64748b;
+  --muted: #475569;
+  --varde: #f59e0b;
+  --mono: 'DM Mono', 'Menlo', monospace;
+  --display: 'Outfit', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{background:var(--void);color:var(--text);font-family:var(--mono);min-height:100vh;line-height:1.4}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999}
+
+.shell{max-width:1500px;margin:0 auto;padding:18px 22px 40px;display:flex;flex-direction:column;gap:18px}
+
+/* ── Header ──────────────────────────────────── */
+.header{display:flex;align-items:center;gap:18px;padding:14px 18px;background:linear-gradient(135deg,var(--panel) 0%,var(--deep) 100%);border:1px solid var(--ridge);border-radius:6px;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top right,rgba(45,212,191,.06) 0%,transparent 60%);pointer-events:none}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand-row{display:flex;align-items:baseline;gap:10px}
+.logo{font-family:var(--display);font-weight:800;font-size:1.35rem;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--teal),var(--green) 40%,var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand-sep{color:var(--muted);font-size:0.7rem}
+.brand-company{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--text)}
+.brand-id{font-size:0.65rem;color:var(--dim);letter-spacing:.05em}
+.hdr-spacer{flex:1}
+.hdr-block{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.hdr-status{display:flex;align-items:center;gap:7px;font-family:var(--display);font-weight:600;font-size:.85rem}
+.hdr-status .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);position:relative}
+.hdr-status .dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;background:var(--green);opacity:0;animation:pulse-r 2s ease-out infinite}
+.hdr-status.offline{color:var(--muted)}.hdr-status.offline .dot{background:var(--grey);box-shadow:none;animation:none}.hdr-status.offline .dot::after{display:none}
+.hdr-status.revoked{color:var(--red)}.hdr-status.revoked .dot{background:var(--red);box-shadow:0 0 8px var(--red)}.hdr-status.revoked .dot::after{background:var(--red)}
+@keyframes pulse-r{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.5);opacity:0}}
+.hdr-meta{font-size:0.65rem;color:var(--muted);display:flex;gap:12px}
+.hdr-meta b{color:var(--dim);font-weight:500}
+.role-pill{font-size:0.55rem;padding:2px 8px;border-radius:3px;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
+.role-pill.kraftcert{background:rgba(167,139,250,.14);color:var(--purple);border:1px solid rgba(167,139,250,.3)}
+.role-pill.peer{background:rgba(45,212,191,.1);color:var(--teal);border:1px solid rgba(45,212,191,.25)}
+.role-pill.varde{background:rgba(245,158,11,.12);color:var(--varde);border:1px solid rgba(245,158,11,.3)}
+
+/* ── Layout grid ─────────────────────────────── */
+.grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+.col{display:flex;flex-direction:column;gap:18px}
+
+.card{background:var(--panel);border:1px solid var(--ridge);border-radius:6px;overflow:hidden;display:flex;flex-direction:column}
+.card-hdr{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--ridge);background:linear-gradient(180deg,rgba(255,255,255,.015),transparent)}
+.card-title{font-family:var(--display);font-weight:600;font-size:.85rem;letter-spacing:.02em;color:var(--text)}
+.card-sub{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.card-spacer{flex:1}
+.card-count{font-family:var(--display);font-weight:600;font-size:.75rem;color:var(--teal);background:rgba(45,212,191,.08);padding:2px 9px;border-radius:10px;border:1px solid rgba(45,212,191,.2)}
+.card-body{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.card-body.tight{padding:6px}
+
+/* ── Compose form ────────────────────────────── */
+.compose{display:flex;flex-direction:column;gap:10px}
+.compose label{font-size:.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:4px}
+.compose input,.compose textarea{width:100%;background:var(--deep);border:1px solid var(--ridge);border-radius:4px;padding:8px 10px;color:var(--text);font-family:var(--mono);font-size:.78rem;outline:none;transition:border-color .15s}
+.compose input:focus,.compose textarea:focus{border-color:var(--teal)}
+.compose textarea{min-height:60px;resize:vertical;line-height:1.45}
+.sev-pick{display:flex;gap:6px}
+.sev-pick button{flex:1;background:var(--deep);border:1px solid var(--ridge);border-radius:4px;padding:7px 8px;color:var(--dim);font-family:var(--mono);font-size:.7rem;cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.sev-pick button:hover{border-color:var(--ridge-b);color:var(--text)}
+.sev-pick button.active.low{border-color:var(--green);color:var(--green);background:rgba(52,211,153,.08)}
+.sev-pick button.active.medium{border-color:var(--yellow);color:var(--yellow);background:rgba(234,179,8,.08)}
+.sev-pick button.active.high{border-color:var(--orange);color:var(--orange);background:rgba(249,115,22,.08)}
+.sev-pick button.active.critical{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.08)}
+.compose-actions{display:flex;gap:8px;align-items:center}
+.btn{font-family:var(--mono);font-size:.72rem;padding:8px 16px;border:1px solid var(--ridge-b);border-radius:4px;background:var(--panel2);color:var(--teal);cursor:pointer;transition:all .15s;letter-spacing:.03em}
+.btn:hover:not(:disabled){background:rgba(45,212,191,.08);border-color:var(--teal)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.primary{background:linear-gradient(135deg,rgba(45,212,191,.15),rgba(52,211,153,.12));border-color:var(--teal);color:var(--teal)}
+.btn.primary:hover:not(:disabled){background:linear-gradient(135deg,rgba(45,212,191,.25),rgba(52,211,153,.18))}
+.btn.danger{color:var(--red);border-color:rgba(239,68,68,.4)}
+.btn.danger:hover:not(:disabled){background:rgba(239,68,68,.08);border-color:var(--red)}
+.btn.ghost{background:transparent;border-color:var(--ridge);color:var(--dim)}
+.btn.ghost:hover:not(:disabled){color:var(--text);border-color:var(--ridge-b)}
+.compose-hint{font-size:.6rem;color:var(--muted);flex:1}
+.compose-hint.ok{color:var(--green)}
+.compose-hint.err{color:var(--red)}
+
+/* ── Filter bar ──────────────────────────────── */
+.filter-bar{display:flex;gap:6px;padding:8px 8px 4px;flex-wrap:wrap}
+.fchip{font-size:.6rem;padding:4px 10px;background:transparent;border:1px solid var(--ridge);border-radius:11px;color:var(--dim);cursor:pointer;font-family:var(--mono);transition:all .15s;letter-spacing:.04em}
+.fchip:hover{color:var(--text);border-color:var(--ridge-b)}
+.fchip.active{background:rgba(45,212,191,.1);color:var(--teal);border-color:var(--teal)}
+
+/* ── Event list ──────────────────────────────── */
+.event-list{display:flex;flex-direction:column;gap:1px;max-height:520px;overflow-y:auto}
+.ev{display:grid;grid-template-columns:6px 70px 110px 1fr;gap:10px;padding:8px 10px;background:var(--deep);border-radius:3px;font-size:.7rem;align-items:center;animation:ev-in .25s ease-out;border-left:2px solid transparent}
+.ev.own{border-left-color:rgba(45,212,191,.4);background:linear-gradient(90deg,rgba(45,212,191,.04),transparent 30%)}
+.ev.critical{background:linear-gradient(90deg,rgba(239,68,68,.08),rgba(13,21,40,.5))}
+@keyframes ev-in{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.ev-pip{width:6px;height:6px;border-radius:2px}
+.ev-pip.critical{background:var(--red);box-shadow:0 0 5px var(--red)}
+.ev-pip.high{background:var(--orange)}
+.ev-pip.medium{background:var(--yellow)}
+.ev-pip.low{background:var(--green)}
+.ev-time{color:var(--muted);font-variant-numeric:tabular-nums}
+.ev-src{color:var(--dim);font-size:.62rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-src.self{color:var(--teal)}
+.ev-text{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.ev-text:hover{color:var(--teal)}
+.ev-detail{grid-column:1/-1;padding:4px 0 2px 22px;color:var(--dim);font-size:.65rem;line-height:1.5;white-space:pre-wrap}
+.ev-tag{font-size:.5rem;padding:1px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;margin-left:6px;vertical-align:middle}
+.ev-tag.src-manual{background:rgba(148,163,184,.14);color:var(--dim)}
+.ev-tag.src-syslog{background:rgba(245,158,11,.14);color:var(--varde)}
+.ev-tag.src-mqtt,.ev-tag.src-opcua,.ev-tag.src-iec104,.ev-tag.src-modbus,.ev-tag.src-dnp3,.ev-tag.src-scada,.ev-tag.src-custom{background:rgba(167,139,250,.14);color:var(--purple)}
+.ev-scenario{display:inline-block;font-size:.55rem;padding:1px 6px;border-radius:2px;background:rgba(45,212,191,.08);color:var(--teal);font-family:var(--mono);margin-top:4px;letter-spacing:.04em}
+
+/* ── Status panel ────────────────────────────── */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.72rem;align-items:center}
+.kv .k{color:var(--muted);font-size:.58rem;text-transform:uppercase;letter-spacing:.08em}
+.kv .v{color:var(--text);text-align:right;font-variant-numeric:tabular-nums}
+.kv .v.dim{color:var(--dim)}
+.kv .v.varde{color:var(--varde)}
+.kv .v.green{color:var(--green)}
+
+/* ── Peer list ───────────────────────────────── */
+.peer{display:flex;align-items:center;gap:9px;padding:8px 10px;background:var(--deep);border-radius:4px;border-left:2px solid var(--ridge);font-size:.72rem;transition:all .15s}
+.peer.online{border-left-color:var(--green)}
+.peer.kraftcert{border-left-color:var(--purple)}
+.peer.mesh{border-left-color:var(--violet);background:linear-gradient(90deg,rgba(129,140,248,.04),var(--deep) 40%)}
+.peer.revoked{border-left-color:var(--red);opacity:.55}
+.peer-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--grey)}
+.peer-dot.online{background:var(--green);box-shadow:0 0 4px var(--green)}
+.peer-dot.kraftcert{background:var(--purple);box-shadow:0 0 4px var(--purple)}
+.peer-dot.mesh{background:var(--violet);box-shadow:0 0 4px rgba(129,140,248,.6)}
+.peer-dot.revoked{background:var(--red);box-shadow:0 0 4px var(--red)}
+.peer-name{flex:1;font-family:var(--display);font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.peer.revoked .peer-name{text-decoration:line-through;color:var(--dim)}
+.peer-tag{font-size:.5rem;padding:2px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.peer-tag.idp{background:rgba(167,139,250,.14);color:var(--purple)}
+.peer-tag.varde{background:rgba(245,158,11,.12);color:var(--varde)}
+.peer-tag.self{background:rgba(45,212,191,.14);color:var(--teal)}
+.peer-tag.mesh{background:rgba(129,140,248,.14);color:var(--violet)}
+.peer-time{font-size:.6rem;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
+.peer-time .label{font-size:.52rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;line-height:1}
+.peer-time .ts{color:var(--dim);font-size:.65rem;line-height:1.1}
+.peer-time .ts.direct{color:var(--green)}
+.peer-time .ts.mesh{color:var(--violet)}
+
+/* ── Activity feed ───────────────────────────── */
+.act-list{display:flex;flex-direction:column;gap:1px;max-height:280px;overflow-y:auto}
+.act{display:grid;grid-template-columns:8px 60px 1fr auto;gap:8px;padding:5px 9px;font-size:.65rem;align-items:center;color:var(--dim)}
+.act-dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.act-dot.push{background:var(--teal)}
+.act-dot.pull{background:var(--violet)}
+.act-dot.discovery{background:var(--purple)}
+.act-dot.pull_identity{background:var(--green)}
+.act-dot.pull_revocation{background:var(--red)}
+.act-dot.push_fail,.act-dot.pull_fail{background:var(--red)}
+.act-dot.pull_empty{background:var(--muted);opacity:.5}
+.act-time{color:var(--muted);font-variant-numeric:tabular-nums}
+.act-peer{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-action{font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* ── KraftCERT panel ─────────────────────────── */
+.invite-row{display:flex;gap:8px;align-items:flex-end}
+.invite-row .field{flex:1;display:flex;flex-direction:column;gap:4px}
+.invite-row .field.short{flex:0 0 80px}
+.token-out{margin-top:8px;padding:9px 11px;background:var(--deep);border:1px dashed var(--ridge-b);border-radius:4px;font-size:.7rem;display:flex;align-items:center;gap:8px;animation:ev-in .3s}
+.token-out code{flex:1;color:var(--green);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
+.copy-btn{font-size:.6rem;padding:4px 10px;background:transparent;border:1px solid var(--ridge);border-radius:3px;color:var(--dim);cursor:pointer;font-family:var(--mono)}
+.copy-btn:hover{color:var(--teal);border-color:var(--teal)}
+
+.empty{padding:18px 10px;text-align:center;color:var(--muted);font-size:.7rem;font-style:italic}
+
+/* ── Toast ───────────────────────────────────── */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--panel2);border:1px solid var(--ridge-b);border-radius:5px;padding:11px 16px;font-size:.72rem;z-index:1000;animation:toast-in .3s ease;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.toast.ok{border-color:var(--green);color:var(--green)}
+.toast.err{border-color:var(--red);color:var(--red)}
+@keyframes toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Footer ──────────────────────────────────── */
+.foot{padding-top:8px;font-size:.6rem;color:var(--muted);display:flex;gap:14px;justify-content:space-between;flex-wrap:wrap}
+.foot a{color:var(--dim);text-decoration:none}
+.foot a:hover{color:var(--teal)}
+.foot .live{display:flex;align-items:center;gap:5px}
+.foot .live .d{width:5px;height:5px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ── Header ────────────────────────────────── -->
+<header class="header">
+  <div class="brand">
+    <div class="brand-row">
+      <span class="logo">STK</span>
+      <span class="brand-sep">/</span>
+      <span class="brand-company" id="brandCompany">…</span>
+    </div>
+    <span class="brand-id" id="brandId">venter på node…</span>
+  </div>
+  <span class="role-pill" id="rolePill" style="display:none"></span>
+  <span class="role-pill varde" id="vardePill" style="display:none"></span>
+  <div class="hdr-spacer"></div>
+  <div class="hdr-block">
+    <div class="hdr-status" id="hdrStatus"><span class="dot"></span><span id="hdrStatusText">venter</span></div>
+    <div class="hdr-meta">
+      <span><b>HEARTBEAT</b> <span id="hbVal">—</span></span>
+      <span id="clock">--:--:--</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── Main grid ─────────────────────────────── -->
+<div class="grid">
+
+  <!-- ── LEFT column ─────────────────────────── -->
+  <div class="col">
+
+    <!-- Compose -->
+    <section class="card">
+      <div class="card-hdr">
+        <span class="card-title">Rapporter hendelse</span>
+        <span class="card-sub">opprettes på denne noden</span>
+      </div>
+      <div class="card-body">
+        <div class="compose">
+          <div>
+            <label for="evTitle">Tittel</label>
+            <input id="evTitle" type="text" maxlength="200" placeholder="F.eks. Uvanlig SCADA-trafikk fra ekstern IP">
+          </div>
+          <div>
+            <label>Alvorlighetsgrad</label>
+            <div class="sev-pick" id="sevPick">
+              <button data-sev="low">Lav</button>
+              <button data-sev="medium" class="active medium">Medium</button>
+              <button data-sev="high">Høy</button>
+              <button data-sev="critical">Kritisk</button>
+            </div>
+          </div>
+          <div>
+            <label for="evDesc">Beskrivelse</label>
+            <textarea id="evDesc" maxlength="2000" placeholder="Detaljer, observasjoner, indikatorer…"></textarea>
+          </div>
+          <div class="compose-actions">
+            <span class="compose-hint" id="composeHint">Hendelser signeres lokalt og distribueres via gossip.</span>
+            <button class="btn ghost" id="btnFill" type="button">Fyll eksempel</button>
+            <button class="btn primary" id="btnSend" type="button">Send →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Events -->
+    <section class="card">
+      <div class="card-hdr">
+        <span class="card-title">Hendelser</span>
+        <span class="card-sub">lokal database</span>
+        <span class="card-spacer"></span>
+        <span class="card-count" id="evCount">0</span>
+      </div>
+      <div class="filter-bar">
+        <button class="fchip active" data-filter="all">Alle</button>
+        <button class="fchip" data-filter="own">Mine</button>
+        <button class="fchip" data-filter="received">Mottatt</button>
+        <span style="width:1px;background:var(--ridge);align-self:stretch;margin:0 4px"></span>
+        <button class="fchip" data-srcfilter="auto">Automatisk</button>
+        <button class="fchip" data-srcfilter="manual">Manuell</button>
+        <span style="width:1px;background:var(--ridge);align-self:stretch;margin:0 4px"></span>
+        <button class="fchip" data-sevfilter="critical">Kritisk</button>
+        <button class="fchip" data-sevfilter="high">Høy</button>
+        <button class="fchip" data-sevfilter="medium">Medium</button>
+        <button class="fchip" data-sevfilter="low">Lav</button>
+      </div>
+      <div class="card-body tight">
+        <div class="event-list" id="eventList"><div class="empty">Henter hendelser…</div></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ── RIGHT column ────────────────────────── -->
+  <div class="col">
+
+    <!-- Status -->
+    <section class="card">
+      <div class="card-hdr">
+        <span class="card-title">Nodestatus</span>
+        <span class="card-sub">denne instansen</span>
+      </div>
+      <div class="card-body">
+        <div class="kv">
+          <div class="k">Selskap</div><div class="v" id="stCompany">—</div>
+          <div class="k">Node-ID</div><div class="v dim" id="stNode">—</div>
+          <div class="k">Rolle</div><div class="v" id="stRole">—</div>
+          <div class="k">Heartbeat</div><div class="v" id="stHb">—</div>
+          <div class="k">Egne hendelser</div><div class="v green" id="stOwn">0</div>
+          <div class="k">Total i lokal DB</div><div class="v" id="stTotal">0</div>
+          <div class="k">Kjente peers</div><div class="v" id="stPeers">0</div>
+          <div class="k" id="stVardeK" style="display:none">Varde-relay</div>
+          <div class="v varde" id="stVardeV" style="display:none">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Peers -->
+    <section class="card">
+      <div class="card-hdr">
+        <span class="card-title">Peers</span>
+        <span class="card-sub">i tillitsregisteret</span>
+        <span class="card-spacer"></span>
+        <span class="card-count" id="peerCount">0</span>
+      </div>
+      <div class="card-body tight">
+        <div id="peerList" style="display:flex;flex-direction:column;gap:3px;padding:4px"><div class="empty">Henter peers…</div></div>
+      </div>
+    </section>
+
+    <!-- KraftCERT only: identity management -->
+    <section class="card" id="kcCard" style="display:none">
+      <div class="card-hdr">
+        <span class="card-title" style="color:var(--purple)">Identitetsstyring</span>
+        <span class="card-sub">kraftcert-rolle</span>
+      </div>
+      <div class="card-body">
+        <div class="invite-row">
+          <div class="field">
+            <label class="card-sub" style="font-size:.55rem;letter-spacing:.1em">Selskap</label>
+            <input id="invCompany" type="text" placeholder="F.eks. Tafjord Kraft" style="background:var(--deep);border:1px solid var(--ridge);border-radius:4px;padding:7px 9px;color:var(--text);font-family:var(--mono);font-size:.74rem;outline:none">
+          </div>
+          <div class="field short">
+            <label class="card-sub" style="font-size:.55rem;letter-spacing:.1em">TTL (s)</label>
+            <input id="invTtl" type="number" value="3600" min="60" style="background:var(--deep);border:1px solid var(--ridge);border-radius:4px;padding:7px 9px;color:var(--text);font-family:var(--mono);font-size:.74rem;outline:none">
+          </div>
+          <button class="btn" id="btnInvite" type="button">Lag token</button>
+        </div>
+        <div id="tokenOut"></div>
+      </div>
+    </section>
+
+    <!-- Activity -->
+    <section class="card">
+      <div class="card-hdr">
+        <span class="card-title">Gossip-aktivitet</span>
+        <span class="card-sub">siste sync-runder</span>
+      </div>
+      <div class="card-body tight">
+        <div class="act-list" id="actList"><div class="empty">Ingen aktivitet ennå.</div></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="foot">
+  <span class="live"><span class="d"></span> Polling hver <span id="pollSec">3</span>s · <span id="lastSync">aldri</span></span>
+  <span><a href="/.well-known/stk" target="_blank">/.well-known/stk</a> · <a href="/identity" target="_blank">/identity</a> · <a href="/peers" target="_blank">/peers</a></span>
+</div>
+
+</div>
+
+<script>
+"use strict";
+
+// ── Config ─────────────────────────────────────
+const POLL_MS = 3000;
+const SAMPLE = [
+  {title:"Uvanlig SCADA-trafikk fra ekstern IP", desc:"Observert 47 pakker mot port 2404 fra 185.220.x.x i løpet av 3 minutter.", sev:"high"},
+  {title:"Mislykkede innloggingsforsøk mot RTU", desc:"12 mislykkede forsøk på admin-konto siste time. Brute-force mistenkt.", sev:"high"},
+  {title:"Firmware-wiper detektert på nettstasjon", desc:"AV-løsning slo ut på sletting av kontrollsystemfiler. Isolert.", sev:"critical"},
+  {title:"Avvik i setpunkt-verdier fra EMS", desc:"Spenningsregulator viser uventet drift på 0.05 pu over 10 minutter.", sev:"medium"},
+  {title:"Patch-nivå under minimumskrav på gateway", desc:"Edge-gateway mangler siste 2 sikkerhetsoppdateringer.", sev:"low"},
+];
+
+// ── State ──────────────────────────────────────
+const state = {
+  health: null,
+  events: [],
+  peers: [],
+  identity: null,
+  activity: [],
+  pings: new Map(), // node_id → { hb, ts, ok, lastOkTs, lastOkHb }
+  filter: "all",
+  sevFilter: null,
+  srcFilter: null, // "auto" | "manual" | null
+  composeSev: "medium",
+  selfId: null,
+  expandedEv: null,
+};
+
+// ── Helpers ────────────────────────────────────
+const $ = (id) => document.getElementById(id);
+const esc = (s) => { const d = document.createElement("div"); d.textContent = s ?? ""; return d.innerHTML; };
+const fmtTime = (iso) => { try { return new Date(iso).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit", second: "2-digit" }); } catch { return "—"; } };
+const fmtTs = (ts) => new Date(ts * 1000).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+const stem = (id) => (id || "").replace(/-\d+$/, "");
+
+async function fjson(url, opts) {
+  try {
+    const r = await fetch(url, opts);
+    if (!r.ok) return { _err: r.status, _text: await r.text().catch(() => "") };
+    return await r.json();
+  } catch (e) {
+    return { _err: 0, _text: String(e) };
+  }
+}
+
+function toast(msg, kind = "") {
+  const el = document.createElement("div");
+  el.className = "toast " + kind;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity .3s"; }, 2400);
+  setTimeout(() => el.remove(), 2800);
+}
+
+// ── Clock ──────────────────────────────────────
+setInterval(() => {
+  $("clock").textContent = new Date().toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}, 1000);
+$("pollSec").textContent = (POLL_MS / 1000).toString();
+
+// ── Polling ────────────────────────────────────
+let actSince = 0;
+
+async function pingPeer(p) {
+  const now = Date.now() / 1000;
+  const prev = state.pings.get(p.node_id) || {};
+  if (p.node_id === state.selfId) {
+    state.pings.set(p.node_id, {
+      hb: state.health?.heartbeat ?? null, ts: now, ok: true,
+      lastOkTs: now, lastOkHb: state.health?.heartbeat ?? null,
+    });
+    return;
+  }
+  if (!p.public_url) return;
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), 2000);
+  try {
+    const r = await fetch(p.public_url + "/health", { signal: c.signal });
+    if (r.ok) {
+      const h = await r.json();
+      state.pings.set(p.node_id, {
+        hb: h.heartbeat, ts: now, ok: true,
+        lastOkTs: now, lastOkHb: h.heartbeat,
+      });
+      return;
+    }
+  } catch {}
+  finally { clearTimeout(t); }
+  state.pings.set(p.node_id, {
+    hb: prev.lastOkHb ?? null, ts: now, ok: false,
+    lastOkTs: prev.lastOkTs ?? 0, lastOkHb: prev.lastOkHb ?? null,
+  });
+}
+
+async function poll() {
+  const [health, events, peers, identity, act] = await Promise.all([
+    fjson("/health"),
+    fjson("/events"),
+    fjson("/peers"),
+    fjson("/identity"),
+    fjson(`/gossip/activity?since=${actSince}`),
+  ]);
+
+  if (health && !health._err) {
+    state.health = health;
+    state.selfId = health.node_id;
+  }
+  if (Array.isArray(events)) state.events = events;
+  if (peers && Array.isArray(peers.peers)) state.peers = peers.peers;
+  if (identity && Array.isArray(identity.peers)) state.identity = identity;
+  if (act && Array.isArray(act.activity)) {
+    for (const a of act.activity) {
+      state.activity.unshift(a);
+      if (a.t > actSince) actSince = a.t;
+    }
+    if (state.activity.length > 60) state.activity.length = 60;
+  }
+
+  // Ping every known peer's public /health directly from the browser.
+  // CORS is permissive backend-side, so this gives us real-time liveness
+  // for peers we don't gossip with directly.
+  const idents = state.identity?.peers ?? [];
+  await Promise.all(idents.map(pingPeer));
+
+  $("lastSync").textContent = "synket " + new Date().toLocaleTimeString("nb-NO");
+  render();
+}
+
+// ── Render ─────────────────────────────────────
+function render() {
+  renderHeader();
+  renderStatus();
+  renderEvents();
+  renderPeers();
+  renderActivity();
+  renderKraftCert();
+}
+
+function renderHeader() {
+  const h = state.health;
+  if (!h) {
+    $("hdrStatus").className = "hdr-status offline";
+    $("hdrStatusText").textContent = "Ingen kontakt";
+    return;
+  }
+  $("brandCompany").textContent = h.company || "—";
+  $("brandId").textContent = h.node_id || "—";
+  document.title = `STK · ${h.company || h.node_id}`;
+  $("hbVal").textContent = h.heartbeat ?? "—";
+
+  const isRevoked = state.identity?.revocations?.some((r) => r.node_id === h.node_id);
+  const cls = isRevoked ? "revoked" : (h.status === "ok" ? "" : "offline");
+  $("hdrStatus").className = "hdr-status " + cls;
+  $("hdrStatusText").textContent = isRevoked ? "REVOKERT" : (h.status === "ok" ? "ONLINE" : "OFFLINE");
+
+  const role = h.role || "peer";
+  const rp = $("rolePill");
+  rp.style.display = "";
+  rp.className = "role-pill " + role;
+  rp.textContent = role === "kraftcert" ? "IdP · KraftCERT" : "Peer";
+
+  if (h.varde) {
+    $("vardePill").style.display = "";
+    $("vardePill").textContent = "via " + h.varde;
+  } else {
+    $("vardePill").style.display = "none";
+  }
+}
+
+function renderStatus() {
+  const h = state.health;
+  if (!h) return;
+  $("stCompany").textContent = h.company || "—";
+  $("stNode").textContent = h.node_id || "—";
+  $("stRole").textContent = h.role === "kraftcert" ? "KraftCERT (IdP)" : "Peer";
+  $("stHb").textContent = h.heartbeat ?? "—";
+  const own = state.events.filter((e) => e.node_id === h.node_id).length;
+  $("stOwn").textContent = own;
+  $("stTotal").textContent = state.events.length;
+  $("stPeers").textContent = (state.identity?.peers?.length ?? 0);
+
+  if (h.varde) {
+    $("stVardeK").style.display = "";
+    $("stVardeV").style.display = "";
+    $("stVardeV").textContent = h.varde;
+  } else {
+    $("stVardeK").style.display = "none";
+    $("stVardeV").style.display = "none";
+  }
+}
+
+function renderEvents() {
+  const h = state.health;
+  const selfId = h?.node_id;
+  let evs = state.events.slice();
+  if (state.filter === "own") evs = evs.filter((e) => e.node_id === selfId);
+  else if (state.filter === "received") evs = evs.filter((e) => e.node_id !== selfId);
+  if (state.sevFilter) evs = evs.filter((e) => e.severity === state.sevFilter);
+  if (state.srcFilter === "auto") evs = evs.filter((e) => (e.source || "manual") !== "manual");
+  else if (state.srcFilter === "manual") evs = evs.filter((e) => (e.source || "manual") === "manual");
+  $("evCount").textContent = evs.length;
+
+  const el = $("eventList");
+  if (!evs.length) {
+    el.innerHTML = '<div class="empty">Ingen hendelser matcher filteret.</div>';
+    return;
+  }
+  el.innerHTML = evs.map((e) => {
+    const own = e.node_id === selfId;
+    const expanded = state.expandedEv === e.id;
+    const src = e.source || "manual";
+    const srcTag = `<span class="ev-tag src-${esc(src)}">${esc(src)}</span>`;
+    const scenarioRow = e.scenario_id
+      ? `<div class="ev-scenario">scenario: ${esc(e.scenario_id)}</div>`
+      : "";
+    const detail = expanded && (e.description || e.scenario_id)
+      ? `<div class="ev-detail">${esc(e.description || "")}${scenarioRow}</div>`
+      : "";
+    return `<div class="ev ${e.severity} ${own ? "own" : ""}" data-id="${esc(e.id)}">
+      <span class="ev-pip ${e.severity}"></span>
+      <span class="ev-time">${fmtTime(e.created_at)}</span>
+      <span class="ev-src ${own ? "self" : ""}">${esc(own ? "denne noden" : e.company)}</span>
+      <span class="ev-text" data-toggle="${esc(e.id)}">${esc(e.title)}${srcTag}</span>
+      ${detail}
+    </div>`;
+  }).join("");
+}
+
+function peerSignal(peer, liveMap, events) {
+  const ping = state.pings.get(peer.node_id);
+  const now = Date.now() / 1000;
+
+  // Live ping: peer's /health responded in the last poll cycle
+  if (ping?.ok) {
+    return { kind: "live", hb: ping.hb, ts: ping.ts };
+  }
+  // Ping failed but we know they were alive before
+  if (ping && ping.lastOkTs > 0) {
+    return {
+      kind: "stale",
+      hb: ping.lastOkHb,
+      lastOk: ping.lastOkTs,
+      sinceFail: now - ping.ts,
+    };
+  }
+
+  // No public_url available — fall back to direct gossip / event signal
+  const s = stem(peer.node_id);
+  for (const [url, info] of liveMap) {
+    if (url.includes(s) && info.last_seen) {
+      return { kind: "direct", ts: info.last_seen, status: info.status };
+    }
+  }
+  let latest = 0;
+  for (const e of events) {
+    if (e.node_id !== peer.node_id) continue;
+    const t = Date.parse(e.created_at) / 1000;
+    if (t > latest) latest = t;
+  }
+  if (latest > 0) return { kind: "mesh", ts: latest };
+  return { kind: "none" };
+}
+
+function renderPeers() {
+  const peers = state.identity?.peers ?? [];
+  const revs = new Map((state.identity?.revocations ?? []).map((r) => [r.node_id, r]));
+  const liveMap = new Map(state.peers.map((p) => [p.url, p]));
+
+  $("peerCount").textContent = peers.length;
+
+  const list = $("peerList");
+  if (!peers.length) {
+    list.innerHTML = '<div class="empty">Ingen peers registrert.</div>';
+    return;
+  }
+
+  const sorted = peers.slice().sort((a, b) => {
+    if (a.node_id === state.selfId) return -1;
+    if (b.node_id === state.selfId) return 1;
+    const ar = revs.has(a.node_id) ? 1 : 0;
+    const br = revs.has(b.node_id) ? 1 : 0;
+    if (ar !== br) return ar - br;
+    const akc = (a.node_id || "").startsWith("kraftcert") ? 0 : 1;
+    const bkc = (b.node_id || "").startsWith("kraftcert") ? 0 : 1;
+    if (akc !== bkc) return akc - bkc;
+    return (a.company || "").localeCompare(b.company || "");
+  });
+
+  list.innerHTML = sorted.map((p) => {
+    const isSelf = p.node_id === state.selfId;
+    const isRevoked = revs.has(p.node_id);
+    const isKc = (p.node_id || "").startsWith("kraftcert");
+    const sig = isSelf ? { kind: "self" } : peerSignal(p, liveMap, state.events);
+
+    let rowCls, dotCls, timeHtml;
+    if (isRevoked) {
+      rowCls = "revoked"; dotCls = "revoked";
+      timeHtml = '<span class="ts">revokert</span>';
+    } else if (isSelf) {
+      const hb = state.health?.heartbeat;
+      rowCls = isKc ? "kraftcert" : "online"; dotCls = isKc ? "kraftcert" : "online";
+      timeHtml = `<span class="label">HB ${hb ?? "—"}</span><span class="ts direct">denne noden</span>`;
+    } else if (sig.kind === "live") {
+      rowCls = isKc ? "kraftcert" : "online"; dotCls = isKc ? "kraftcert" : "online";
+      timeHtml = `<span class="label">HB ${sig.hb ?? "—"}</span><span class="ts direct">${fmtTs(sig.ts)}</span>`;
+    } else if (sig.kind === "stale") {
+      rowCls = ""; dotCls = "";
+      const sinceTxt = sig.lastOk > 0 ? `sist HB ${sig.hb}` : "ikke svar";
+      timeHtml = `<span class="label" style="color:var(--orange)">offline</span><span class="ts">${esc(sinceTxt)}</span>`;
+    } else if (sig.kind === "direct" && sig.status === "ok") {
+      rowCls = isKc ? "kraftcert" : "online"; dotCls = isKc ? "kraftcert" : "online";
+      timeHtml = `<span class="label">direkte</span><span class="ts direct">${fmtTs(sig.ts)}</span>`;
+    } else if (sig.kind === "mesh") {
+      rowCls = "mesh"; dotCls = "mesh";
+      timeHtml = `<span class="label">via mesh</span><span class="ts mesh">${fmtTs(sig.ts)}</span>`;
+    } else {
+      rowCls = ""; dotCls = "";
+      timeHtml = '<span class="ts">ingen aktivitet</span>';
+    }
+
+    const tags = [
+      isSelf ? '<span class="peer-tag self">Du</span>' : "",
+      isKc ? '<span class="peer-tag idp">IdP</span>' : "",
+      !isSelf && sig.kind === "mesh" ? '<span class="peer-tag mesh">Indirekte</span>' : "",
+      p.varde ? '<span class="peer-tag varde">Varde</span>' : "",
+    ].filter(Boolean).join("");
+
+    return `<div class="peer ${rowCls}">
+      <span class="peer-dot ${dotCls}"></span>
+      <span class="peer-name">${esc(p.company)}</span>
+      ${tags}
+      <span class="peer-time">${timeHtml}</span>
+    </div>`;
+  }).join("");
+}
+
+function renderActivity() {
+  const list = $("actList");
+  if (!state.activity.length) {
+    list.innerHTML = '<div class="empty">Ingen gossip-aktivitet ennå.</div>';
+    return;
+  }
+  const labels = {
+    push: "PUSH", pull: "PULL", pull_empty: "PULL", discovery: "DISCOVERY",
+    pull_identity: "IDENTITY", pull_revocation: "REVOKE",
+    push_fail: "PUSH FAIL", pull_fail: "PULL FAIL",
+  };
+  list.innerHTML = state.activity.slice(0, 30).map((a) => {
+    const peer = (a.peer || "").replace(/^https?:\/\//, "").replace(/:.*$/, "");
+    const cnt = a.count > 0 ? ` (${a.count})` : "";
+    return `<div class="act">
+      <span class="act-dot ${a.action}"></span>
+      <span class="act-time">${fmtTs(a.t)}</span>
+      <span class="act-peer">${esc(peer)}${cnt}</span>
+      <span class="act-action">${esc(labels[a.action] ?? a.action)}</span>
+    </div>`;
+  }).join("");
+}
+
+function renderKraftCert() {
+  if (state.health?.role === "kraftcert") $("kcCard").style.display = "";
+}
+
+// ── Compose ────────────────────────────────────
+$("sevPick").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-sev]");
+  if (!btn) return;
+  state.composeSev = btn.dataset.sev;
+  for (const b of $("sevPick").querySelectorAll("button")) {
+    b.classList.remove("active", "low", "medium", "high", "critical");
+    if (b.dataset.sev === state.composeSev) b.classList.add("active", state.composeSev);
+  }
+});
+
+$("btnFill").addEventListener("click", () => {
+  const s = SAMPLE[Math.floor(Math.random() * SAMPLE.length)];
+  $("evTitle").value = s.title;
+  $("evDesc").value = s.desc;
+  state.composeSev = s.sev;
+  $("sevPick").querySelectorAll("button").forEach((b) => {
+    b.classList.remove("active", "low", "medium", "high", "critical");
+    if (b.dataset.sev === s.sev) b.classList.add("active", s.sev);
+  });
+});
+
+$("btnSend").addEventListener("click", async () => {
+  const title = $("evTitle").value.trim();
+  if (!title) {
+    $("composeHint").textContent = "Tittel er påkrevd.";
+    $("composeHint").className = "compose-hint err";
+    return;
+  }
+  const body = { title, description: $("evDesc").value.trim(), severity: state.composeSev };
+  $("btnSend").disabled = true;
+  $("composeHint").textContent = "Sender…";
+  $("composeHint").className = "compose-hint";
+  const r = await fjson("/events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  $("btnSend").disabled = false;
+  if (r._err) {
+    $("composeHint").textContent = "Feil: " + (r._text || r._err);
+    $("composeHint").className = "compose-hint err";
+    return;
+  }
+  $("evTitle").value = "";
+  $("evDesc").value = "";
+  $("composeHint").textContent = "Sendt — distribueres via gossip.";
+  $("composeHint").className = "compose-hint ok";
+  toast("Hendelse rapportert", "ok");
+  setTimeout(() => { $("composeHint").textContent = "Hendelser signeres lokalt og distribueres via gossip."; $("composeHint").className = "compose-hint"; }, 4000);
+  poll();
+});
+
+// ── Filter chips ───────────────────────────────
+document.querySelector(".filter-bar").addEventListener("click", (e) => {
+  const btn = e.target.closest("button.fchip");
+  if (!btn) return;
+  if (btn.dataset.filter) {
+    state.filter = btn.dataset.filter;
+    document.querySelectorAll(".fchip[data-filter]").forEach((b) => b.classList.toggle("active", b.dataset.filter === state.filter));
+  } else if (btn.dataset.sevfilter) {
+    state.sevFilter = state.sevFilter === btn.dataset.sevfilter ? null : btn.dataset.sevfilter;
+    document.querySelectorAll(".fchip[data-sevfilter]").forEach((b) => b.classList.toggle("active", b.dataset.sevfilter === state.sevFilter));
+  } else if (btn.dataset.srcfilter) {
+    state.srcFilter = state.srcFilter === btn.dataset.srcfilter ? null : btn.dataset.srcfilter;
+    document.querySelectorAll(".fchip[data-srcfilter]").forEach((b) => b.classList.toggle("active", b.dataset.srcfilter === state.srcFilter));
+  }
+  renderEvents();
+});
+
+// ── Event expand ───────────────────────────────
+$("eventList").addEventListener("click", (e) => {
+  const t = e.target.closest("[data-toggle]");
+  if (!t) return;
+  const id = t.dataset.toggle;
+  state.expandedEv = state.expandedEv === id ? null : id;
+  renderEvents();
+});
+
+// ── Invite (KraftCERT) ─────────────────────────
+$("btnInvite").addEventListener("click", async () => {
+  const company = $("invCompany").value.trim();
+  const ttl = parseInt($("invTtl").value, 10) || 3600;
+  if (!company) { toast("Selskapsnavn mangler", "err"); return; }
+  $("btnInvite").disabled = true;
+  const r = await fjson("/invite", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ company, ttl_seconds: ttl }),
+  });
+  $("btnInvite").disabled = false;
+  if (r._err) { toast("Feil: " + (r._text || r._err), "err"); return; }
+  $("tokenOut").innerHTML = `<div class="token-out">
+    <code>${esc(r.token)}</code>
+    <button class="copy-btn" id="copyTok">Kopier</button>
+  </div>
+  <div style="font-size:.6rem;color:var(--muted);margin-top:6px">For ${esc(r.company)} · gyldig i ${r.ttl_seconds}s</div>`;
+  $("copyTok").addEventListener("click", () => {
+    navigator.clipboard.writeText(r.token).then(() => toast("Kopiert", "ok"));
+  });
+  $("invCompany").value = "";
+});
+
+// ── Init ───────────────────────────────────────
+poll();
+setInterval(poll, POLL_MS);
+</script>
+</body>
+</html>

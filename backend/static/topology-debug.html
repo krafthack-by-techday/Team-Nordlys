@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STK — Nettverkstopologi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void: #050a12;
+  --deep: #080e1c;
+  --panel: #0d1528;
+  --ridge: #152244;
+  --aurora-teal: #2dd4bf;
+  --aurora-green: #34d399;
+  --aurora-cyan: #22d3ee;
+  --aurora-purple: #a78bfa;
+  --aurora-violet: #818cf8;
+  --offline-grey: #334155;
+  --revoked-red: #ef4444;
+  --varde-amber: #f59e0b;
+  --text: #e2e8f0;
+  --text-dim: #64748b;
+  --text-muted: #475569;
+  --font-display: 'Outfit', sans-serif;
+  --font-mono: 'DM Mono', 'Menlo', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+canvas { display: block; cursor: grab; }
+canvas:active { cursor: grabbing; }
+
+.hud {
+  position: fixed;
+  top: 20px; left: 24px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.hud-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--aurora-teal), var(--aurora-green) 40%, var(--aurora-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hud-sub {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.legend {
+  position: fixed;
+  bottom: 20px; left: 24px;
+  z-index: 10;
+  display: flex;
+  gap: 16px;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot.online { background: var(--aurora-green); box-shadow: 0 0 6px var(--aurora-green); }
+.legend-dot.offline { background: var(--offline-grey); }
+.legend-dot.revoked { background: var(--revoked-red); }
+.legend-dot.kraftcert { background: var(--aurora-purple); box-shadow: 0 0 6px var(--aurora-purple); }
+.legend-dot.varde { background: var(--varde-amber); box-shadow: 0 0 6px var(--varde-amber); }
+
+.stats {
+  position: fixed;
+  top: 20px; right: 24px;
+  z-index: 10;
+  text-align: right;
+}
+
+.stats-line {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.stats-val {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--aurora-teal);
+}
+
+.event-log {
+  position: fixed;
+  bottom: 20px; right: 24px;
+  z-index: 10;
+  width: 340px;
+  max-height: 200px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.log-entry {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  padding: 4px 8px;
+  background: rgba(13,21,40,0.85);
+  border-left: 2px solid var(--aurora-teal);
+  border-radius: 0 3px 3px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: log-in 0.3s ease-out;
+}
+
+.log-entry.critical { border-left-color: var(--revoked-red); }
+.log-entry.high { border-left-color: #f97316; }
+
+@keyframes log-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Node detail panel ─────────────────────────────────────── */
+
+.panel {
+  position: fixed;
+  top: 0; right: -380px;
+  width: 360px;
+  height: 100vh;
+  background: rgba(10,16,32,0.95);
+  border-left: 1px solid var(--ridge);
+  backdrop-filter: blur(12px);
+  z-index: 20;
+  padding: 24px 20px;
+  overflow-y: auto;
+  transition: right 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel.open { right: 0; }
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-company {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.panel-close {
+  background: none; border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.panel-close:hover { background: var(--ridge); color: var(--text); }
+
+.panel-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.panel-badge.online { background: rgba(52,211,153,0.15); color: var(--aurora-green); }
+.panel-badge.offline { background: rgba(51,65,85,0.3); color: var(--text-muted); }
+.panel-badge.revoked { background: rgba(239,68,68,0.15); color: var(--revoked-red); }
+.panel-badge.idp { background: rgba(167,139,250,0.15); color: var(--aurora-purple); margin-left: 6px; }
+.panel-badge.varde { background: rgba(245,158,11,0.15); color: var(--varde-amber); margin-left: 6px; }
+
+.panel-section {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--ridge);
+  margin-top: 4px;
+}
+
+.panel-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.panel-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.panel-meta-label {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.panel-meta-val {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.panel-btn {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 7px 14px;
+  border: 1px solid var(--ridge);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--aurora-teal);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+  text-align: center;
+}
+.panel-btn:hover { background: rgba(45,212,191,0.08); border-color: var(--aurora-teal); }
+.panel-btn:active { transform: scale(0.97); }
+.panel-btn.danger { color: var(--revoked-red); }
+.panel-btn.danger:hover { background: rgba(239,68,68,0.08); border-color: var(--revoked-red); }
+.panel-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.panel-activity {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.activity-row {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  padding: 3px 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.activity-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.activity-dot.push { background: var(--aurora-teal); }
+.activity-dot.pull { background: var(--aurora-violet); }
+.activity-dot.discovery { background: var(--aurora-purple); }
+.activity-dot.pull_identity { background: var(--aurora-green); }
+.activity-dot.pull_revocation { background: var(--revoked-red); }
+.activity-dot.pull_empty { background: var(--text-muted); }
+.activity-dot.push_fail, .activity-dot.pull_fail { background: var(--revoked-red); }
+
+.activity-time {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 55px;
+}
+
+.panel-events {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.panel-event {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  padding: 4px 6px;
+  background: rgba(13,21,40,0.5);
+  border-radius: 3px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.panel-event .sev {
+  width: 5px; height: 5px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.panel-event .sev.critical { background: var(--revoked-red); }
+.panel-event .sev.high { background: #f97316; }
+.panel-event .sev.medium { background: #eab308; }
+.panel-event .sev.low { background: var(--aurora-green); }
+</style>
+</head>
+<body>
+
+<div class="hud">
+  <div class="hud-title">STK</div>
+  <div class="hud-sub">nettverkstopologi</div>
+</div>
+
+<div class="stats">
+  <div class="stats-line">Peers <span class="stats-val" id="statPeers">—</span></div>
+  <div class="stats-line">Hendelser <span class="stats-val" id="statEvents">—</span></div>
+  <div class="stats-line">Gossip-linker <span class="stats-val" id="statLinks">—</span></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot kraftcert"></span> KraftCERT</div>
+  <div class="legend-item"><span class="legend-dot online"></span> Online</div>
+  <div class="legend-item"><span class="legend-dot offline"></span> Offline</div>
+  <div class="legend-item"><span class="legend-dot revoked"></span> Revokert</div>
+  <div class="legend-item"><span class="legend-dot varde"></span> Bak Varde</div>
+</div>
+
+<div class="event-log" id="eventLog"></div>
+
+<div class="panel" id="panel">
+  <div class="panel-head">
+    <span class="panel-company" id="panelCompany">—</span>
+    <button class="panel-close" onclick="closePanel()">&times;</button>
+  </div>
+  <div id="panelBadges"></div>
+  <div class="panel-section">Detaljer</div>
+  <div class="panel-meta" id="panelMeta"></div>
+  <div class="panel-section">Handlinger</div>
+  <div class="panel-actions" id="panelActions"></div>
+  <div class="panel-section">Gossip-aktivitet</div>
+  <div class="panel-activity" id="panelActivity"></div>
+  <div class="panel-section">Siste hendelser</div>
+  <div class="panel-events" id="panelEvents"></div>
+</div>
+
+<canvas id="topo"></canvas>
+
+<script>
+const PEER_URLS = (new URLSearchParams(window.location.search).get('peers') || '')
+  .split(',').filter(Boolean);
+if (!PEER_URLS.length) {
+  PEER_URLS.push('http://localhost:8000','http://localhost:8001','http://localhost:8002','http://localhost:8003','http://localhost:8004');
+}
+
+const canvas = document.getElementById('topo');
+const ctx = canvas.getContext('2d');
+
+// ── State ──────────────────────────────────────────────────
+
+const nodes = new Map();
+const links = [];
+let seenEvents = new Set();
+let particles = [];  // {sx, sy, tx, ty, progress, color, label, speed}
+let pulses = [];     // {x, y, radius, opacity, color}
+let linkActivity = new Map(); // "src::tgt" → {lastActive, intensity}
+let dashOffset = 0;
+let activitySince = 0; // unix timestamp for polling gossip activity
+let dragNode = null;
+let mouse = { x: 0, y: 0 };
+
+// ── Canvas sizing ──────────────────────────────────────────
+
+function resize() {
+  canvas.width = window.innerWidth * devicePixelRatio;
+  canvas.height = window.innerHeight * devicePixelRatio;
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ── Data fetching ──────────────────────────────────────────
+
+async function fetchJSON(url, timeout = 3000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeout);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(t);
+    return await r.json();
+  } catch { clearTimeout(t); return null; }
+}
+
+function resolveNodeId(peerUrl) {
+  // Match docker-internal URLs like http://hafslund:8000 to node IDs like hafslund-01
+  for (const [id, n] of nodes) {
+    const stem = id.replace(/-\d+$/, '');
+    if (peerUrl.includes(stem)) return id;
+  }
+  return null;
+}
+
+async function poll() {
+  const allRevoked = new Set();
+  let totalEvents = 0;
+
+  for (const base of PEER_URLS) {
+    const [health, peers, identity, events, activity] = await Promise.all([
+      fetchJSON(`${base}/health`),
+      fetchJSON(`${base}/peers`),
+      fetchJSON(`${base}/identity`),
+      fetchJSON(`${base}/events`),
+      fetchJSON(`${base}/gossip/activity?since=${activitySince}`),
+    ]);
+
+    const online = !!health;
+    const nodeId = health?.node_id ?? base;
+    const company = health?.company ?? base;
+    const role = health?.role ?? 'peer';
+    const evCount = events?.length ?? 0;
+    totalEvents += evCount;
+
+    const revs = identity?.revocations ?? [];
+    for (const r of revs) allRevoked.add(r.node_id);
+
+    // Create or update node
+    if (!nodes.has(nodeId)) {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      nodes.set(nodeId, {
+        x: cx + (Math.random() - 0.5) * 200,
+        y: cy + (Math.random() - 0.5) * 200,
+        vx: 0, vy: 0,
+        company, role, online, revoked: false,
+        eventCount: evCount, url: base, peers: [], varde: '',
+      });
+    }
+
+    const node = nodes.get(nodeId);
+    node.online = online;
+    node.company = company;
+    node.role = role;
+    node.eventCount = evCount;
+    node.heartbeat = health?.heartbeat ?? 0;
+    node.varde = health?.varde ?? '';
+
+    // Peer links
+    const peerList = peers?.peers ?? [];
+    node.peers = peerList.map(p => p.url);
+
+    // Process gossip activity → spawn particles on real links
+    if (activity?.activity) {
+      for (const act of activity.activity) {
+        const targetId = resolveNodeId(act.peer);
+        if (!targetId) continue;
+        const src = nodes.get(nodeId);
+        const tgt = nodes.get(targetId);
+        if (!src || !tgt) continue;
+
+        // Mark link as active
+        const lk = [nodeId, targetId].sort().join('::');
+        linkActivity.set(lk, { lastActive: Date.now(), intensity: 1 });
+
+        if (act.action === 'push' && act.count > 0) {
+          // Particle from this node → peer (push direction)
+          particles.push({
+            srcId: nodeId, tgtId: targetId,
+            progress: 0, speed: 0.025,
+            color: '#2dd4bf', label: `push ${act.count}`,
+            size: 4 + Math.min(act.count, 5),
+          });
+        } else if (act.action === 'pull' && act.count > 0) {
+          // Particle from peer → this node (pull direction)
+          particles.push({
+            srcId: targetId, tgtId: nodeId,
+            progress: 0, speed: 0.015,
+            color: '#818cf8', label: `pull ${act.count}`,
+            size: 3 + Math.min(act.count, 4),
+          });
+        } else if (act.action === 'discovery') {
+          particles.push({
+            srcId: targetId, tgtId: nodeId,
+            progress: 0, speed: 0.02,
+            color: '#a78bfa', label: 'discovery',
+            size: 3,
+          });
+        } else if (act.action === 'pull_identity') {
+          particles.push({
+            srcId: targetId, tgtId: nodeId,
+            progress: 0, speed: 0.018,
+            color: '#34d399', label: `identity ×${act.count}`,
+            size: 3,
+          });
+        } else if (act.action === 'pull_revocation') {
+          particles.push({
+            srcId: targetId, tgtId: nodeId,
+            progress: 0, speed: 0.02,
+            color: '#ef4444', label: 'revoke',
+            size: 5,
+          });
+        } else if (act.action === 'push_fail' || act.action === 'pull_fail') {
+          // Flash the link red briefly
+          linkActivity.set(lk, { lastActive: Date.now(), intensity: 1, failed: true });
+        }
+
+        if (act.t > activitySince) activitySince = act.t;
+      }
+    }
+
+    // New events → ripple pulses from source
+    if (events) {
+      for (const ev of events) {
+        if (!seenEvents.has(ev.id)) {
+          seenEvents.add(ev.id);
+          const src = nodes.get(ev.node_id);
+          if (src) {
+            pulses.push({ x: src.x, y: src.y, radius: 0, opacity: 1,
+              color: ev.severity === 'critical' ? '#ef4444' : ev.severity === 'high' ? '#f97316' : '#2dd4bf' });
+          }
+          addLogEntry(ev);
+        }
+      }
+    }
+  }
+
+  // Mark revoked
+  for (const [id, n] of nodes) n.revoked = allRevoked.has(id);
+
+  // Build links
+  links.length = 0;
+  const linkSet = new Set();
+  for (const [id, n] of nodes) {
+    for (const peerUrl of n.peers) {
+      const targetId = resolveNodeId(peerUrl);
+      if (targetId && targetId !== id) {
+        const key = [id, targetId].sort().join('::');
+        if (!linkSet.has(key)) {
+          linkSet.add(key);
+          links.push({ source: id, target: targetId });
+        }
+      }
+    }
+  }
+
+  // Stats
+  document.getElementById('statPeers').textContent = nodes.size;
+  document.getElementById('statEvents').textContent = totalEvents;
+  document.getElementById('statLinks').textContent = links.length;
+}
+
+function addLogEntry(ev) {
+  const log = document.getElementById('eventLog');
+  const el = document.createElement('div');
+  el.className = `log-entry ${ev.severity}`;
+  const t = new Date(ev.created_at).toLocaleTimeString('nb-NO', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  el.textContent = `${t}  ${ev.company} — ${ev.title}`;
+  log.prepend(el);
+  while (log.children.length > 8) log.lastChild.remove();
+}
+
+// ── Physics ────────────────────────────────────────────────
+
+function simulate() {
+  const nodeArr = [...nodes.values()];
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+
+  // Repulsion between all nodes
+  for (let i = 0; i < nodeArr.length; i++) {
+    for (let j = i + 1; j < nodeArr.length; j++) {
+      const a = nodeArr[i], b = nodeArr[j];
+      let dx = b.x - a.x, dy = b.y - a.y;
+      let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      let force = 8000 / (dist * dist);
+      let fx = (dx / dist) * force;
+      let fy = (dy / dist) * force;
+      a.vx -= fx; a.vy -= fy;
+      b.vx += fx; b.vy += fy;
+    }
+  }
+
+  // Attraction along links
+  for (const link of links) {
+    const a = nodes.get(link.source);
+    const b = nodes.get(link.target);
+    if (!a || !b) continue;
+    let dx = b.x - a.x, dy = b.y - a.y;
+    let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    let force = (dist - 180) * 0.005;
+    let fx = (dx / dist) * force;
+    let fy = (dy / dist) * force;
+    a.vx += fx; a.vy += fy;
+    b.vx -= fx; b.vy -= fy;
+  }
+
+  // Gravity toward center
+  for (const n of nodeArr) {
+    n.vx += (cx - n.x) * 0.0003;
+    n.vy += (cy - n.y) * 0.0003;
+  }
+
+  // Apply velocity with damping
+  for (const n of nodeArr) {
+    if (n === dragNode) continue;
+    n.vx *= 0.85;
+    n.vy *= 0.85;
+    n.x += n.vx;
+    n.y += n.vy;
+  }
+}
+
+// ── Rendering ──────────────────────────────────────────────
+
+function draw() {
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background grid
+  ctx.strokeStyle = 'rgba(21,34,68,0.3)';
+  ctx.lineWidth = 0.5;
+  const gridSize = 60;
+  for (let x = 0; x < W; x += gridSize) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += gridSize) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  dashOffset -= 0.15;
+
+  const now = Date.now();
+
+  // Draw links — dim by default, bright when active
+  for (const link of links) {
+    const a = nodes.get(link.source);
+    const b = nodes.get(link.target);
+    if (!a || !b) continue;
+
+    const bothOnline = a.online && b.online && !a.revoked && !b.revoked;
+    const lk = [link.source, link.target].sort().join('::');
+    const act = linkActivity.get(lk);
+    const isActive = act && (now - act.lastActive < 5000);
+    const isFailed = act?.failed && (now - act.lastActive < 3000);
+
+    // Decay intensity
+    if (act) act.intensity = Math.max(0, 1 - (now - act.lastActive) / 5000);
+
+    if (isFailed) {
+      // Failed link — red flash
+      ctx.strokeStyle = `rgba(239,68,68,${0.4 * act.intensity})`;
+      ctx.lineWidth = 3;
+      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    } else if (isActive && bothOnline) {
+      // Active link — bright glow
+      ctx.strokeStyle = `rgba(45,212,191,${0.15 * act.intensity})`;
+      ctx.lineWidth = 8;
+      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    }
+
+    // Base line — dim dashes when idle, solid when active
+    if (isActive && bothOnline) {
+      ctx.strokeStyle = `rgba(45,212,191,${0.2 + 0.3 * act.intensity})`;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = bothOnline ? 'rgba(45,212,191,0.1)' : 'rgba(51,65,85,0.15)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 8]);
+      ctx.lineDashOffset = dashOffset;
+    }
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
+  }
+
+  // Draw particles traveling along links
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.progress += p.speed;
+    if (p.progress >= 1) { particles.splice(i, 1); continue; }
+
+    const src = nodes.get(p.srcId);
+    const tgt = nodes.get(p.tgtId);
+    if (!src || !tgt) { particles.splice(i, 1); continue; }
+
+    const x = src.x + (tgt.x - src.x) * p.progress;
+    const y = src.y + (tgt.y - src.y) * p.progress;
+
+    // Particle glow
+    const hex = p.color;
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, p.size * 3);
+    grad.addColorStop(0, `rgba(${r},${g},${b},0.3)`);
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, p.size * 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Particle core
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(x, y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Trail
+    const trailLen = 0.08;
+    const tx = src.x + (tgt.x - src.x) * Math.max(0, p.progress - trailLen);
+    const ty = src.y + (tgt.y - src.y) * Math.max(0, p.progress - trailLen);
+    const trailGrad = ctx.createLinearGradient(tx, ty, x, y);
+    trailGrad.addColorStop(0, 'transparent');
+    trailGrad.addColorStop(1, `rgba(${r},${g},${b},0.4)`);
+    ctx.strokeStyle = trailGrad;
+    ctx.lineWidth = p.size * 0.8;
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y); ctx.stroke();
+
+    // Label
+    if (p.label && p.progress > 0.15 && p.progress < 0.85) {
+      ctx.font = '9px "DM Mono", monospace';
+      ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
+      ctx.textAlign = 'center';
+      ctx.fillText(p.label, x, y - p.size - 6);
+    }
+  }
+
+  // Draw ripple pulses (from new events)
+  for (let i = pulses.length - 1; i >= 0; i--) {
+    const p = pulses[i];
+    p.radius += 2;
+    p.opacity -= 0.015;
+    if (p.opacity <= 0) { pulses.splice(i, 1); continue; }
+    const r = parseInt(p.color.slice(1,3),16);
+    const g = parseInt(p.color.slice(3,5),16);
+    const b = parseInt(p.color.slice(5,7),16);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(${r},${g},${b},${p.opacity})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  // Draw nodes
+  for (const [id, n] of nodes) {
+    const isKC = n.role === 'kraftcert';
+    const radius = isKC ? 32 : 24;
+
+    // Outer glow
+    if (n.online && !n.revoked) {
+      const color = isKC ? 'rgba(167,139,250,0.12)' : 'rgba(52,211,153,0.1)';
+      const grad = ctx.createRadialGradient(n.x, n.y, radius, n.x, n.y, radius * 2.5);
+      grad.addColorStop(0, color);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, radius * 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Node circle
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
+
+    if (n.revoked) {
+      ctx.fillStyle = 'rgba(239,68,68,0.1)';
+      ctx.strokeStyle = 'rgba(239,68,68,0.6)';
+    } else if (!n.online) {
+      ctx.fillStyle = 'rgba(51,65,85,0.2)';
+      ctx.strokeStyle = 'rgba(51,65,85,0.4)';
+    } else if (isKC) {
+      ctx.fillStyle = 'rgba(167,139,250,0.08)';
+      ctx.strokeStyle = 'rgba(167,139,250,0.6)';
+    } else {
+      ctx.fillStyle = 'rgba(45,212,191,0.06)';
+      ctx.strokeStyle = 'rgba(45,212,191,0.5)';
+    }
+    ctx.lineWidth = isKC ? 2 : 1.5;
+    ctx.fill();
+    ctx.stroke();
+
+    // Inner ring for KraftCERT
+    if (isKC && n.online) {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, radius - 6, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(167,139,250,0.25)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Revoked X
+    if (n.revoked) {
+      ctx.strokeStyle = 'rgba(239,68,68,0.7)';
+      ctx.lineWidth = 2;
+      const s = radius * 0.5;
+      ctx.beginPath(); ctx.moveTo(n.x - s, n.y - s); ctx.lineTo(n.x + s, n.y + s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(n.x + s, n.y - s); ctx.lineTo(n.x - s, n.y + s); ctx.stroke();
+    }
+
+    // Company name
+    ctx.font = `600 ${isKC ? 12 : 11}px Outfit, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = n.revoked ? 'rgba(239,68,68,0.7)' : n.online ? '#e2e8f0' : '#475569';
+    ctx.fillText(n.company, n.x, n.y + radius + 16);
+
+    // Node ID
+    ctx.font = '10px "DM Mono", monospace';
+    ctx.fillStyle = n.revoked ? 'rgba(239,68,68,0.4)' : '#475569';
+    ctx.fillText(id, n.x, n.y + radius + 30);
+
+    // Role badge for KraftCERT
+    if (isKC) {
+      ctx.font = '500 8px "DM Mono", monospace';
+      const badgeText = 'IdP';
+      const tw = ctx.measureText(badgeText).width;
+      const bx = n.x - tw / 2 - 4;
+      const by = n.y - radius - 14;
+      ctx.fillStyle = 'rgba(167,139,250,0.15)';
+      ctx.strokeStyle = 'rgba(167,139,250,0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(bx, by, tw + 8, 14, 3);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#a78bfa';
+      ctx.textAlign = 'center';
+      ctx.fillText(badgeText, n.x, by + 10);
+    }
+
+    // Varde indicator — dashed outer ring + badge
+    if (n.varde) {
+      // Dashed ring representing the Varde relay layer
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, radius + 10, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(245,158,11,0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.lineDashOffset = dashOffset * 2;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.lineDashOffset = 0;
+
+      // Varde badge
+      ctx.font = '500 7px "DM Mono", monospace';
+      const vt = 'VARDE';
+      const vtw = ctx.measureText(vt).width;
+      const vbx = n.x - vtw / 2 - 4;
+      const vby = n.y + radius + 34;
+      ctx.fillStyle = 'rgba(245,158,11,0.12)';
+      ctx.strokeStyle = 'rgba(245,158,11,0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(vbx, vby, vtw + 8, 13, 3);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#f59e0b';
+      ctx.textAlign = 'center';
+      ctx.fillText(vt, n.x, vby + 9);
+    }
+
+    // Selection ring
+    if (id === selectedNode) {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, radius + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.lineDashOffset = dashOffset * 3;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.lineDashOffset = 0;
+    }
+
+    // Event count badge
+    if (n.eventCount > 0 && !n.revoked) {
+      const badge = `${n.eventCount}`;
+      ctx.font = '500 9px "DM Mono", monospace';
+      const bw = Math.max(ctx.measureText(badge).width + 8, 18);
+      const bx = n.x + radius - 4;
+      const by = n.y - radius - 2;
+      ctx.fillStyle = isKC ? 'rgba(167,139,250,0.8)' : 'rgba(45,212,191,0.8)';
+      ctx.beginPath();
+      ctx.roundRect(bx - bw/2, by - 7, bw, 14, 7);
+      ctx.fill();
+      ctx.fillStyle = '#050a12';
+      ctx.textAlign = 'center';
+      ctx.fillText(badge, bx, by + 3);
+    }
+  }
+
+  simulate();
+  requestAnimationFrame(draw);
+}
+
+// ── Interaction ────────────────────────────────────────────
+
+let selectedNode = null;  // node_id of selected node
+let dragStart = null;
+
+function getNodeAt(x, y) {
+  for (const [id, n] of nodes) {
+    const dx = x - n.x, dy = y - n.y;
+    const r = n.role === 'kraftcert' ? 32 : 24;
+    if (dx * dx + dy * dy < (r + 10) * (r + 10)) return { id, node: n };
+  }
+  return null;
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  const hit = getNodeAt(e.clientX, e.clientY);
+  if (hit) {
+    dragNode = hit.node;
+    dragStart = { x: e.clientX, y: e.clientY };
+    canvas.style.cursor = 'grabbing';
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+  if (dragNode) {
+    dragNode.x = e.clientX;
+    dragNode.y = e.clientY;
+    dragNode.vx = 0;
+    dragNode.vy = 0;
+  } else {
+    canvas.style.cursor = getNodeAt(e.clientX, e.clientY) ? 'grab' : 'default';
+  }
+});
+
+canvas.addEventListener('mouseup', (e) => {
+  if (dragNode && dragStart) {
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    // If barely moved, treat as click → open panel
+    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+      const hit = getNodeAt(e.clientX, e.clientY);
+      if (hit) openPanel(hit.id);
+    }
+  }
+  dragNode = null;
+  dragStart = null;
+  canvas.style.cursor = 'default';
+});
+
+canvas.addEventListener('touchstart', (e) => {
+  const t = e.touches[0];
+  const hit = getNodeAt(t.clientX, t.clientY);
+  if (hit) { dragNode = hit.node; dragStart = { x: t.clientX, y: t.clientY }; e.preventDefault(); }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+  if (dragNode) {
+    const t = e.touches[0];
+    dragNode.x = t.clientX; dragNode.y = t.clientY;
+    dragNode.vx = 0; dragNode.vy = 0;
+    e.preventDefault();
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  if (dragNode && dragStart) {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - dragStart.x, dy = t.clientY - dragStart.y;
+    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+      const hit = getNodeAt(t.clientX, t.clientY);
+      if (hit) openPanel(hit.id);
+    }
+  }
+  dragNode = null; dragStart = null;
+});
+
+// ── Node detail panel ─────────────────────────────────────
+
+const SIM_EVENTS = [
+  { title: 'Uvanlig trafikk p\u00e5 SCADA-grensesnitt', severity: 'medium' },
+  { title: 'Flere mislykkede innloggingsf\u00f8rs\u00f8k mot RTU', severity: 'high' },
+  { title: 'Firmware-wiper detektert p\u00e5 nettstasjon', severity: 'critical' },
+  { title: 'Ukjent enhet oppdaget p\u00e5 OT-nettverk', severity: 'high' },
+  { title: 'Tap av DSO-kommunikasjon med nettstasjon', severity: 'critical' },
+  { title: 'Uautorisert VPN-tilkobling fra ekstern IP', severity: 'high' },
+  { title: 'Avvik i setpunkt-verdier fra EMS', severity: 'medium' },
+  { title: 'Mistenkelig DNS-oppslag mot kjent C2-domene', severity: 'critical' },
+  { title: 'Patch-niv\u00e5 under minimumskrav p\u00e5 gateway', severity: 'low' },
+];
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s ?? '';
+  return d.innerHTML;
+}
+
+function fmtTime(ts) {
+  return new Date(ts * 1000).toLocaleTimeString('nb-NO', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+const ACTION_LABELS = {
+  push: 'Push hendelse', pull: 'Pull hendelser', pull_empty: 'Pull (ingen nye)',
+  discovery: 'Oppdaget peer', pull_identity: 'Pull identiteter',
+  pull_revocation: 'Pull revokering', push_fail: 'Push feilet', pull_fail: 'Pull feilet',
+};
+
+async function openPanel(nodeId) {
+  selectedNode = nodeId;
+  const n = nodes.get(nodeId);
+  if (!n) return;
+
+  document.getElementById('panelCompany').textContent = n.company;
+
+  // Badges
+  const status = n.revoked ? 'revoked' : n.online ? 'online' : 'offline';
+  const statusLabel = n.revoked ? 'Revokert' : n.online ? 'Online' : 'Offline';
+  document.getElementById('panelBadges').innerHTML =
+    `<span class="panel-badge ${status}">${statusLabel}</span>` +
+    (n.role === 'kraftcert' ? '<span class="panel-badge idp">IdP</span>' : '') +
+    (n.varde ? `<span class="panel-badge varde">${esc(n.varde)}</span>` : '');
+
+  // Meta
+  document.getElementById('panelMeta').innerHTML = `
+    <div class="panel-meta-item"><span class="panel-meta-label">Node ID</span><span class="panel-meta-val">${esc(nodeId)}</span></div>
+    <div class="panel-meta-item"><span class="panel-meta-label">Rolle</span><span class="panel-meta-val">${n.role}</span></div>
+    <div class="panel-meta-item"><span class="panel-meta-label">Hendelser</span><span class="panel-meta-val">${n.eventCount}</span></div>
+    <div class="panel-meta-item"><span class="panel-meta-label">Heartbeat</span><span class="panel-meta-val">${n.heartbeat ?? '—'}</span></div>
+    ${n.varde ? `<div class="panel-meta-item"><span class="panel-meta-label">Varde</span><span class="panel-meta-val" style="color:var(--varde-amber)">${esc(n.varde)}</span></div>` : ''}
+  `;
+
+  // Actions
+  const actions = [];
+  if (!n.revoked && n.online) {
+    actions.push(`<button class="panel-btn" onclick="sendEvent('${nodeId}')">Send hendelse</button>`);
+  }
+  // Any node can request KraftCERT to revoke another node
+  if (!n.revoked && n.role !== 'kraftcert') {
+    actions.push(`<button class="panel-btn danger" onclick="revokeNode('${nodeId}')">Revoker peer</button>`);
+  }
+  if (n.revoked) {
+    actions.push(`<button class="panel-btn" disabled>Revokert — ingen handlinger</button>`);
+  }
+  document.getElementById('panelActions').innerHTML = actions.join('');
+
+  // Fetch activity for this node
+  const actData = await fetchJSON(`${n.url}/gossip/activity?since=0`);
+  const actList = (actData?.activity ?? []).slice(-15).reverse();
+  document.getElementById('panelActivity').innerHTML = actList.length === 0
+    ? '<div style="font-size:0.65rem;color:var(--text-muted)">Ingen aktivitet enda</div>'
+    : actList.map(a => `
+      <div class="activity-row">
+        <span class="activity-dot ${a.action}"></span>
+        <span class="activity-time">${fmtTime(a.t)}</span>
+        <span>${ACTION_LABELS[a.action] ?? a.action}${a.count ? ` (${a.count})` : ''}</span>
+      </div>
+    `).join('');
+
+  // Fetch events for this node
+  const evData = await fetchJSON(`${n.url}/events`);
+  const evList = (evData ?? []).slice(0, 8);
+  document.getElementById('panelEvents').innerHTML = evList.length === 0
+    ? '<div style="font-size:0.65rem;color:var(--text-muted)">Ingen hendelser</div>'
+    : evList.map(e => `
+      <div class="panel-event">
+        <span class="sev ${e.severity}"></span>
+        <span>${esc(e.title)}</span>
+      </div>
+    `).join('');
+
+  document.getElementById('panel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('panel').classList.remove('open');
+  selectedNode = null;
+}
+
+async function sendEvent(nodeId) {
+  const n = nodes.get(nodeId);
+  if (!n) return;
+  const ev = SIM_EVENTS[Math.floor(Math.random() * SIM_EVENTS.length)];
+  try {
+    await fetch(`${n.url}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ev),
+    });
+    // Refresh panel
+    setTimeout(() => openPanel(nodeId), 500);
+  } catch {}
+}
+
+async function revokeNode(nodeId) {
+  // Find KraftCERT URL
+  let kcUrl = null;
+  for (const [, n] of nodes) {
+    if (n.role === 'kraftcert') { kcUrl = n.url; break; }
+  }
+  if (!kcUrl) return;
+  const n = nodes.get(nodeId);
+  try {
+    await fetch(`${kcUrl}/revoke`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ node_id: nodeId, reason: `Manuell revokering fra topologivisualisering` }),
+    });
+    setTimeout(() => openPanel(nodeId), 1000);
+  } catch {}
+}
+
+// Close panel on Escape
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
+
+// ── Selected node highlight in draw ───────────────────────
+
+const _origDraw = draw;
+
+// ── Init ───────────────────────────────────────────────────
+
+poll();
+setInterval(poll, 3000);
+draw();
+</script>
+</body>
+</html>
