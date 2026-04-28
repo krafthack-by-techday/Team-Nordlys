@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>High-Level Solution Architecture</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 40px; }
+    h1 { text-align: center; color: #333; }
+    .diagram { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 30px; }
+    .row { display: flex; align-items: center; gap: 10px; }
+    .box { padding: 16px 24px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 14px; width: 150px; box-shadow: 2px 2px 6px rgba(0,0,0,0.15); }
+    .user     { background: #dae8fc; border: 2px solid #6c8ebf; }
+    .frontend { background: #d5e8d4; border: 2px solid #82b366; }
+    .backend  { background: #fff2cc; border: 2px solid #d6b656; }
+    .database { background: #f8cecc; border: 2px solid #b85450; border-radius: 50px; }
+    .thirdparty { background: #e1d5e7; border: 2px solid #9673a6; }
+    .arrow-right { font-size: 28px; color: #555; }
+    .arrow-down  { font-size: 28px; color: #555; transform: rotate(90deg); display: inline-block; }
+    .description { max-width: 600px; margin: 40px auto 0; text-align: center; color: #555; font-size: 15px; line-height: 1.6; }
+    .legend { margin-top: 30px; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+    .legend-dot { width: 16px; height: 16px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <h1>High-Level Solution Architecture</h1>
+
+  <div class="diagram">
+    <!-- Row 1: Horizontal flow -->
+    <div class="row">
+      <div class="box user">User Device<br><small>(Browser/Mobile)</small></div>
+      <div class="arrow-right">→</div>
+      <div class="box frontend">Frontend App<br><small>(Web/Mobile UI)</small></div>
+      <div class="arrow-right">→</div>
+      <div class="box backend">Backend/API<br><small>(Business Logic)</small></div>
+    </div>
+
+    <!-- Arrow down from Backend -->
+    <div class="row" style="margin-left:330px;">
+      <div class="arrow-down">↓</div>
+    </div>
+
+    <!-- Database -->
+    <div class="row" style="margin-left:330px;">
+      <div class="box database">Database<br><small>(SQL/NoSQL)</small></div>
+    </div>
+
+    <!-- Arrow down from Database -->
+    <div class="row" style="margin-left:330px;">
+      <div class="arrow-down">↓</div>
+    </div>
+
+    <!-- 3rd Party -->
+    <div class="row" style="margin-left:330px;">
+      <div class="box thirdparty">3rd Party<br><small>(APIs, Services)</small></div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div class="description">
+    <strong>3C Architecture Model</strong><br>
+   
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#dae8fc;border:1px solid #6c8ebf;"></div> Client</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#d5e8d4;border:1px solid #82b366;"></div> Frontend</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#fff2cc;border:1px solid #d6b656;"></div> Backend/API</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f8cecc;border:1px solid #b85450;"></div> Database</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e1d5e7;border:1px solid #9673a6;"></div> 3rd Party</div>
+  </div>
+
+</body>
+</html>
