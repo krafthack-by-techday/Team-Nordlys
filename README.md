@@ -153,6 +153,8 @@ Tre roller: hackeren, Hafslund (peer A som blir angrepet) og Statkraft (peer B s
 
 **Forutsetninger:** Docker Desktop (eller `docker compose`), `python3`, `curl`. Porter 8800, 8801, 8802, 8888 og UDP 5514 må være ledige.
 
+> **Merk:** `.sh`-skriptene må være kjørbare. Hvis du får `permission denied`, kjør `chmod +x demo/run-demo.sh demo/attacker/exploit.sh demo-onboarding.sh` først (eller `chmod +x` på det enkelte skriptet).
+
 ```bash
 cd demo
 ./run-demo.sh                        # bootstrap (~30s første gang)
