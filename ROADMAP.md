@@ -130,31 +130,40 @@ Krever koordinasjon med myndigheter. Teknisk arbeid er begrenset; det meste er p
 
 Ikke prioritert mot dato, ikke i sprintplan. Levende liste over hvor Nordlys *kan* gå når v1.0 står og sektorforeningen er operativ. Tatt med for å vise retning, ikke for å forplikte.
 
-| # | Idé | Hvorfor det er interessant |
-|---|---|---|
-| W1 | **Nordisk mesh** — føderasjon mot CERT-FI, CERT-SE, CFCS (DK) | Norsk kraft er allerede koblet til Nordpool og Nordic RCC. Cyberkoordinering bør følge samme geografi. |
-| W2 | **Multi-sektor-utvidelse** — vann, tele, finans, helse | Samme mesh-grunnmur, ny scenario-pakke per sektor. NIS2 dekker dem alle. |
-| W3 | **Lokal ML-korrelering** — Ollama eller llama.cpp på node | Anomaly-deteksjon uten å vente på 6.3-kontrakt. Modellen kjører der dataen er. |
-| W4 | **Tabletop-modus** — isolert øvelses-mesh, KraftCERT som GM | Trene koordinert respons uten å forurense produksjonsmesh. Bygger sektor-muskelminne. |
-| W5 | **Forsker-/akademia-feed** — sanitiserte, aggregerte IoC-er | Lar UiO/SINTEF/NTNU studere trender uten å eksponere peer-detaljer. Bygger sektorens analysekapasitet. |
-| W6 | **MISP/OpenCTI-bridge** — toveis sync | Lar peers beholde eksisterende IoC-investeringer. Senker terskelen for å bli med. |
-| W7 | **Threat hunting-workspace** — interaktiv spørringsbygger over historiske events | Gir analytikere et arbeidsmiljø, ikke bare et dashboard. |
-| W8 | **SOAR-light** — forhåndsdefinerte playbooks utløst av events | Tell, ikke bare se. Krever streng godkjenningsmodell for alt som rører OT. |
-| W9 | **Hardware appliance** — pre-bygd node på industriell PC | Senker driftsbarriere for små KBO-enheter uten egen IT-kompetanse. |
-| W10 | **Air-gap modus** — eksport/import via signert pakke | For miljøer der nettverkstilgang ikke er tillatt. Sneakernet med kryptografisk integritet. |
-| W11 | **Anonymisert peer-benchmarking** — angrepsfrekvens og MTTR per peer-størrelse | Lar peers se hvor de står uten å avsløre hvem som er hvem. |
-| W12 | **TTP-deling på tvers av sektor-meshes** — kun mønstre, ikke rådata | Federated threat intel uten å bryte sektor-grenser eller GDPR. |
-| W13 | **Cross-mesh attribution** — deling av aktørprofiler mellom Nordlys og andre sektorers mesh | Bygger felles aktørbilde uten sentral aggregator. |
-| W14 | **Compliance-as-code** — eksport til ISA/IEC 62443 og NSM Grunnprinsipper-format | Reduserer manuelt revisjonsarbeid. Audit-spor genereres fra signerte events. |
-| W15 | **Asset fingerprinting-database** — kollektiv RTU-/PLC-katalog | Felles inventar av hva som faktisk står i norske trafostasjoner. Patch-routing bygger på dette. |
-| W16 | **CVE → asset patch advisory routing** | Når en CVE treffer en modell vi vet du har, varsles du direkte. Bygger på W15. |
-| W17 | **Kryptografisk varslings-attestering** — tidsstemplet bevis på at en hendelse ble varslet | Hjelper peer å bevise compliance overfor NVE/NSM uten å være avhengig av loggene sine alene. |
-| W18 | **Game day / red team-injeksjon** — kontrollerte falske angrep i live-mesh | Trener operatører uten tabletop-isolering. Krever solid markering så det ikke utløser ekte respons. |
-| W19 | **Mobil on-call companion** | Push-varsling og hendelseskvittering for vakthavende. Kun lesetilgang + ack — full operasjon på desktop. |
-| W20 | **EU-mesh / ENISA-bridge** | Hvis NIS2-rapportering konsolideres på EU-nivå, blir Nordlys den naturlige kilden norsk side. |
-| W21 | **Tool Store-rating og signert publisher** | Modnet plugin-økosystem med tillit, ikke bare katalog. |
-| W22 | **Public sektor-helsekart** — anonymisert sanntidsstatus | Synlig for media, myndigheter, allmennhet under kriser. Bidrar til transparent krisekommunikasjon. |
-| W23 | **Sektor-CTF-modus** — innebygget challenge-plattform | Senker terskel for at sektoren trener defensivt. Krafthack-formatet hvert kvartal. |
+**Type-koder:**
+
+- **Core** — krever endring i mesh-, identitets- eller protokoll-stacken. Lever som del av node-binæren. Må gå gjennom kjerne-utviklersporet.
+- **Plugin** — bygges som Tool Store-manifest eller scenario-pakke. Endrer ikke kjernen. Kan utvikles og signeres av tredjepart.
+- **Klient** — egen frontend/app som snakker mot eksisterende node-API. Krever ingen endring i kjernen utover stabile API-er.
+- **Distro** — pakking, hardware eller deployment-form. Ingen ny kode i kjerne eller plugin-format.
+
+| # | Idé | Type | Hvorfor det er interessant |
+|---|---|---|---|
+| W1 | **Nordisk mesh** — føderasjon mot CERT-FI, CERT-SE, CFCS (DK) | Core | Multi-anchor på tvers av landegrenser + transport-policy. Kjerneprotokoll må forstå nasjonalt namespace. |
+| W2 | **Multi-sektor-utvidelse** — vann, tele, finans, helse | Core + Plugin | Sektor-namespace og isolasjonsregler er core; sektorspesifikke deteksjonsregler er scenario-plugins. |
+| W3 | **Lokal ML-korrelering** — Ollama eller llama.cpp på node | Plugin | Verktøy i Tool Store som leser event-stream lokalt. Trenger ikke kjerneendring. |
+| W4 | **Tabletop-modus** — isolert øvelses-mesh, KraftCERT som GM | Core | Krever sandbox-flagg på events og separat anchor-kontekst. Markeringen må være ufremkommelig. |
+| W5 | **Forsker-/akademia-feed** — sanitiserte, aggregerte IoC-er | Plugin | Eksport-tjeneste én peer kjører. Sanitiseringsregler distribueres som scenario-pakke. |
+| W6 | **MISP/OpenCTI-bridge** — toveis sync | Plugin | Sidecar-tjeneste mot eksisterende node-API. Holder tredjepartsavhengigheter ute av kjernen. |
+| W7 | **Threat hunting-workspace** — interaktiv spørringsbygger over historiske events | Core | UI-komponent på node-dashbordet. Krever stabile spørrings-API-er i kjernen. |
+| W8 | **SOAR-light** — forhåndsdefinerte playbooks utløst av events | Plugin | Per-peer playbook-engine. Hver peer eier egen automatisering. Krever absolutt at OT-handlinger ligger utenfor mesh-godkjenning. |
+| W9 | **Hardware appliance** — pre-bygd node på industriell PC | Distro | Pakking, ikke ny kode. Bygger på samme image som vanlig node. |
+| W10 | **Air-gap modus** — eksport/import via signert pakke | Core | Eksport-/import-format må bære samme signatur-, dedup- og hop-stack. Hører hjemme i kjernen. |
+| W11 | **Anonymisert peer-benchmarking** — angrepsfrekvens og MTTR per peer-størrelse | Core | Felles tellings- og aggregerings-protokoll på tvers av peers. Krever konsistente felt i kjernen. |
+| W12 | **TTP-deling på tvers av sektor-meshes** — kun mønstre, ikke rådata | Core | Mesh-til-mesh-bro må implementeres i transportlaget for å bevare signatur-kjeden. |
+| W13 | **Cross-mesh attribution** — aktørprofiler delt mellom Nordlys og andre sektorers mesh | Core | Aktør-identitetsobjekt må være kjerneprimitiv for å overleve kryss-mesh-rebroadcast. |
+| W14 | **Compliance-as-code** — eksport til ISA/IEC 62443 og NSM Grunnprinsipper-format | Plugin | Eksport-mappingen er per-rammeverk og evolverer raskere enn kjernen. Hører hjemme som plugin per profil. |
+| W15 | **Asset fingerprinting-database** — kollektiv RTU-/PLC-katalog | Core | Ny gossip-datatype med egen datamodell. Må synkroniseres med samme garantier som events. |
+| W16 | **CVE → asset patch advisory routing** | Plugin | Bygger på W15 (core). Selve routing-policyen er per-peer og leveres som plugin med konfigurerbare regler. |
+| W17 | **Kryptografisk varslings-attestering** — tidsstemplet bevis på at en hendelse ble varslet | Core | Hekter på audit-log og signaturstack i kjernen. Bevis-formatet må være standardisert. |
+| W18 | **Game day / red team-injeksjon** — kontrollerte falske angrep i live-mesh | Core + Plugin | Sandbox-/øvingsflagg er kjerneprimitiv (uten det bryter markeringen ned); challenge-pakker er plugins. |
+| W19 | **Mobil on-call companion** | Klient | Egen app mot eksisterende REST-API. Lese + ack. Påvirker ikke kjernen. |
+| W20 | **EU-mesh / ENISA-bridge** | Core | Transport- og identitets-bro analogt med W1, men mot EU-nivå. |
+| W21 | **Tool Store-rating og signert publisher** | Core | Tool Store-protokollen er core. Publisher-identitet og rating-events må gossipes på samme stack. |
+| W22 | **Public sektor-helsekart** — anonymisert sanntidsstatus | Plugin | Aggregerings- og publiseringstjeneste én peer kjører. Anonymiseringsregler kan distribueres som pakke. |
+| W23 | **Sektor-CTF-modus** — innebygget challenge-plattform | Distro + Plugin | Egen mesh-deployment (distro) med challenge-pakker som plugins. Bygger på W4-sandboxen. |
+
+Fordeling: 12 Core, 8 Plugin, 1 Klient, 1 Distro, 3 hybrid (Core+Plugin / Distro+Plugin). Fordelingen viser at kjernen må være moden før mye av ønskelisten kan realiseres — særlig W4-sandbox og W21-tool-store-protokoll er fellesnevnere flere andre punkter avhenger av.
 
 ---
 
