@@ -200,12 +200,30 @@ body { min-height: 100%; }
 
 /* ── 01 · TEAM ───────────────────────────────────────────── */
 .s-team {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  align-items: center;
-  gap: 5rem;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 3rem;
+  background-image:
+    linear-gradient(90deg,
+      rgba(6,9,18,0.95) 0%,
+      rgba(6,9,18,0.85) 22%,
+      rgba(6,9,18,0.55) 45%,
+      rgba(6,9,18,0.20) 68%,
+      rgba(6,9,18,0.05) 100%),
+    linear-gradient(180deg,
+      rgba(6,9,18,0.40) 0%,
+      transparent 30%,
+      transparent 70%,
+      rgba(6,9,18,0.55) 100%),
+    url('../Image.jpeg');
+  background-size: cover, cover, cover;
+  background-position: center, center, center;
 }
-.team-block { align-self: center; }
+.team-block {
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 2px 30px rgba(0,0,0,0.6);
+}
 
 .team__kicker {
   font-family: 'JetBrains Mono', monospace;
@@ -364,7 +382,7 @@ body { min-height: 100%; }
   100% { transform: translateY(42px); }
 }
 
-/* ── 02 · PROBLEM ────────────────────────────────────────── */
+/* ── 03 · PROBLEM ────────────────────────────────────────── */
 .s-problem {
   flex-direction: column;
   justify-content: center;
@@ -419,7 +437,7 @@ body { min-height: 100%; }
   letter-spacing: -0.005em;
 }
 
-/* ── 03 · DEMO ───────────────────────────────────────────── */
+/* ── 04 · DEMO ───────────────────────────────────────────── */
 .s-demo {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
@@ -436,123 +454,30 @@ body { min-height: 100%; }
 }
 .demo__head {
   display: flex;
-  align-items: flex-end;
-  gap: 2.4rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
   margin-bottom: 1.2rem;
 }
 .demo__mark {
   font-family: 'Bricolage Grotesque', sans-serif;
   font-variation-settings: 'opsz' 96, 'wght' 800;
-  font-size: clamp(6rem, 12vw, 13rem);
+  font-size: clamp(4.5rem, 9vw, 10rem);
   line-height: 0.82;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.045em;
   background: linear-gradient(120deg, var(--aurora-3) 0%, var(--aurora-1) 55%, var(--aurora-2) 100%);
   -webkit-background-clip: text;
           background-clip: text;
   color: transparent;
 }
-.demo__name {
-  padding-bottom: 1.4rem;
-}
-.demo__name .label {
-  display: block;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
-  letter-spacing: 0.28em;
-  color: var(--fg-dim);
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
-}
 .demo__name .full {
-  font-size: clamp(1.6rem, 2.4vw, 2.6rem);
+  font-size: clamp(1.4rem, 2vw, 2.2rem);
   font-weight: 400;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
   color: var(--fg);
 }
-.demo__tagline {
-  font-size: clamp(1.4rem, 2vw, 2.1rem);
-  max-width: 38ch;
-  margin-bottom: 2.6rem;
-  color: var(--fg);
-  font-weight: 400;
-  line-height: 1.3;
-}
-.demo__tagline em {
-  font-style: normal;
-  color: var(--aurora-1);
-}
 
-.demo__grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.6rem;
-  margin-bottom: 2.4rem;
-}
-.tile {
-  position: relative;
-  padding: 1.4rem 1.2rem;
-  border: 1px solid var(--line-hi);
-  background: rgba(14,21,36,0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 8rem;
-  transition: border-color 0.4s ease, background 0.4s ease, transform 0.4s ease;
-}
-.tile:hover {
-  border-color: var(--aurora-1);
-  background: rgba(127,220,181,0.10);
-  transform: translateY(-2px);
-}
-.tile .num {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
-  color: var(--aurora-1);
-  letter-spacing: 0.18em;
-}
-.tile .name {
-  font-size: clamp(1.1rem, 1.4vw, 1.55rem);
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.05;
-}
-.tile.span-2 { grid-column: span 2; }
-
-.demo__url {
-  display: inline-flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.2rem 1.8rem;
-  border: 1px solid var(--aurora-1);
-  background: rgba(127,220,181,0.08);
-  width: fit-content;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(1.4rem, 2.2vw, 2.4rem);
-  letter-spacing: 0.02em;
-  color: var(--fg);
-  box-shadow: 0 0 36px -12px rgba(127,220,181,0.45);
-}
-.demo__url .arrow {
-  color: var(--aurora-1);
-  display: inline-block;
-  animation: arrow 1.8s ease-in-out infinite;
-}
-.demo__url .label {
-  color: var(--aurora-1);
-  text-transform: uppercase;
-  font-size: 0.65em;
-  letter-spacing: 0.22em;
-  border-right: 1px solid rgba(127,220,181,0.32);
-  padding-right: 1.2rem;
-}
-@keyframes arrow {
-  0%, 100% { transform: translateX(0); }
-  50%      { transform: translateX(8px); }
-}
-
-/* ── 04 · MESH ───────────────────────────────────────────── */
+/* ── 05 · MESH ───────────────────────────────────────────── */
 .s-mesh { padding: 0; }
 .mesh__frame {
   position: absolute;
@@ -562,20 +487,6 @@ body { min-height: 100%; }
   border: 0;
   display: block;
   background: var(--bg);
-}
-
-/* ── 05 · PRICE ──────────────────────────────────────────── */
-.s-price .problem__headline { max-width: 18ch; }
-.problem__item .sub {
-  display: block;
-  margin-top: 0.55rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.95rem;
-  letter-spacing: 0.12em;
-  color: var(--fg-dim);
-  text-transform: uppercase;
-  font-weight: 400;
-  
 }
 
 /* ── 06 · OUTTRO ─────────────────────────────────────────── */
@@ -677,13 +588,13 @@ body { min-height: 100%; }
 @media (max-width: 1100px) {
   .section { padding: 4rem 3rem 3rem; }
   .s-team {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    align-items: start;
+    background-image:
+      linear-gradient(180deg,
+        rgba(6,9,18,0.85) 0%,
+        rgba(6,9,18,0.55) 50%,
+        rgba(6,9,18,0.85) 100%),
+      url('../Image.jpeg');
   }
-  .photo { max-height: 36vh; transform: none; }
-  .demo__grid { grid-template-columns: repeat(2, 1fr); }
-  .tile.span-2 { grid-column: span 1; }
   .demo__head { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
   .s-demo { grid-template-columns: 1fr; gap: 2rem; }
   .demo__left { padding-bottom: 0; justify-content: flex-start; }
@@ -733,25 +644,21 @@ body { min-height: 100%; }
     </div>
   </div>
 
-  <div class="photo reveal d3">
-    <img src="assets/Image.jpeg" alt="Team Nordlys"
-         onerror="this.style.display='none';this.parentElement.querySelector('.photo__fallback').style.display='flex'">
-    <div class="photo__fallback">
-      <div class="ph-tag">Bildeplass</div>
-      <div class="ph-name">team_profile.jpeg</div>
-      <div class="ph-hint">Legg teambildet under <strong>stage/assets/team_profile.jpeg</strong></div>
-    </div>
-  </div>
-
-  <div class="scroll-hint">
-    <span>Rull videre</span>
-    <span class="scroll-hint__line"></span>
-  </div>
 </section>
 
-<!-- ═══════════════════ 02 · PROBLEM ═══════════════════ -->
+<!-- ═══════════════════ 02 · SPØRSMÅL ═══════════════════ -->
+<section class="section s-problem" id="s-question">
+  <div class="section__tag"><b>02</b> / 06 — Problemstilling</div>
+
+  <h2 class="problem__headline reveal">
+    Hvordan kan vi dele kritisk informasjon <em>sikkert og raskt?</em>
+  </h2>
+  <div class="problem__rule reveal d1"></div>
+</section>
+
+<!-- ═══════════════════ 03 · PROBLEM ═══════════════════ -->
 <section class="section s-problem" id="s-problem">
-  <div class="section__tag"><b>02</b> / 06 — Problem</div>
+  <div class="section__tag"><b>03</b> / 06 — Problem</div>
 
   <h2 class="problem__headline reveal">
     Norsk kraftsektor er sårbar for <em>koordinerte cyberangrep.</em>
@@ -759,80 +666,38 @@ body { min-height: 100%; }
   <div class="problem__rule reveal d1"></div>
 </section>
 
-<!-- ═══════════════════ 03 · DEMO ═══════════════════ -->
+<!-- ═══════════════════ 04 · DEMO ═══════════════════ -->
 <section class="section s-demo" id="s-demo">
-  <div class="section__tag"><b>03</b> / 06 — Demo</div>
+  <div class="section__tag"><b>04</b> / 06 — Demo</div>
 
   <div class="demo__left">
     <div class="demo__head">
-      <div class="demo__mark reveal">STK</div>
+      <div class="demo__mark reveal">Nordlys</div>
       <div class="demo__name reveal d1">
-        <span class="full">Security Toolkit</span>
       </div>
     </div>
-
-    <p class="demo__tagline reveal d2">
-      Desentralisert mesh-plattform for <em>situasjonsforståelse i sanntid</em>.
-    </p>
   </div>
-
-  <ol class="problem__list">
-    <li class="problem__item reveal d3">
-      <span class="n">01</span>
-      <span class="t">Integrasjon mot eksisterende sikkerhetsløsninger.</span>
-    </li>
-    <li class="problem__item reveal d4">
-      <span class="n">02</span>
-      <span class="t">Automatisk deling av TLP-grønn informasjon.</span>
-    </li>
-  </ol>
-</section>
-
-<!-- ═══════════════════ 04 · MESH ═══════════════════ -->
-<section class="section s-mesh" id="s-mesh">
-  <div class="section__tag"><b>04</b> / 06 — Mesh</div>
-  <iframe class="mesh__frame" src="topology-anim.html" title="STK Mesh — live gossip-topologi"></iframe>
-</section>
-
-<!-- ═══════════════════ 05 · PRICE ═══════════════════ -->
-<section class="section s-problem s-price" id="s-price">
-  <div class="section__tag"><b>05</b> / 06 — Distribusjon</div>
-
-  <h2 class="problem__headline reveal">
-    Samarbeid
-  </h2>
-  <div class="problem__rule reveal d1"></div>
 
   <ol class="problem__list">
     <li class="problem__item reveal d2">
       <span class="n">01</span>
-      <span class="t">
-        Åpen kildekode.
-        <span class="sub">Sektoren eier plattformen — ikke en leverandør.</span>
-      </span>
+      <span class="t">Desentralisert plattform for rask deling av informasjon.</span>
     </li>
     <li class="problem__item reveal d3">
       <span class="n">02</span>
-      <span class="t">
-        Community og meetups.
-        <span class="sub">Felles utvikling, felles trusselbilde, felles tempo.</span>
-      </span>
+      <span class="t">Integrasjon mot eksisterende sikkerhetsløsninger.</span>
     </li>
     <li class="problem__item reveal d4">
       <span class="n">03</span>
-      <span class="t">
-        Store selskaper bidrar med utviklingstimer.
-        <span class="sub">Investerer i egen sikkerhet — og hele meshen tjener på det.</span>
-      </span>
-    </li>
-    <li class="problem__item reveal d5">
-      <span class="n">04</span>
-      <span class="t">
-        Mindre selskaper bruker STK gratis.
-        <span class="sub">Ingen lisens, ingen barriere — bare koble noden til meshen.</span>
-      </span>
+      <span class="t">Automatisk deling av TLP grønn informasjon.</span>
     </li>
   </ol>
+</section>
+
+<!-- ═══════════════════ 05 · MESH ═══════════════════ -->
+<section class="section s-mesh" id="s-mesh">
+  <div class="section__tag"><b>05</b> / 06 — Mesh</div>
+  <iframe class="mesh__frame" src="../dashboard/topology.html" title="STK Mesh — live gossip-topologi"></iframe>
 </section>
 
 <!-- ═══════════════════ 06 · OUTTRO ═══════════════════ -->
@@ -892,6 +757,15 @@ document.addEventListener('keydown', (e) => {
     case 'End':
       e.preventDefault(); idx = sections.length - 1;
       sections[idx].scrollIntoView({ behavior: 'smooth' }); break;
+    case 'f':
+    case 'F':
+      e.preventDefault();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+      break;
   }
 });
 
