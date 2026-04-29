@@ -126,6 +126,38 @@ Krever koordinasjon med myndigheter. Teknisk arbeid er begrenset; det meste er p
 
 ---
 
+## Ønskeliste — v1.1+ horisont
+
+Ikke prioritert mot dato, ikke i sprintplan. Levende liste over hvor Nordlys *kan* gå når v1.0 står og sektorforeningen er operativ. Tatt med for å vise retning, ikke for å forplikte.
+
+| # | Idé | Hvorfor det er interessant |
+|---|---|---|
+| W1 | **Nordisk mesh** — føderasjon mot CERT-FI, CERT-SE, CFCS (DK) | Norsk kraft er allerede koblet til Nordpool og Nordic RCC. Cyberkoordinering bør følge samme geografi. |
+| W2 | **Multi-sektor-utvidelse** — vann, tele, finans, helse | Samme mesh-grunnmur, ny scenario-pakke per sektor. NIS2 dekker dem alle. |
+| W3 | **Lokal ML-korrelering** — Ollama eller llama.cpp på node | Anomaly-deteksjon uten å vente på 6.3-kontrakt. Modellen kjører der dataen er. |
+| W4 | **Tabletop-modus** — isolert øvelses-mesh, KraftCERT som GM | Trene koordinert respons uten å forurense produksjonsmesh. Bygger sektor-muskelminne. |
+| W5 | **Forsker-/akademia-feed** — sanitiserte, aggregerte IoC-er | Lar UiO/SINTEF/NTNU studere trender uten å eksponere peer-detaljer. Bygger sektorens analysekapasitet. |
+| W6 | **MISP/OpenCTI-bridge** — toveis sync | Lar peers beholde eksisterende IoC-investeringer. Senker terskelen for å bli med. |
+| W7 | **Threat hunting-workspace** — interaktiv spørringsbygger over historiske events | Gir analytikere et arbeidsmiljø, ikke bare et dashboard. |
+| W8 | **SOAR-light** — forhåndsdefinerte playbooks utløst av events | Tell, ikke bare se. Krever streng godkjenningsmodell for alt som rører OT. |
+| W9 | **Hardware appliance** — pre-bygd node på industriell PC | Senker driftsbarriere for små KBO-enheter uten egen IT-kompetanse. |
+| W10 | **Air-gap modus** — eksport/import via signert pakke | For miljøer der nettverkstilgang ikke er tillatt. Sneakernet med kryptografisk integritet. |
+| W11 | **Anonymisert peer-benchmarking** — angrepsfrekvens og MTTR per peer-størrelse | Lar peers se hvor de står uten å avsløre hvem som er hvem. |
+| W12 | **TTP-deling på tvers av sektor-meshes** — kun mønstre, ikke rådata | Federated threat intel uten å bryte sektor-grenser eller GDPR. |
+| W13 | **Cross-mesh attribution** — deling av aktørprofiler mellom Nordlys og andre sektorers mesh | Bygger felles aktørbilde uten sentral aggregator. |
+| W14 | **Compliance-as-code** — eksport til ISA/IEC 62443 og NSM Grunnprinsipper-format | Reduserer manuelt revisjonsarbeid. Audit-spor genereres fra signerte events. |
+| W15 | **Asset fingerprinting-database** — kollektiv RTU-/PLC-katalog | Felles inventar av hva som faktisk står i norske trafostasjoner. Patch-routing bygger på dette. |
+| W16 | **CVE → asset patch advisory routing** | Når en CVE treffer en modell vi vet du har, varsles du direkte. Bygger på W15. |
+| W17 | **Kryptografisk varslings-attestering** — tidsstemplet bevis på at en hendelse ble varslet | Hjelper peer å bevise compliance overfor NVE/NSM uten å være avhengig av loggene sine alene. |
+| W18 | **Game day / red team-injeksjon** — kontrollerte falske angrep i live-mesh | Trener operatører uten tabletop-isolering. Krever solid markering så det ikke utløser ekte respons. |
+| W19 | **Mobil on-call companion** | Push-varsling og hendelseskvittering for vakthavende. Kun lesetilgang + ack — full operasjon på desktop. |
+| W20 | **EU-mesh / ENISA-bridge** | Hvis NIS2-rapportering konsolideres på EU-nivå, blir Nordlys den naturlige kilden norsk side. |
+| W21 | **Tool Store-rating og signert publisher** | Modnet plugin-økosystem med tillit, ikke bare katalog. |
+| W22 | **Public sektor-helsekart** — anonymisert sanntidsstatus | Synlig for media, myndigheter, allmennhet under kriser. Bidrar til transparent krisekommunikasjon. |
+| W23 | **Sektor-CTF-modus** — innebygget challenge-plattform | Senker terskel for at sektoren trener defensivt. Krafthack-formatet hvert kvartal. |
+
+---
+
 ## Eksplisitt utenfor scope (foreløpig)
 
 Listet for å unngå at de dukker opp som «glemt» i juryen eller fremtidige diskusjoner.
