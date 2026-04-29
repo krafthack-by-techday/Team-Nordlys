@@ -1,17 +1,17 @@
 # STK — Varde-mesh transport-arkitektur
 
-> **Status:** Design-utkast for diskusjon. Ikke vedtatt — flere åpne spørsmål nederst.
+> **Status:** Designutkast for diskusjon. Ikke vedtatt — flere åpne spørsmål nederst.
 > Skrevet 2026-04-25. Erstatter dagens HTTP-peer-til-peer-gossip.
 
 ---
 
 ## Kontekst
 
-Dagens implementasjon har et grunnleggende problem: tre av fem peers (Hafslund, Glitrenett, Aenergi) eksponerer egne porter direkte mot internett for å delta i gossip-meshet. KraftCERT og Statnett bruker nginx-Varde som "skjul-mekanisme", men selv den krever at Varden kan nå noden internt — i ekte deployment må noden enten åpne en hull i brannmuren eller etablere en utgående tunnel manuelt.
+Dagens implementasjon har et grunnleggende problem: tre av fem peers (Hafslund, Glitrenett, Aenergi) eksponerer egne porter direkte mot internett for å delta i gossip-meshet. KraftCERT og Statnett bruker nginx-Varde som «skjulemekanisme», men selv den krever at Varden kan nå noden internt — i ekte produksjon må noden enten åpne et hull i brannmuren eller etablere en utgående tunnel manuelt.
 
-Dette matcher ikke virkeligheten i kraftsektoren. Beredskapsapparatet til et kraftselskap ligger *langt inne i løken* — i en sone der inbound trafikk er kategorisk avvist. IT-sjefen åpner ikke porter mot internett for et delingsnett, uansett hvor godt det er signert.
+Dette samsvarer ikke med virkeligheten i kraftsektoren. Beredskapsapparatet til et kraftselskap ligger *langt inne i løken* — i en sone der innkommende trafikk er kategorisk avvist. IT-sjefen åpner ikke porter mot internett for et delingsnett, uansett hvor godt det er signert.
 
-**Målarkitektur:** Bare et eget *Varde-lag* er publikt nåbart. Noder sitter inne i hver organisasjons perimeter og etablerer kun *utgående* forbindelser til Varder. Vardene utgjør et redundant mesh som gossiper seg imellom og oppdager hverandre dynamisk. KraftCERT er en helt vanlig node i denne modellen — ingen privilegert nettverksposisjon.
+**Målarkitektur:** Bare et eget *Varde-lag* er publikt nåbart. Noder sitter inne i hver organisasjons perimeter og etablerer kun *utgående* forbindelser til Varder. Vardene utgjør et redundant mesh som gossiper seg imellom og oppdager hverandre dynamisk. KraftCERT er en helt vanlig node i denne modellen — uten privilegert nettverksposisjon.
 
 ---
 
@@ -89,11 +89,11 @@ Dette matcher ikke virkeligheten i kraftsektoren. Beredskapsapparatet til et kra
 
 ### Node
 
-- **Identitet:** RSA-nøkkel som i dag, validert ved invite-token-flow
+- **Identitet:** RSA-nøkkel som i dag, validert via invite-token-flyten
 - **Eksponerer:** Lokalt UI på loopback eller intern bridge — *aldri publikt*
-- **Etablerer:** Utgående WebSocket til *N* utvalgte Varder (default N=3)
+- **Etablerer:** Utgående WebSocket til *N* utvalgte Varder (standard N=3)
 - **Lagrer:** Egne events lokalt + speil av identitetsregister + Varde-roster
-- **Gjør IKKE:** Aksepterer inbound forbindelser
+- **Gjør IKKE:** Aksepterer innkommende forbindelser
 
 ### KraftCERT-rollen
 
@@ -179,7 +179,7 @@ JSON-meldinger med `type` + `corr_id` (for request/response) + `seq` (for replay
    │    velger 3 Varder å holde åpne tunneler mot.    │
 ```
 
-**Robusthet:** Hvis KraftCERT-noden er offline når invite mottas, holder Varde-meshet `INVITE_VALIDATION_REQUEST` i kø (TTL 5 min). Når KraftCERT kobler til igjen, prosesseres pendin invites og approval propageres normalt.
+**Robusthet:** Hvis KraftCERT-noden er offline når invite mottas, holder Varde-meshet `INVITE_VALIDATION_REQUEST` i kø (TTL 5 min). Når KraftCERT kobler til igjen, prosesseres ventende invites og godkjenningen propageres normalt.
 
 ### 2. Ny event publiseres
 
@@ -209,7 +209,7 @@ JSON-meldinger med `type` + `corr_id` (for request/response) + `seq` (for replay
    │ UI viser umiddelbart
 ```
 
-**Latens:** Forventet < 1 sek for hele meshet (WS-push er instant; HTTP-Varde-gossip kjører hvert 5-10 sek, men direkte push er på vei). Dagens 10-sekunders polling-intervall blir ~10x bedre.
+**Latens:** Forventet < 1 sek for hele meshet (WS-push er umiddelbar; HTTP-Varde-gossip kjører hvert 5–10 sek, men direkte push er på vei). Dagens 10-sekunders polling-intervall blir ~10x bedre.
 
 ### 3. Varde-discovery
 
@@ -221,7 +221,7 @@ Ny Varde annonserer seg til en kjent Varde via `POST /v1/roster/announce`. Den m
 
 Noder oppdaterer sin top-N-utvalg ved hver roster-endring (re-evaluerer hash-rangering, bytter forbindelser hvis det er bedre matcher).
 
-**Bootstrap når alt er nytt:** Hard-codet seed-Varde-URL i node-konfig. Ved fravær av tilkobling i > 2 min: hent signert roster fra `https://kraftcert.no/.well-known/stk-roster`.
+**Bootstrap når alt er nytt:** Hardkodet seed-Varde-URL i node-konfigurasjonen. Ved fravær av tilkobling i > 2 min: hent signert roster fra `https://kraftcert.no/.well-known/stk-roster`.
 
 ---
 
@@ -231,20 +231,20 @@ Noder oppdaterer sin top-N-utvalg ved hver roster-endring (re-evaluerer hash-ran
 
 | Angrep | Konsekvens | Mottiltak |
 |---|---|---|
-| Drop events | DoS for spesifikk node | Top-N-tilknytning gir redundans; 3 Varder må kompromitteres for total stillhet |
-| Reordre meldinger | Kan villede analyse | Sekvensnumre signerte i events; mottager logger reorder-anomali |
-| Observere metadata | Vet hvem rapporterer når | mTLS senere; events har ikke PII i innhold |
-| Replay events | Spamme gamle hendelser | UUID-dedup + reject av events > 5 min frem/eldre enn TTL |
+| Slippe events | DoS for spesifikk node | Top-N-tilknytning gir redundans; 3 Varder må kompromitteres for total stillhet |
+| Endre rekkefølge på meldinger | Kan villede analyse | Sekvensnumre signeres i events; mottakeren logger reorder-anomalier |
+| Observere metadata | Vet hvem som rapporterer når | mTLS senere; events har ikke PII i innholdet |
+| Spille av events på nytt | Spamme gamle hendelser | UUID-dedup + avvisning av events > 5 min fram i tid eller eldre enn TTL |
 
 ### Hva den IKKE kan gjøre
 
-- **Forfalske events:** Krever nodens private nøkkel (RSA-2048 signering på node-siden)
-- **Forfalske identiteter:** Krever KraftCERTs private nøkkel (KraftCERT signerer identitet-godkjenninger)
-- **Lese event-innhold:** Innenfor TLS, og innhold er forretnings-relevant men ikke hemmelig
+- **Forfalske events:** Krever nodens private nøkkel (RSA-2048-signering på nodesiden)
+- **Forfalske identiteter:** Krever KraftCERTs private nøkkel (KraftCERT signerer identitetsgodkjenninger)
+- **Lese event-innhold:** Beskyttet av TLS, og innholdet er forretningsrelevant, men ikke hemmelig
 
 ### Designvalg: TLS er nok, mTLS er overkill
 
-Node-til-Varde over TLS gir konfidensialitet. Autentisering av node skjer via signert HELLO med public key kjent fra KraftCERT-registeret — så Varden vet hvem den snakker med uten klient-sertifikat. mTLS kan legges til senere som "paranoid mode" uten redesign.
+Node-til-Varde over TLS gir konfidensialitet. Autentisering av noden skjer via signert HELLO med en offentlig nøkkel kjent fra KraftCERT-registeret — slik at Varden vet hvem den snakker med uten klientsertifikat. mTLS kan legges til senere som «paranoid mode» uten redesign.
 
 ---
 
@@ -293,60 +293,60 @@ docker-compose.yml          # Omskrevet: 3 varder eksponert på distinkte ports;
 Hvert trinn etterlater systemet kjørbart, så vi kan stoppe og polere når som helst.
 
 1. **Trinn 1 — Varde som FastAPI-tjeneste, transparent foran noder.**
-   Erstatt `varde/`s nginx med Python-app som eksponerer dagens HTTP-endpoints og videresender til upstream-node. Verifiser at eksisterende compose-stack fortsatt fungerer.
+   Erstatt nginx i `varde/` med en Python-app som eksponerer dagens HTTP-endepunkter og videresender til upstream-noden. Verifiser at eksisterende compose-stack fortsatt fungerer.
 
 2. **Trinn 2 — Varde↔Varde HTTP-gossip.**
-   Implementer event/identity-pull/push mellom Varder. Test med 2-3 Varder at events konvergerer.
+   Implementer event/identity-pull/push mellom Varder. Test med 2–3 Varder at events konvergerer.
 
 3. **Trinn 3 — WebSocket node↔Varde, kun for events.**
-   Noden får `varde_client.py`. Bak `USE_VARDE=true` env-flag. Identity og onboarding fortsetter via HTTP for nå.
+   Noden får `varde_client.py`. Bak `USE_VARDE=true`-env-flagg. Identitet og onboarding fortsetter via HTTP foreløpig.
 
 4. **Trinn 4 — Onboarding over Varde-mesh.**
-   Implementer `INVITE_VALIDATION_REQUEST` med corr_id og timeout. Test happy path + KraftCERT-offline path.
+   Implementer `INVITE_VALIDATION_REQUEST` med corr_id og timeout. Test happy path + KraftCERT-offline-flyten.
 
-5. **Trinn 5 — Top-N Varde-tilknytning og dynamisk roster.**
+5. **Trinn 5 — Top-N-Varde-tilknytning og dynamisk roster.**
    Noden velger 3 Varder via konsistent hash. Roster-endringer trigger re-evaluering.
 
-6. **Trinn 6 — Failure-handling.**
-   Persistert roster på disk. Fallback til well-known signert roster. Prominent isolation-logging.
+6. **Trinn 6 — Feilhåndtering.**
+   Persistert roster på disk. Fallback til well-known signert roster. Tydelig isolasjons-logging.
 
-7. **Trinn 7 — Riv ut HTTP-gossip fra noden.**
-   Gjør WS til eneste transport. Lokal UI binder til loopback default. Slett `backend/main.py`s eksterne sync-endpoints.
+7. **Trinn 7 — Fjern HTTP-gossip fra noden.**
+   Gjør WS til eneste transport. Lokalt UI binder til loopback som standard. Slett de eksterne sync-endepunktene i `backend/main.py`.
 
 ---
 
 ## Verifiseringsplan
 
-- **Unit-tester** for kanonisk serialisering + signaturverifikasjon (uendret)
-- **Integrasjons-tester** med 3 Varder + 5 noder i Docker:
-  - Event publisert på node A når sett på node B/C/D innen 2 sek
-  - Node A drepes; reconnect henter alle missede events siden cursor
-  - 1 Varde drept; alle noder fortsetter via gjenværende 2
+- **Enhetstester** for kanonisk serialisering + signaturverifikasjon (uendret)
+- **Integrasjonstester** med 3 Varder + 5 noder i Docker:
+  - Event publisert på node A er synlig på node B/C/D innen 2 sek
+  - Node A drepes; reconnect henter alle tapte events siden cursor
+  - 1 Varde drept; alle noder fortsetter via de gjenværende 2
   - Ny node onboardes; KraftCERT validerer over mesh
-  - Revokering propagerer; revokert nodes events avvises
-- **Sikkerhets-test:**
-  - Modifisert event uten ny signatur → avvist av mottager
-  - Event med tidsstempel +10min → avvist
-  - Replay av samme event-UUID → ignorert
-- **Manuell:** Operator-UI på en node viser identisk hendelseslog som tre andre noders UI innen 2 sek
+  - Revokering propagerer; events fra revokert node avvises
+- **Sikkerhetstest:**
+  - Modifisert event uten ny signatur → avvist av mottakeren
+  - Event med tidsstempel +10 min → avvist
+  - Avspilling av samme event-UUID → ignorert
+- **Manuelt:** Operator-UI på én node viser identisk hendelseslogg som tre andre noders UI innen 2 sek
 
 ---
 
 ## Åpne spørsmål for diskusjon
 
-Følgende valg krever brukerens bekreftelse før implementering. Gå gjennom hver — eventuelt avvik fra anbefalt påvirker designet ikke-trivielt.
+Følgende valg krever brukerens bekreftelse før implementering. Gå gjennom hvert punkt — eventuelle avvik fra anbefalt løsning påvirker designet på ikke-trivielle måter.
 
-1. **Migrasjonsstrategi:** Trinnvis (anbefalt — beholder kjørbart system gjennom migrasjon) eller hard cut-over (raskere, men midlertidig brudd)?
+1. **Migrasjonsstrategi:** Trinnvis (anbefalt — beholder kjørbart system gjennom migrasjonen) eller hard cut-over (raskere, men midlertidig brudd)?
 
 2. **Top-N Varder per node:** N=3 er anbefalt. Vil dere ha N=2 (sparsommelig) eller N=alle (maks redundans, mer trafikk)?
 
-3. **Event-retensjon på Varde:** 30 dager er anbefalt. Lengre (90 dager) gir bedre re-sync etter lange utfall; kortere (7 dager) reduserer storage og PII-eksponering om Varde lekker.
+3. **Event-retensjon på Varde:** 30 dager er anbefalt. Lengre (90 dager) gir bedre re-sync etter lange utfall; kortere (7 dager) reduserer lagringsbehov og PII-eksponering hvis Varden lekker.
 
-4. **Bootstrap-fallback:** Skal vi implementere `https://kraftcert.no/.well-known/stk-roster` som siste utvei, eller starter vi enkelt med kun statiske env-vars?
+4. **Bootstrap-fallback:** Skal vi implementere `https://kraftcert.no/.well-known/stk-roster` som siste utvei, eller starter vi enkelt med kun statiske env-variabler?
 
-5. **TLS / mTLS:** TLS-only nå, mTLS senere — eller bake inn mTLS fra start?
+5. **TLS / mTLS:** Kun TLS nå, mTLS senere — eller bake inn mTLS fra start?
 
-6. **Identitet for Varder:** Skal Varder selv ha KraftCERT-utstedte identiteter (mer sikkerhet, mer kompleks bootstrap), eller en enklere "shared secret" mellom Varder?
+6. **Identitet for Varder:** Skal Varder selv ha KraftCERT-utstedte identiteter (mer sikkerhet, mer kompleks bootstrap), eller en enklere «shared secret» mellom Varder?
 
 ---
 
@@ -354,8 +354,8 @@ Følgende valg krever brukerens bekreftelse før implementering. Gå gjennom hve
 
 | Risiko | Sannsynlighet | Konsekvens | Mottiltak |
 |---|---|---|---|
-| WS-reconnect-storm ved Varde-restart | Middels | Trafikkspike | Eksponentiell backoff + jitter på node-side |
-| Varde-state ut av sync (split-brain) | Lav | Inkonsistente events | Anti-entropi pull hvert 5. min |
-| Onboarding henger hvis KraftCERT er nede | Middels | Nye noder kan ikke joine | INVITE_VALIDATION_REQUEST kø med 5min TTL; manuell fallback |
-| Korrupte messages over WS | Lav | Disconnect og reconnect | JSON-validering + drop+reconnect, ikke crash |
-| Storage growth på Varde | Middels (over tid) | Disk-fullt | TTL-rydding; alarm ved 80% disk |
+| WS-reconnect-storm ved Varde-restart | Middels | Trafikkspike | Eksponentiell backoff + jitter på nodesiden |
+| Varde-state ute av sync (split-brain) | Lav | Inkonsistente events | Anti-entropi-pull hvert 5. min |
+| Onboarding henger hvis KraftCERT er nede | Middels | Nye noder kan ikke koble til | INVITE_VALIDATION_REQUEST-kø med 5 min TTL; manuell fallback |
+| Korrupte meldinger over WS | Lav | Disconnect og reconnect | JSON-validering + drop+reconnect, ikke crash |
+| Lagringsvekst på Varde | Middels (over tid) | Full disk | TTL-rydding; alarm ved 80 % disk |

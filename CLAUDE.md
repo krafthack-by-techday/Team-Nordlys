@@ -35,39 +35,31 @@ Desentralisert sikkerhetsplattform for kraftselskaper. Hver organisasjon kjører
 ### Repostruktur
 
 ```
-backend/                  FastAPI-node (gossip, identity, crypto, db, main, kollektor/)
-dashboard/                Frittstående mesh-topologi-viz og dashboard
-varde/                    HTTPS-relay-template
-demo/                     RTU-sim, attacker-script, kollektor-config, run-demo.sh
+app/                      STK-produktet (kjørende kode)
+  backend/                FastAPI-node (gossip, identity, crypto, db, main, kollektor/, static/)
+  demo/                   RTU-sim, attacker-script, kollektor-config, run-demo.sh, index.html
+  varde/                  HTTPS-relay-template
+  docker-compose.yml      Full mesh: 5 noder + 2 Varder
+  demo-onboarding.sh      End-to-end onboarding-flyt
+stage/                    Krafthack-pitch (statisk)
+  index.html              Hovedpresentasjon
+  style-kit.html          Design-system
+  topology-anim.html      Ren Canvas-animasjon (mesh-iframe)
+  assets/                 Team-bilder
 docs/
-  stk-oppsummering.md            Hovedanalyse: intervjuer, arkitektur, STRIDE, tidsplan
-  stk-scenario.html              Interaktiv angrepsscenario-demo
+  architecture.html              Generisk høynivå arkitektur
   intervju-analyse.html          Visuell presentasjon av intervjuanalysen
   TBD-TRANSPORT-ARKITEKTUR.md    Varde-relay-design (ikke implementert)
-  ÅPEN-PROBLEMSTILLING-TRANSPORT.md  Transport-sikkerhetsanalyse
-  worklist-sprint1.md            Sprint 1-plan med spor for 5 personer
-docker-compose.yml        Full mesh: 5 noder + 2 Varder
-demo-onboarding.sh        End-to-end onboarding-flyt
 ```
 
 ### Nøkkelarkitektur
 
 - Hybrid desentralisert: hver node har SQLite + FastAPI + dashboard + gossip-loop
 - Synkronisering: HTTP push-pull hvert 10. sek, UUID-deduplisering, hop-counter (`MAX_HOPS=3`), per-peer rate limiting
-- Onboarding via KraftCERT som trust anchor med kortlevde, engangs invite-tokens
-- Identitet: RSA-2048 nøkkelpar generert per node, peer-registry og revocations spres som vanlige events
+- Onboarding via KraftCERT som trust anchor med kortlevde engangs invite-tokens
+- Identitet: RSA-2048-nøkkelpar generert per node, peer-registry og revocations spres som vanlige events
 - Indicators og chat-meldinger gossipes over samme signatur-stack som ordinære events (utvidelse i sprint 1)
-- STRIDE-trusselmodell dokumentert i `docs/stk-oppsummering.md`
-
-### Arbeidsfordeling (5 utviklere — sprint 1)
-
-Detaljert i `docs/worklist-sprint1.md`. Kort sammendrag:
-
-1. **Spor A — Frontend, Dashboard, Topologi:** restrukturere `dashboard/index.html` til STK-landingsside, live counters, behold Canvas-topologi
-2. **Spor B — Datamodell og gossip-utvidelse:** schema-migrasjoner for `asset`, `vulnerability`, `indicator`, `incident`, `message`, `tool`, `tool_run`. Utvide gossip til å bære indicator + message som event-typer. **Kritisk pad.**
-3. **Spor C — Network Scanner:** ny `scanner-worker`-container med nmap, scan-jobb-API, lagring til `vulnerability`
-4. **Spor D — Tool Store + Vulnerability Dashboard:** plugin-manifest (utvid scenario-YAML), katalog-side, seedede tools
-5. **Spor E — Chat/Discussion + demo-scenario + Data Collector-UI:** chat-tabell + UI + gossiping, scriptet live-angrep, kollektor-status-side
+- STRIDE-gjennomgang er gjort på arkitekturen; mottiltak er per-node og per-scenario rate-cap, hop-limit og signaturverifikasjon på alle events.
 
 ### Begreper
 

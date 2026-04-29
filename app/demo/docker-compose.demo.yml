@@ -1,0 +1,299 @@
+# STK-demo: 13 noder (1 KraftCERT + 12 peers) + kollektor-sidecar + RTU-simulator.
+#
+# Bruk:
+#   cd demo
+#   ./run-demo.sh                # bootstrapper invite-tokens og starter alt
+#   ./run-demo.sh --reset        # wiper volumer og bootstrapper friskt
+#   ./attacker/exploit.sh        # kjør angrepet (i en annen terminal)
+#
+# Webgrensesnitt:
+#   http://localhost:8800  KraftCERT
+#   http://localhost:8801  Hafslund Kraft   (peer under angrep)
+#   http://localhost:8802  Statkraft
+#   http://localhost:8803  Statnett
+#   http://localhost:8804  BKK
+#   http://localhost:8805  Lyse
+#   http://localhost:8806  Agder Energi
+#   http://localhost:8807  Glitre Energi
+#   http://localhost:8808  Skagerak Energi
+#   http://localhost:8809  Eviny
+#   http://localhost:8810  Tensio
+#   http://localhost:8811  Elvia
+#   http://localhost:8812  NTE
+#   http://localhost:8888  ABB Relion 615   (RTU-simulator)
+
+services:
+  # ── STK-noder ──────────────────────────────────────────────
+  kraftcert:
+    build: ../backend
+    ports:
+      - "8800:8000"
+    environment:
+      NODE_ID: kraftcert-01
+      COMPANY: KraftCERT
+      ROLE: kraftcert
+      PEERS: ""
+      PUBLIC_URL: http://localhost:8800
+    volumes:
+      - kraftcert-data:/data
+
+  hafslund:
+    build: ../backend
+    ports:
+      - "8801:8000"
+    environment:
+      NODE_ID: hafslund-01
+      COMPANY: Hafslund Kraft
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_HAFSLUND:-}
+      PUBLIC_URL: http://localhost:8801
+      # Delt hemmelighet med hafslund-kollektor-sidecaren.
+      INGEST_KEYS: "kollektor-syslog:demo-secret-hafslund"
+    volumes:
+      - hafslund-data:/data
+    depends_on:
+      - kraftcert
+
+  statkraft:
+    build: ../backend
+    ports:
+      - "8802:8000"
+    environment:
+      NODE_ID: statkraft-01
+      COMPANY: Statkraft
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_STATKRAFT:-}
+      PUBLIC_URL: http://localhost:8802
+      INGEST_KEYS: "kollektor-syslog:demo-secret-statkraft"
+    volumes:
+      - statkraft-data:/data
+    depends_on:
+      - kraftcert
+
+  # ── Øvrige peers i mesh-en ───────────────────────────────────
+  # Disse mottar gossip fra Hafslund når demoen kjører, men har
+  # ingen egne kollektorer — de er observerende noder som dukker
+  # opp i topologi-visualiseringen for å vise spredningen i meshen.
+  statnett:
+    build: ../backend
+    ports:
+      - "8803:8000"
+    environment:
+      NODE_ID: statnett-01
+      COMPANY: Statnett
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_STATNETT:-}
+      PUBLIC_URL: http://localhost:8803
+    volumes:
+      - statnett-data:/data
+    depends_on:
+      - kraftcert
+
+  bkk:
+    build: ../backend
+    ports:
+      - "8804:8000"
+    environment:
+      NODE_ID: bkk-01
+      COMPANY: BKK
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_BKK:-}
+      PUBLIC_URL: http://localhost:8804
+    volumes:
+      - bkk-data:/data
+    depends_on:
+      - kraftcert
+
+  lyse:
+    build: ../backend
+    ports:
+      - "8805:8000"
+    environment:
+      NODE_ID: lyse-01
+      COMPANY: Lyse
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_LYSE:-}
+      PUBLIC_URL: http://localhost:8805
+    volumes:
+      - lyse-data:/data
+    depends_on:
+      - kraftcert
+
+  agder:
+    build: ../backend
+    ports:
+      - "8806:8000"
+    environment:
+      NODE_ID: agder-01
+      COMPANY: Agder Energi
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_AGDER_ENERGI:-}
+      PUBLIC_URL: http://localhost:8806
+    volumes:
+      - agder-data:/data
+    depends_on:
+      - kraftcert
+
+  glitre:
+    build: ../backend
+    ports:
+      - "8807:8000"
+    environment:
+      NODE_ID: glitre-01
+      COMPANY: Glitre Energi
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_GLITRE_ENERGI:-}
+      PUBLIC_URL: http://localhost:8807
+    volumes:
+      - glitre-data:/data
+    depends_on:
+      - kraftcert
+
+  skagerak:
+    build: ../backend
+    ports:
+      - "8808:8000"
+    environment:
+      NODE_ID: skagerak-01
+      COMPANY: Skagerak Energi
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_SKAGERAK_ENERGI:-}
+      PUBLIC_URL: http://localhost:8808
+    volumes:
+      - skagerak-data:/data
+    depends_on:
+      - kraftcert
+
+  eviny:
+    build: ../backend
+    ports:
+      - "8809:8000"
+    environment:
+      NODE_ID: eviny-01
+      COMPANY: Eviny
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_EVINY:-}
+      PUBLIC_URL: http://localhost:8809
+    volumes:
+      - eviny-data:/data
+    depends_on:
+      - kraftcert
+
+  tensio:
+    build: ../backend
+    ports:
+      - "8810:8000"
+    environment:
+      NODE_ID: tensio-01
+      COMPANY: Tensio
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_TENSIO:-}
+      PUBLIC_URL: http://localhost:8810
+    volumes:
+      - tensio-data:/data
+    depends_on:
+      - kraftcert
+
+  elvia:
+    build: ../backend
+    ports:
+      - "8811:8000"
+    environment:
+      NODE_ID: elvia-01
+      COMPANY: Elvia
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_ELVIA:-}
+      PUBLIC_URL: http://localhost:8811
+    volumes:
+      - elvia-data:/data
+    depends_on:
+      - kraftcert
+
+  nte:
+    build: ../backend
+    ports:
+      - "8812:8000"
+    environment:
+      NODE_ID: nte-01
+      COMPANY: NTE
+      ROLE: peer
+      PEERS: http://kraftcert:8000
+      KRAFTCERT_URL: http://kraftcert:8000
+      INVITE_TOKEN: ${INVITE_NTE:-}
+      PUBLIC_URL: http://localhost:8812
+    volumes:
+      - nte-data:/data
+    depends_on:
+      - kraftcert
+
+  # ── Kollektor-sidecar (kun for Hafslund i denne demoen) ──────
+  # Statkraft har samme infrastruktur tilgjengelig, men mottar
+  # ingen syslog i dette scenariet — de observerer angrepet via
+  # gossip-meshen istedenfor.
+  hafslund-kollektor:
+    build: ../backend
+    command: >
+      python -m kollektor.syslog_adapter
+      --node http://hafslund:8000
+      --key demo-secret-hafslund
+      --config /app/kollektor/peer-config.yaml
+      --listen 0.0.0.0:5514
+    ports:
+      - "5514:5514/udp"
+    volumes:
+      - ./kollektor-config/hafslund.yaml:/app/kollektor/peer-config.yaml:ro
+    depends_on:
+      - hafslund
+
+  # ── RTU-simulator (ABB Relion 615) ───────────────────────────
+  # Sender RFC 3164-syslog mot Hafslunds kollektor for hver
+  # autentiseringshandling, setpunkt-endring og firmware-operasjon.
+  rtu-sim:
+    build: ./rtu-sim
+    ports:
+      - "8888:8080"
+    environment:
+      RTU_DEVICE_ID: RELION615
+      SYSLOG_HOST: hafslund-kollektor
+      SYSLOG_PORT: "5514"
+      RTU_USER: admin
+      RTU_PASS: admin   # innebygd standardverdi for demo — dokumentert i README
+    depends_on:
+      - hafslund-kollektor
+
+volumes:
+  kraftcert-data:
+  hafslund-data:
+  statkraft-data:
+  statnett-data:
+  bkk-data:
+  lyse-data:
+  agder-data:
+  glitre-data:
+  skagerak-data:
+  eviny-data:
+  tensio-data:
+  elvia-data:
+  nte-data:

@@ -331,7 +331,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
   <h1 class="kit-title">Style Kit</h1>
   <p class="kit-lede">
     Felles designgrunnlag for alt vi viser fra scenen og dashbordene.
-    Klikk på en swatch eller en kodeblokk for å kopiere verdien. Alt er bygget med vanilje-CSS — ingen byggesteg, ingen rammeverk.
+    Klikk på en swatch eller en kodeblokk for å kopiere verdien. Alt er bygget med ren CSS — ingen byggesteg, ingen rammeverk.
   </p>
   <nav class="kit-toc">
     <a href="#tokens">01 — Tokens</a>
@@ -351,13 +351,13 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
     Klikk en swatch for å kopiere variabelnavnet — bruk det heller enn rå hex-verdier i ny kode.
   </p>
 
-  <h3 class="t-mono-sm" style="margin-bottom:1rem">Surfaces</h3>
+  <h3 class="t-mono-sm" style="margin-bottom:1rem">Flater</h3>
   <div class="swatch-grid" style="margin-bottom:2.4rem">
     <div class="swatch" data-copy="var(--bg)"><div class="swatch__chip" style="background:#060912"></div><div class="swatch__meta"><span class="swatch__name">Midnight</span><span class="swatch__var">--bg</span><span class="swatch__hex">#060912</span></div></div>
     <div class="swatch" data-copy="var(--bg-2)"><div class="swatch__chip" style="background:#0e1524"></div><div class="swatch__meta"><span class="swatch__name">Raised</span><span class="swatch__var">--bg-2</span><span class="swatch__hex">#0e1524</span></div></div>
   </div>
 
-  <h3 class="t-mono-sm" style="margin-bottom:1rem">Text</h3>
+  <h3 class="t-mono-sm" style="margin-bottom:1rem">Tekst</h3>
   <div class="swatch-grid" style="margin-bottom:2.4rem">
     <div class="swatch" data-copy="var(--fg)"><div class="swatch__chip" style="background:#e8e3d4"></div><div class="swatch__meta"><span class="swatch__name">Parchment</span><span class="swatch__var">--fg</span><span class="swatch__hex">#e8e3d4</span></div></div>
     <div class="swatch" data-copy="var(--fg-dim)"><div class="swatch__chip" style="background:#9a9789"></div><div class="swatch__meta"><span class="swatch__name">Slate</span><span class="swatch__var">--fg-dim</span><span class="swatch__hex">#9a9789</span></div></div>
@@ -377,7 +377,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
     <div class="swatch" data-copy="var(--aurora-3-soft)"><div class="swatch__chip" style="background:#d6e3a8"></div><div class="swatch__meta"><span class="swatch__name">Lichen soft</span><span class="swatch__var">--aurora-3-soft</span><span class="swatch__hex">#d6e3a8</span></div></div>
   </div>
 
-  <h3 class="t-mono-sm" style="margin-bottom:1rem">Lines</h3>
+  <h3 class="t-mono-sm" style="margin-bottom:1rem">Linjer</h3>
   <div class="swatch-grid" style="margin-bottom:2.4rem">
     <div class="swatch" data-copy="var(--line)"><div class="swatch__chip" style="background:rgba(232,227,212,0.14)"></div><div class="swatch__meta"><span class="swatch__name">Subtle line</span><span class="swatch__var">--line</span><span class="swatch__hex">rgba(232,227,212,0.14)</span></div></div>
     <div class="swatch" data-copy="var(--line-hi)"><div class="swatch__chip" style="background:rgba(232,227,212,0.30)"></div><div class="swatch__meta"><span class="swatch__name">Strong line</span><span class="swatch__var">--line-hi</span><span class="swatch__hex">rgba(232,227,212,0.30)</span></div></div>
@@ -419,7 +419,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
   <h2 class="kit-section__title">Skrift</h2>
   <p class="kit-section__desc">
     To familier: <strong>Bricolage Grotesque</strong> (variabel display + brødtekst) og <strong>JetBrains Mono</strong> (etiketter, tall, URL-er).
-    Bruk store størrelser for noe som skal leses fra scenen — minimum 1.4rem for brødtekst, 5rem for hero.
+    Bruk store størrelser for tekst som skal leses fra scenen — minimum 1.4rem for brødtekst, 5rem for hero.
   </p>
 
   <div class="code" data-lang="HTML" data-copy='<link rel="preconnect" href="https://fonts.googleapis.com">
@@ -463,7 +463,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
   <div class="kit-section__num">03 · Atmosfære</div>
   <h2 class="kit-section__title">Nordlys-bakgrunn</h2>
   <p class="kit-section__desc">
-    Tre lag: tre store, blurrede gradient-blobs (mint, arctic, lichen) som driver i loop, et film-grain-overlay,
+    Tre lag: tre store, uskarpe gradient-blobs (mint, arctic, lichen) som driver kontinuerlig, et film-grain-overlay
     og en vignett som drar fokus mot midten. Bruk <em>screen</em>-blend for blobs på mørk bakgrunn.
   </p>
 
@@ -522,7 +522,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
 <section class="kit-section" id="components">
   <div class="kit-section__num">04 · Komponenter</div>
   <h2 class="kit-section__title">Byggeklosser</h2>
-  <p class="kit-section__desc">Klikk en kodeblokk for å kopiere markup. Komponentene er rene HTML — ingen scripts, bare klasser.</p>
+  <p class="kit-section__desc">Klikk en kodeblokk for å kopiere HTML-koden. Komponentene er ren HTML — ingen skript, bare klasser.</p>
 
   <h3 class="t-h2" style="margin:1rem 0 0.6rem">Badge</h3>
   <div class="pair">
@@ -538,13 +538,13 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
 &lt;/div&gt;</div>
   </div>
 
-  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Section tag</h3>
+  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Seksjonsmerke</h3>
   <div class="pair">
     <div class="example"><div class="demo-tag"><b>02</b> / 03 — Problem</div></div>
     <div class="code" data-lang="HTML" data-copy='<div class="section__tag"><b>02</b> / 03 — Problem</div>'>&lt;div class="section__tag"&gt;&lt;b&gt;02&lt;/b&gt; / 03 — Problem&lt;/div&gt;</div>
   </div>
 
-  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Tile (komponent-rute)</h3>
+  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Komponentrute</h3>
   <div class="pair">
     <div class="example">
       <div class="demo-tile"><span class="demo-tile__num">01</span><span class="demo-tile__name">Dashboard</span></div>
@@ -559,7 +559,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
 &lt;/div&gt;</div>
   </div>
 
-  <h3 class="t-h2" style="margin:2rem 0 0.6rem">URL-pille (call to action)</h3>
+  <h3 class="t-h2" style="margin:2rem 0 0.6rem">URL-pille (handlingsknapp)</h3>
   <div class="pair">
     <div class="example">
       <div class="demo-url"><span class="arrow">→</span><span class="label">demo</span><span>localhost:8001</span></div>
@@ -575,7 +575,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
 &lt;/div&gt;</div>
   </div>
 
-  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Problem item (nummerert linje)</h3>
+  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Problempunkt (nummerert linje)</h3>
   <div class="pair">
     <div class="example">
       <div class="demo-problem"><span class="n">01</span><span class="t">Ingen felles situasjonsforståelse på tvers av selskaper.</span></div>
@@ -589,7 +589,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
 &lt;/li&gt;</div>
   </div>
 
-  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Aurora-rule (aksent-linje)</h3>
+  <h3 class="t-h2" style="margin:2rem 0 0.6rem">Aurora-strek (aksentlinje)</h3>
   <div class="pair">
     <div class="example"><div class="demo-rule"></div></div>
     <div class="code" data-lang="HTML" data-copy='<div class="problem__rule"></div>'>&lt;div class="problem__rule"&gt;&lt;/div&gt;</div>
@@ -632,7 +632,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
 
   <ol class="t-body" style="padding-left:1.4rem;display:flex;flex-direction:column;gap:0.8rem;max-width:65ch;margin-bottom:2rem">
     <li>Kopier <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">stage/index.html</code> som mal — den inneholder hele atmosfæren og typografioppsettet.</li>
-    <li>Hent ut <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">:root</code>-blokken og <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">.aurora</code>-stilene fra denne style-kit-en.</li>
+    <li>Hent ut <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">:root</code>-blokken og <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">.aurora</code>-stilene fra dette style-kitet.</li>
     <li>Bruk komponentklassene over (<code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">.tile</code>, <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">.badge</code>, osv.) heller enn å lage egne varianter.</li>
   </ol>
 
@@ -697,7 +697,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
   <h3 class="t-mono-sm" style="margin:2rem 0 1rem">Regler å holde seg til</h3>
   <ul class="t-body" style="padding-left:1.4rem;display:flex;flex-direction:column;gap:0.6rem;max-width:65ch">
     <li>Aldri ren hvit (<code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">#fff</code>) — bruk <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">--fg</code>. Skjermen står i mørk sal.</li>
-    <li>Brødtekst er minst <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">1.4rem</code>. Sceneslides minst <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">2rem</code>.</li>
+    <li>Brødtekst er minst <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">1.4rem</code>. Scene-slides minst <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">2rem</code>.</li>
     <li>Mono er for tall, etiketter, URL-er — aldri lange setninger.</li>
     <li>Hold maks én shimmer-gradient per skjermbilde. Resten av teksten er solid <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">--fg</code>.</li>
     <li>Bruk <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">--aurora-1</code> som hovedaksent. <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">--aurora-2</code> og <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">--aurora-3</code> kun til gradients eller variasjon.</li>
