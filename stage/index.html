@@ -163,6 +163,7 @@ body { min-height: 100%; }
   box-shadow: 0 0 14px var(--aurora-1-soft);
   animation: pulse 2.4s ease-in-out infinite;
 }
+
 @keyframes pulse {
   0%, 100% { opacity: 0.55; transform: scale(1); }
   50%      { opacity: 1;   transform: scale(1.25); }
@@ -382,7 +383,7 @@ body { min-height: 100%; }
   100% { transform: translateY(42px); }
 }
 
-/* ── 03 · PROBLEM ────────────────────────────────────────── */
+/* ── 04 · PROBLEM ────────────────────────────────────────── */
 .s-problem {
   flex-direction: column;
   justify-content: center;
@@ -437,7 +438,7 @@ body { min-height: 100%; }
   letter-spacing: -0.005em;
 }
 
-/* ── 04 · DEMO ───────────────────────────────────────────── */
+/* ── 05 · DEMO ───────────────────────────────────────────── */
 .s-demo {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
@@ -477,7 +478,126 @@ body { min-height: 100%; }
   color: var(--fg);
 }
 
-/* ── 05 · MESH ───────────────────────────────────────────── */
+/* ── 03 · STORY / TIDSLINJE ──────────────────────────────── */
+.s-story {
+  flex-direction: column;
+  justify-content: center;
+}
+.story__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-bottom: 2rem;
+}
+.story__where {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.32em;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.story__where::before {
+  content: '';
+  width: 2.4rem; height: 1px;
+  background: var(--aurora-1);
+  display: inline-block;
+}
+.story__headline {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-variation-settings: 'opsz' 96, 'wght' 600;
+  font-size: clamp(3rem, 5.6vw, 6.6rem);
+  line-height: 0.96;
+  letter-spacing: -0.025em;
+  max-width: 22ch;
+}
+.story__headline em {
+  font-style: normal;
+  background: linear-gradient(115deg, var(--aurora-1), var(--aurora-2));
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+}
+.timeline-flow {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: start;
+  gap: 0;
+  margin-top: 3rem;
+  position: relative;
+}
+.timeline-flow::before {
+  content: '';
+  position: absolute;
+  top: 65px;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 14px);
+  z-index: 0;
+}
+.tl-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+}
+/* Higher specificity so this beats .reveal's transition declaration */
+.s-story .tl-step {
+  transition:
+    filter 0.5s cubic-bezier(0.22,0.61,0.36,1),
+    opacity 0.95s cubic-bezier(0.2,0.7,0.1,1),
+    transform 0.95s cubic-bezier(0.2,0.7,0.1,1);
+}
+.tl-step--blurred {
+  filter: blur(12px) brightness(0.45);
+}
+.tl-step__num {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2.5px solid rgba(127,220,181,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.8rem;
+  font-weight: 500;
+  color: var(--aurora-1);
+  box-shadow: 0 0 38px -6px rgba(127,220,181,0.55);
+}
+.tl-step--start .tl-step__num {
+  border-color: rgba(217,153,100,0.8);
+  color: #d99964;
+  box-shadow: 0 0 46px -4px rgba(217,153,100,0.7);
+}
+.tl-step__label {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: clamp(1.05rem, 1.4vw, 1.4rem);
+  font-weight: 500;
+  color: var(--fg);
+  text-align: center;
+  letter-spacing: -0.005em;
+}
+.tl-step__when {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* Horizontal-slide variant — used for timeline events */
+.reveal--right { transform: translateX(60px); }
+
+/* ── 06 · MESH ───────────────────────────────────────────── */
 .s-mesh { padding: 0; }
 .mesh__frame {
   position: absolute;
@@ -489,7 +609,7 @@ body { min-height: 100%; }
   background: var(--bg);
 }
 
-/* ── 06 · OUTTRO ─────────────────────────────────────────── */
+/* ── 07 · OUTTRO ─────────────────────────────────────────── */
 .s-outtro {
   flex-direction: column;
   justify-content: center;
@@ -543,29 +663,33 @@ body { min-height: 100%; }
   border-radius: 50%;
   display: inline-block;
 }
-.outtro__url {
-  display: inline-flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-top: 2.6rem;
-  padding: 1.2rem 1.8rem;
-  border: 1px solid var(--aurora-1);
-  background: rgba(127,220,181,0.08);
-  width: fit-content;
+.outtro__repo {
+  position: absolute;
+  bottom: 2.4rem; left: 5.5rem;
   font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(1.1rem, 1.6vw, 1.7rem);
-  letter-spacing: 0.02em;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--fg-dim);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 1rem 0.55rem 0.9rem;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 999px;
+  background: rgba(5,8,16,0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+}
+.outtro__repo:hover {
   color: var(--fg);
-  box-shadow: 0 0 36px -12px rgba(127,220,181,0.45);
+  border-color: var(--aurora-1);
+  background: rgba(127,220,181,0.10);
 }
-.outtro__url .label {
-  color: var(--aurora-1);
-  text-transform: uppercase;
-  font-size: 0.7em;
-  letter-spacing: 0.22em;
-  border-right: 1px solid rgba(127,220,181,0.32);
-  padding-right: 1.2rem;
-}
+.outtro__repo svg { flex-shrink: 0; opacity: 0.85; }
+.outtro__repo:hover svg { opacity: 1; }
 
 /* ── Reveal animations ───────────────────────────────────── */
 .reveal {
@@ -628,9 +752,10 @@ body { min-height: 100%; }
   Team Nordlys · Krafthack 2026
 </div>
 
+
 <!-- ═══════════════════ 01 · TEAM ═══════════════════ -->
 <section class="section s-team" id="s-team">
-  <div class="section__tag"><b>01</b> / 06 — Team</div>
+  <div class="section__tag"><b>01</b> / 07 — Team</div>
 
   <div class="team-block">
     <h1 class="team__name">
@@ -648,7 +773,7 @@ body { min-height: 100%; }
 
 <!-- ═══════════════════ 02 · SPØRSMÅL ═══════════════════ -->
 <section class="section s-problem" id="s-question">
-  <div class="section__tag"><b>02</b> / 06 — Problemstilling</div>
+  <div class="section__tag"><b>02</b> / 07 — Problemstilling</div>
 
   <h2 class="problem__headline reveal">
     Hvordan kan vi dele kritisk informasjon <em>sikkert og raskt?</em>
@@ -656,9 +781,44 @@ body { min-height: 100%; }
   <div class="problem__rule reveal d1"></div>
 </section>
 
-<!-- ═══════════════════ 03 · PROBLEM ═══════════════════ -->
+<!-- ═══════════════════ 03 · HENDELSE ═══════════════════ -->
+<section class="section s-story" id="s-story">
+  <div class="section__tag"><b>03</b> / 07 — Hendelse</div>
+
+  <div class="story__intro">
+    <span class="story__where reveal d1">Skagerak Energi · august 2025</span>
+    <h2 class="story__headline reveal d2">
+      Min historie
+    </h2>
+  </div>
+
+  <ol class="timeline-flow">
+    <li class="tl-step tl-step--start reveal reveal--right d3">
+      <span class="tl-step__num">1</span>
+      <span class="tl-step__label">Alarm</span>
+      <span class="tl-step__when">Fredag morgen</span>
+    </li>
+    <li class="tl-step reveal reveal--right d4">
+      <span class="tl-step__num">2</span>
+      <span class="tl-step__label">20 klienter</span>
+      <span class="tl-step__when">Fredag kveld</span>
+    </li>
+    <li class="tl-step reveal reveal--right d5">
+      <span class="tl-step__num">3</span>
+      <span class="tl-step__label">KraftCert</span>
+      <span class="tl-step__when">Dagen før</span>
+    </li>
+    <li class="tl-step reveal reveal--right d6">
+      <span class="tl-step__num">4</span>
+      <span class="tl-step__label">Informasjonsdeling</span>
+      <span class="tl-step__when">Dagene etter</span>
+    </li>
+  </ol>
+</section>
+
+<!-- ═══════════════════ 04 · PROBLEM ═══════════════════ -->
 <section class="section s-problem" id="s-problem">
-  <div class="section__tag"><b>03</b> / 06 — Problem</div>
+  <div class="section__tag"><b>04</b> / 07 — Problem</div>
 
   <h2 class="problem__headline reveal">
     Norsk kraftsektor er sårbar for <em>koordinerte cyberangrep.</em>
@@ -666,9 +826,9 @@ body { min-height: 100%; }
   <div class="problem__rule reveal d1"></div>
 </section>
 
-<!-- ═══════════════════ 04 · DEMO ═══════════════════ -->
+<!-- ═══════════════════ 05 · DEMO ═══════════════════ -->
 <section class="section s-demo" id="s-demo">
-  <div class="section__tag"><b>04</b> / 06 — Demo</div>
+  <div class="section__tag"><b>05</b> / 07 — Løsning</div>
 
   <div class="demo__left">
     <div class="demo__head">
@@ -694,15 +854,15 @@ body { min-height: 100%; }
   </ol>
 </section>
 
-<!-- ═══════════════════ 05 · MESH ═══════════════════ -->
+<!-- ═══════════════════ 06 · MESH ═══════════════════ -->
 <section class="section s-mesh" id="s-mesh">
-  <div class="section__tag"><b>05</b> / 06 — Mesh</div>
+  <div class="section__tag"><b>06</b> / 07 — Mesh</div>
   <iframe class="mesh__frame" src="topology-anim.html" title="STK Mesh — live gossip-topologi"></iframe>
 </section>
 
-<!-- ═══════════════════ 06 · OUTTRO ═══════════════════ -->
+<!-- ═══════════════════ 07 · OUTTRO ═══════════════════ -->
 <section class="section s-outtro" id="s-outtro">
-  <div class="section__tag"><b>06</b> / 06 — Takk</div>
+  <div class="section__tag"><b>07</b> / 07 — Takk</div>
 
   <h2 class="outtro__name">
     <span class="l1 reveal d1">Sammen lyser vi opp</span>
@@ -718,6 +878,13 @@ body { min-height: 100%; }
     <span class="sep"></span>
     <span>Oslo</span>
   </div>
+
+  <a class="outtro__repo reveal d5" href="https://github.com/krafthack-by-techday/Team-Nordlys" target="_blank" rel="noopener">
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    <span>krafthack-by-techday/Team-Nordlys</span>
+  </a>
 
 </section>
 
@@ -746,11 +913,25 @@ document.addEventListener('keydown', (e) => {
     case 'PageDown':
     case 'ArrowDown':
     case 'ArrowRight':
-      e.preventDefault(); go(+1); break;
+      e.preventDefault();
+      if (storyVisible && storyRevealed < storySteps.length) {
+        storyRevealed++;
+        applyStoryBlur();
+      } else {
+        go(+1);
+      }
+      break;
     case 'PageUp':
     case 'ArrowUp':
     case 'ArrowLeft':
-      e.preventDefault(); go(-1); break;
+      e.preventDefault();
+      if (storyVisible && storyRevealed > 1) {
+        storyRevealed--;
+        applyStoryBlur();
+      } else {
+        go(-1);
+      }
+      break;
     case 'Home':
       e.preventDefault(); idx = 0;
       sections[0].scrollIntoView({ behavior: 'smooth' }); break;
@@ -773,6 +954,32 @@ document.addEventListener('keydown', (e) => {
       break;
   }
 });
+
+/* Story slide — interactive step-by-step reveal of timeline beats */
+const storySection = document.getElementById('s-story');
+const storySteps = storySection ? storySection.querySelectorAll('.tl-step') : [];
+let storyRevealed = 1;
+let storyVisible = false;
+
+function applyStoryBlur() {
+  storySteps.forEach((s, i) => {
+    s.classList.toggle('tl-step--blurred', i >= storyRevealed);
+  });
+}
+function resetStory() {
+  storyRevealed = 1;
+  applyStoryBlur();
+}
+if (storySection && storySteps.length) {
+  applyStoryBlur();
+  const storyIo = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      storyVisible = e.isIntersecting;
+      if (e.isIntersecting) resetStory();
+    });
+  }, { threshold: 0.5 });
+  storyIo.observe(storySection);
+}
 
 /* Reload mesh iframe — manually (R key) or whenever the slide scrolls into view */
 const meshFrame = document.querySelector('.mesh__frame');
