@@ -291,15 +291,32 @@ Dette er en **proof-of-concept for hackathon — ikke produksjonsklart**. Ikke k
 
 ---
 
+## Juridisk og regulatorisk — på blokka
+
+Nordlys er en teknisk PoC. Den løser ikke det regulatoriske rammeverket plattformen må operere innenfor i produksjon. Vi gjør **ingen autoritative tolkninger av lovverket** her — listen under er ment å være ærlig om hva som er identifisert og må adresseres med kvalifisert juridisk rådgivning og myndighetsdialog før utrulling.
+
+- **Kraftberedskapsforskriften** — hendelsesdata fra driftskontrollsystemer kan være kraftsensitiv informasjon. Klassifiserings- og delingsbeslutning ligger hos peer-en og forutsetter NVE-dialog. PoC-en har ingen automatisert klassifisering, og automatisk merking erstatter ikke det skjønnet kraftberedskapsforskriften krever.
+- **Sikkerhetsloven** — gradert informasjon hører ikke hjemme i Nordlys-meshen. Plattformen må avgrenses eksplisitt til ugradert og kraftsensitiv informasjon, slik andre sivile delingsplattformer (MISP, OpenCTI) gjør. Gradert informasjon håndteres på NSMs egne kanaler.
+- **Digitalsikkerhetsloven / NIS2** — Nordlys kan understøtte lovpålagt varsling til NSM, RME og sektor-CSIRT, men erstatter den ikke. Strukturert «varslingsstatus» på hver hendelse og eksport til myndighetsformater er ikke implementert i PoC-en, og er identifisert som leveranse for produksjonsversjonen.
+- **Ansvar og hefting** — det finnes i dag ingen juridisk enhet bak «sektoren eier plattformen». En produksjonsutrulling forutsetter en sektorforening (eller tilsvarende), peering-avtale med ansvarsbegrensning og kollektiv forsikring. Open source-lisensen fritar utvikleren, ikke peer-en som signerer en feilaktig hendelse.
+- **Personvern (GDPR)** — IP-er, brukernavn og hash-er fra OT-syslog kan være personopplysninger. Felles behandlingsansvar mellom peers, DPIA og behandlingsgrunnlag er ikke etablert. PoC-en gjør ingen automatisk PII-sanitisering. Datatilsynet-dialog parallelt med NVE-dialogen er på blokka.
+- **Konkurranserett** — sanntidsdeling av driftsdata mellom konkurrerende kraftleverandører trenger klare regler for hva som *ikke* skal deles (priser, volumer, kundedata). Konkurransetilsynet bør konsulteres før produksjonsbruk.
+- **Trust anchor-legitimitet** — KraftCERT er en sektorforening, ikke et forvaltningsorgan. Designet bør utvides med **multi-anchor-støtte** slik at NVE, RME og NSM kan delta som likestilte ankere der formell hjemmel kreves. KraftCERT som eneanker er pragmatisk bootstrap, ikke et endelig valg.
+- **AI-leverandør** — eventuell AI-korrelering må kjøres på lokale modeller eller EU-baserte tjenester uten amerikansk jurisdiksjonseksponering. Ingen aktive LLM-kall i PoC-en, og en produksjonsversjon vil eksplisitt utelukke amerikanske skytjenester for kraftsensitive data.
+
+Underlag: [`docs/juridisk-vurdering.md`](docs/juridisk-vurdering.md) (innsigelser fra ekstern jurist) og [`docs/juridisk-svar.md`](docs/juridisk-svar.md) (skisserte mottiltak). Dette er **utkast og diskusjonsgrunnlag**, ikke ferdig juridisk arbeid.
+
+---
+
 ## Bidrag og kontakt
 
 Nordlys er bygget for Krafthack 2026. Designet forutsetter at **KraftCERT** tar rollen som tillitsanker i en eventuell produksjonsutrulling — utsteder invites, fører revokeringslisten, og vedlikeholder og signerer scenario-pakkene.
 
-Tilbakemeldinger, særlig fra norske kraftselskaper, nettoperatører og KraftCERT, mottas med takk. Praktiske spørsmål om demoen og arkitekturen kan stilles direkte til teamet under Krafthack-presentasjonen.
+Tilbakemeldinger, særlig fra norske kraftselskaper, nettoperatører og KraftCERT, mottas med takk. Praktiske spørsmål om demoen og arkitekturen kan stilles direkte til teamet under Krafthack-presentasjonen. Se også [`FAQ.md`](FAQ.md) — bekymringene vi forventer fra en kritisk kraftbransje, og hvordan designet allerede møter dem.
 
 ## Lisens
 
-TBD.
+Nordlys er lisensiert under [MIT-lisensen](LICENSE.md).
 
 ---
 
