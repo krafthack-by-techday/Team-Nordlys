@@ -766,8 +766,31 @@ document.addEventListener('keydown', (e) => {
         document.exitFullscreen?.();
       }
       break;
+    case 'r':
+    case 'R':
+      e.preventDefault();
+      reloadMesh();
+      break;
   }
 });
+
+/* Reload mesh iframe — manually (R key) or whenever the slide scrolls into view */
+const meshFrame = document.querySelector('.mesh__frame');
+const meshSection = document.getElementById('s-mesh');
+function reloadMesh() {
+  if (!meshFrame) return;
+  const src = meshFrame.src;
+  meshFrame.src = '';
+  meshFrame.src = src;
+}
+if (meshFrame && meshSection) {
+  const meshIo = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) reloadMesh();
+    });
+  }, { threshold: 0.6 });
+  meshIo.observe(meshSection);
+}
 
 /* Track active section index from native scroll position */
 let t;
