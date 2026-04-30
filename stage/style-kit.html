@@ -50,6 +50,31 @@
   --t-mono:    1rem;
 }
 
+/* ── Light mode ────────────────────────────── */
+[data-theme="light"] {
+  --bg:        #f4f1eb;          /* warm parchment — body background */
+  --bg-2:      #e8e4db;          /* raised surface */
+
+  --fg:        #1a1e2a;          /* deep ink — primary text */
+  --fg-dim:    #5c5f6a;          /* secondary text */
+
+  --aurora-1:  #1a9e72;          /* mint — darker for contrast on light */
+  --aurora-2:  #2b7ea3;          /* arctic — darker */
+  --aurora-3:  #9a8530;          /* lichen — darker */
+
+  --aurora-1-soft: #3dc99a;
+  --aurora-2-soft: #4eaad0;
+  --aurora-3-soft: #c4b85e;
+
+  --line:      rgba(26,30,42,0.12);
+  --line-hi:   rgba(26,30,42,0.25);
+}
+[data-theme="light"] .aurora__blob { mix-blend-mode: multiply; }
+[data-theme="light"] .aurora__blob--a { opacity: 0.12; }
+[data-theme="light"] .aurora__blob--b { opacity: 0.10; }
+[data-theme="light"] .aurora__blob--c { opacity: 0.06; }
+[data-theme="light"] .grain { opacity: 0.03; mix-blend-mode: multiply; }
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   background: var(--bg);
@@ -64,6 +89,25 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--line-hi); border-radius: 10px; }
+
+/* ── Theme toggle ──────────────────────────── */
+.theme-toggle {
+  position: fixed; top: 1.2rem; right: 1.4rem; z-index: 100;
+  width: 44px; height: 24px; border-radius: 12px;
+  border: 1px solid var(--line-hi); background: var(--bg-2);
+  cursor: pointer; padding: 0; transition: background 0.3s, border-color 0.3s;
+}
+.theme-toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--aurora-1); transition: transform 0.3s;
+}
+[data-theme="light"] .theme-toggle::after { transform: translateX(20px); }
+.theme-toggle-label {
+  position: fixed; top: 2.8rem; right: 1.4rem; z-index: 100;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.15em; text-transform: uppercase; color: var(--fg-dim);
+}
 
 /* ── Atmosphere (same as stage) ────────────────────────── */
 .aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
@@ -200,7 +244,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
 .code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem; line-height: 1.65;
-  background: #02050b;
+  background: var(--bg);
   border: 1px solid var(--line);
   color: var(--fg);
   padding: 1.4rem 1.6rem;
@@ -319,6 +363,9 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
 </head>
 <body>
 
+<button class="theme-toggle" id="themeToggle" aria-label="Bytt tema"></button>
+<span class="theme-toggle-label" id="themeLabel">dark</span>
+
 <div class="aurora">
   <div class="aurora__blob aurora__blob--a"></div>
   <div class="aurora__blob aurora__blob--b"></div>
@@ -339,6 +386,7 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
     <a href="#atmosphere">03 — Atmosfære</a>
     <a href="#components">04 — Komponenter</a>
     <a href="#usage">05 — Bruk</a>
+    <a href="#theme">06 — Tema</a>
   </nav>
 </header>
 
@@ -704,12 +752,108 @@ body { min-height: 100vh; padding: 5rem 4rem 6rem; max-width: 1400px; margin: 0 
   </ul>
 </section>
 
+<!-- ════════════ 06 · DARK / LIGHT MODE ════════════ -->
+<section class="kit-section" id="theme">
+  <div class="kit-section__num">06 · Tema</div>
+  <h2 class="kit-section__title">Dark / Light mode</h2>
+  <p class="kit-section__desc">
+    Tema styres av <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">data-theme</code>-attributtet
+    på <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">&lt;html&gt;</code>.
+    Dark er standard. Valget lagres i <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">localStorage</code>
+    under nøkkelen <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">nordlys-theme</code>.
+    Alle CSS-variabler overskrives automatisk — ingen endringer trengs i komponentene.
+  </p>
+
+  <h3 class="t-mono-sm" style="margin-bottom:1rem">Light mode-variabler</h3>
+  <div class="code" data-lang="CSS" data-copy='[data-theme="light"] {
+  --bg:        #f4f1eb;
+  --bg-2:      #e8e4db;
+  --fg:        #1a1e2a;
+  --fg-dim:    #5c5f6a;
+  --aurora-1:  #1a9e72;
+  --aurora-2:  #2b7ea3;
+  --aurora-3:  #9a8530;
+  --aurora-1-soft: #3dc99a;
+  --aurora-2-soft: #4eaad0;
+  --aurora-3-soft: #c4b85e;
+  --line:      rgba(26,30,42,0.12);
+  --line-hi:   rgba(26,30,42,0.25);
+}
+[data-theme="light"] .aurora__blob { mix-blend-mode: multiply; }
+[data-theme="light"] .grain { opacity: 0.03; mix-blend-mode: multiply; }'>[data-theme=<span class="val">"light"</span>] {
+  <span class="var">--bg</span>:        <span class="val">#f4f1eb</span>;        <span class="com">/* warm parchment */</span>
+  <span class="var">--bg-2</span>:      <span class="val">#e8e4db</span>;        <span class="com">/* raised */</span>
+  <span class="var">--fg</span>:        <span class="val">#1a1e2a</span>;        <span class="com">/* deep ink */</span>
+  <span class="var">--fg-dim</span>:    <span class="val">#5c5f6a</span>;        <span class="com">/* muted */</span>
+  <span class="var">--aurora-1</span>:  <span class="val">#1a9e72</span>;        <span class="com">/* mint (darker) */</span>
+  <span class="var">--aurora-2</span>:  <span class="val">#2b7ea3</span>;        <span class="com">/* arctic (darker) */</span>
+  <span class="var">--aurora-3</span>:  <span class="val">#9a8530</span>;        <span class="com">/* lichen (darker) */</span>
+  <span class="var">--line</span>:      <span class="val">rgba(26,30,42,0.12)</span>;
+  <span class="var">--line-hi</span>:   <span class="val">rgba(26,30,42,0.25)</span>;
+}
+[data-theme=<span class="val">"light"</span>] .aurora__blob { mix-blend-mode: <span class="val">multiply</span>; }
+[data-theme=<span class="val">"light"</span>] .grain { opacity: <span class="val">0.03</span>; mix-blend-mode: <span class="val">multiply</span>; }</div>
+
+  <h3 class="t-mono-sm" style="margin:2rem 0 1rem">Toggle-knapp (HTML + JS)</h3>
+  <div class="code" data-lang="HTML" data-copy='<button class="theme-toggle" id="themeToggle" aria-label="Bytt tema"></button>
+
+<script>
+(function(){
+  var btn = document.getElementById("themeToggle");
+  var stored = localStorage.getItem("nordlys-theme");
+  if (stored) document.documentElement.setAttribute("data-theme", stored);
+  btn.addEventListener("click", function(){
+    var next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("nordlys-theme", next);
+  });
+})();
+</script>'>&lt;button class="theme-toggle" id="themeToggle" aria-label="Bytt tema"&gt;&lt;/button&gt;
+
+&lt;script&gt;
+(<span class="key">function</span>(){
+  <span class="key">var</span> btn = document.getElementById(<span class="val">"themeToggle"</span>);
+  <span class="key">var</span> stored = localStorage.getItem(<span class="val">"nordlys-theme"</span>);
+  <span class="key">if</span> (stored) document.documentElement.setAttribute(<span class="val">"data-theme"</span>, stored);
+  btn.addEventListener(<span class="val">"click"</span>, <span class="key">function</span>(){
+    <span class="key">var</span> next = document.documentElement.getAttribute(<span class="val">"data-theme"</span>) === <span class="val">"light"</span> ? <span class="val">"dark"</span> : <span class="val">"light"</span>;
+    document.documentElement.setAttribute(<span class="val">"data-theme"</span>, next);
+    localStorage.setItem(<span class="val">"nordlys-theme"</span>, next);
+  });
+})();
+&lt;/script&gt;</div>
+
+  <h3 class="t-mono-sm" style="margin:2rem 0 1rem">Regler</h3>
+  <ul class="t-body" style="padding-left:1.4rem;display:flex;flex-direction:column;gap:0.6rem;max-width:65ch">
+    <li>Bruk kun CSS-variabler for farger — aldri hardkodede hex-verdier. Da fungerer temaskiftet automatisk.</li>
+    <li>Aurora-blobene bruker <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">multiply</code> i light mode (i stedet for <code style="color:var(--aurora-1);font-family:'JetBrains Mono',monospace">screen</code>) for riktig blending.</li>
+    <li>Test alltid begge temaer. Prøv toggle-knappen oppe til høyre.</li>
+  </ul>
+</section>
+
 <footer class="kit-foot">
   <div>Team Nordlys · Krafthack 2026 · Style Kit v1.0</div>
   <div style="margin-top:0.4rem">Referanse: <a href="index.html">stage/index.html</a></div>
 </footer>
 
 <div class="toast" id="toast">KOPIERT</div>
+
+<script>
+/* ── Theme toggle ── */
+(function(){
+  var btn = document.getElementById('themeToggle');
+  var lbl = document.getElementById('themeLabel');
+  var stored = localStorage.getItem('nordlys-theme');
+  if (stored) { document.documentElement.setAttribute('data-theme', stored); lbl.textContent = stored; }
+  btn.addEventListener('click', function(){
+    var current = document.documentElement.getAttribute('data-theme');
+    var next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('nordlys-theme', next);
+    lbl.textContent = next;
+  });
+})();
+</script>
 
 <script>
 const toast = document.getElementById('toast');
