@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from db import init_db, get_db
+from db import init_db, get_db, seed_vulnerabilities, seed_indicators
 from identity import (
     init_identity_db, create_invite, validate_invite,
     register_peer, get_all_peers, get_peer_identity, is_trusted,
@@ -64,6 +64,8 @@ def startup():
     global _private_key, _public_key
     init_db()
     init_identity_db()
+    seed_vulnerabilities()
+    seed_indicators()
 
     from crypto import generate_keypair, get_public_key_pem
     _private_key, _public_key = generate_keypair()
@@ -78,6 +80,13 @@ def startup():
         threading.Thread(
             target=_auto_register, args=(kraftcert_url, invite_token), daemon=True
         ).start()
+
+    # Populate gossip peer set from identity DB (survives restarts)
+    from gossip import add_peer
+    for peer in get_all_peers():
+        url = peer.get("public_url", "").strip().rstrip("/")
+        if url and peer.get("node_id") != NODE_ID:
+            add_peer(url)
 
     from gossip import start_gossip_loop
     start_gossip_loop()
@@ -209,6 +218,31 @@ def ui_topology_debug():
     return FileResponse(os.path.join(_STATIC_DIR, "topology-debug.html"))
 
 
+@app.get("/events/ui")
+def ui_events():
+    return FileResponse(os.path.join(_STATIC_DIR, "events.html"))
+
+
+@app.get("/events/ui/detail")
+def ui_event_detail():
+    return FileResponse(os.path.join(_STATIC_DIR, "event-detail.html"))
+
+
+@app.get("/indicators/ui")
+def ui_indicators():
+    return FileResponse(os.path.join(_STATIC_DIR, "indicators.html"))
+
+
+@app.get("/vulnerabilities/ui")
+def ui_vulnerabilities():
+    return FileResponse(os.path.join(_STATIC_DIR, "vulnerabilities.html"))
+
+
+@app.get("/chat/ui")
+def ui_chat():
+    return FileResponse(os.path.join(_STATIC_DIR, "chat.html"))
+
+
 # ── Health & discovery ──────────────────────────────────────────────
 
 
@@ -244,10 +278,18 @@ def stats():
         "role": ROLE,
         "events": {"total": events_total, "last_24h": events_24h, "critical_24h": events_critical_24h},
         "peers": {"online": peers_online, "total": peers_total},
-        # placeholders inntil sprint 1-tabellene er på plass
-        "vulnerabilities": {"open": 0, "critical": 0},
-        "indicators": {"total": 0, "tlp_red": 0, "tlp_amber": 0},
-        "incidents": {"open": 0},
+        "vulnerabilities": {
+            "open": db.execute("SELECT COUNT(*) FROM vulnerabilities WHERE status='open'").fetchone()[0],
+            "critical": db.execute("SELECT COUNT(*) FROM vulnerabilities WHERE status='open' AND severity='critical'").fetchone()[0],
+        },
+        "indicators": {
+            "total": db.execute("SELECT COUNT(*) FROM indicators").fetchone()[0],
+            "tlp_red": db.execute("SELECT COUNT(*) FROM indicators WHERE tlp='RED'").fetchone()[0],
+            "tlp_amber": db.execute("SELECT COUNT(*) FROM indicators WHERE tlp='AMBER'").fetchone()[0],
+        },
+        "incidents": {
+            "open": db.execute("SELECT COUNT(*) FROM events WHERE severity IN ('critical','high')").fetchone()[0],
+        },
         "tools": {"installed": 0},
     }
 
@@ -612,3 +654,217 @@ def sync_events(events: list[Event]):
         if ev.get("hops", 0) > 0:
             threading.Thread(target=push_event, args=(ev,), daemon=True).start()
     return {"inserted": len(new_events)}
+
+
+# ── Indicators (IoC) ────────────────────────────────────────────────
+
+
+class IndicatorIn(BaseModel):
+    type: str = "ip"       # ip / hash / domain / ttp
+    value: str
+    tlp: str = "AMBER"     # RED / AMBER / GREEN / WHITE
+    description: str = ""
+    severity: str = "medium"
+
+
+class Indicator(BaseModel):
+    id: str
+    node_id: str
+    company: str
+    type: str
+    value: str
+    tlp: str
+    description: str
+    severity: str
+    created_at: str
+    signature: str = ""
+    hops: int = 0
+
+
+@app.get("/indicators")
+def list_indicators():
+    db = get_db()
+    rows = db.execute("SELECT * FROM indicators ORDER BY created_at DESC").fetchall()
+    return [dict(r) for r in rows]
+
+
+@app.post("/indicators", status_code=201)
+def create_indicator(ind: IndicatorIn):
+    from crypto import sign_event
+    from gossip import push_indicator, MAX_HOPS
+
+    ind_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    data = {
+        "id": ind_id, "node_id": NODE_ID, "company": COMPANY,
+        "type": ind.type, "value": ind.value, "tlp": ind.tlp,
+        "description": ind.description, "severity": ind.severity,
+        "created_at": now,
+    }
+    signature = sign_event(_private_key, data)
+
+    db = get_db()
+    db.execute(
+        """INSERT INTO indicators (id, node_id, company, type, value, tlp, description, severity, created_at, signature)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (ind_id, NODE_ID, COMPANY, ind.type, ind.value, ind.tlp,
+         ind.description, ind.severity, now, signature),
+    )
+    db.commit()
+
+    data["signature"] = signature
+    data["hops"] = MAX_HOPS
+    threading.Thread(target=push_indicator, args=(data,), daemon=True).start()
+    return {"id": ind_id, "created_at": now}
+
+
+@app.get("/indicators/since/{since}")
+def indicators_since(since: str):
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM indicators WHERE created_at > ? ORDER BY created_at", (since,)
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+@app.post("/indicators/sync", status_code=201)
+def sync_indicators(indicators: list[Indicator]):
+    from gossip import push_indicator
+    db = get_db()
+    new_count = 0
+    for ind in indicators:
+        try:
+            db.execute(
+                """INSERT INTO indicators (id, node_id, company, type, value, tlp, description, severity, created_at, signature)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (ind.id, ind.node_id, ind.company, ind.type, ind.value, ind.tlp,
+                 ind.description, ind.severity, ind.created_at, ind.signature),
+            )
+            new_count += 1
+            if ind.hops > 0:
+                threading.Thread(target=push_indicator, args=(ind.model_dump(),), daemon=True).start()
+        except Exception:
+            pass  # duplicate
+    db.commit()
+    return {"inserted": new_count}
+
+
+# ── Chat (per-event discussion) ─────────────────────────────────────
+
+
+class ChatIn(BaseModel):
+    author: str = ""
+    message: str
+
+
+class ChatMessage(BaseModel):
+    id: str
+    event_id: str
+    node_id: str
+    company: str
+    author: str
+    message: str
+    created_at: str
+    signature: str = ""
+    hops: int = 0
+
+
+@app.get("/events/{event_id}/chat")
+def get_event_chat(event_id: str):
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM chat_messages WHERE event_id = ? ORDER BY created_at ASC",
+        (event_id,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+@app.post("/events/{event_id}/chat", status_code=201)
+def post_event_chat(event_id: str, msg: ChatIn):
+    from crypto import sign_event
+    from gossip import push_chat, MAX_HOPS
+
+    msg_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    data = {
+        "id": msg_id, "event_id": event_id, "node_id": NODE_ID,
+        "company": COMPANY, "author": msg.author or COMPANY,
+        "message": msg.message, "created_at": now,
+    }
+    signature = sign_event(_private_key, data)
+
+    db = get_db()
+    db.execute(
+        """INSERT INTO chat_messages (id, event_id, node_id, company, author, message, created_at, signature)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (msg_id, event_id, NODE_ID, COMPANY, msg.author or COMPANY, msg.message, now, signature),
+    )
+    db.commit()
+
+    data["signature"] = signature
+    data["hops"] = MAX_HOPS
+    threading.Thread(target=push_chat, args=(data,), daemon=True).start()
+    return {"id": msg_id, "created_at": now}
+
+
+@app.get("/chat/since/{since}")
+def chat_since(since: str):
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM chat_messages WHERE created_at > ? ORDER BY created_at", (since,)
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+@app.post("/chat/sync", status_code=201)
+def sync_chat(messages: list[ChatMessage]):
+    from gossip import push_chat
+    db = get_db()
+    new_count = 0
+    for m in messages:
+        try:
+            db.execute(
+                """INSERT INTO chat_messages (id, event_id, node_id, company, author, message, created_at, signature)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (m.id, m.event_id, m.node_id, m.company, m.author, m.message, m.created_at, m.signature),
+            )
+            new_count += 1
+            if m.hops > 0:
+                threading.Thread(target=push_chat, args=(m.model_dump(),), daemon=True).start()
+        except Exception:
+            pass
+    db.commit()
+    return {"inserted": new_count}
+
+
+# ── Vulnerabilities ─────────────────────────────────────────────────
+
+
+@app.get("/vulnerabilities")
+def list_vulnerabilities():
+    db = get_db()
+    rows = db.execute("SELECT * FROM vulnerabilities ORDER BY cvss_score DESC").fetchall()
+    return [dict(r) for r in rows]
+
+
+@app.get("/vulnerabilities/{vuln_id}")
+def get_vulnerability(vuln_id: str):
+    db = get_db()
+    row = db.execute("SELECT * FROM vulnerabilities WHERE id = ?", (vuln_id,)).fetchone()
+    if not row:
+        raise HTTPException(404, detail="Vulnerability not found")
+    return dict(row)
+
+
+class VulnStatusUpdate(BaseModel):
+    status: str  # open / in_progress / closed
+
+
+@app.patch("/vulnerabilities/{vuln_id}")
+def update_vulnerability_status(vuln_id: str, update: VulnStatusUpdate):
+    if update.status not in ("open", "in_progress", "closed"):
+        raise HTTPException(400, detail="Invalid status")
+    db = get_db()
+    db.execute("UPDATE vulnerabilities SET status = ? WHERE id = ?", (update.status, vuln_id))
+    db.commit()
+    return {"id": vuln_id, "status": update.status}

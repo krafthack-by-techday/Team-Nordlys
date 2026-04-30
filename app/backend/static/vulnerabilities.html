@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Nordlys — Sårbarheter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--void:#060912;--deep:#080e1c;--panel:#0d1528;--panel2:#111c35;--ridge:#152244;--ridge-b:#1e3468;--teal:#2dd4bf;--green:#34d399;--cyan:#22d3ee;--purple:#a78bfa;--red:#ef4444;--orange:#f97316;--yellow:#eab308;--grey:#334155;--text:#e2e8f0;--dim:#64748b;--muted:#475569;--mono:'DM Mono','Menlo',monospace;--display:'Outfit',sans-serif}
+[data-theme="light"]{--void:#f4f1eb;--deep:#e8e4db;--panel:#ffffff;--panel2:#f0ede6;--ridge:#d4d0c8;--ridge-b:#bfbab0;--teal:#0d8f64;--green:#1a8a5e;--cyan:#1a7fa3;--purple:#7c5cbf;--red:#dc2626;--orange:#ea580c;--yellow:#b8860b;--grey:#94a3b8;--text:#1a1e2a;--dim:#5c5f6a;--muted:#7c7f8a}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:clamp(14px,.3vw+13px,16px)}
+body{background:var(--void);color:var(--text);font-family:var(--mono);min-height:100vh;line-height:1.5}
+
+.shell{max-width:1700px;margin:0 auto;padding:clamp(18px,2.6vw,34px) clamp(18px,3.2vw,48px);display:flex;flex-direction:column;gap:clamp(14px,1.6vw,22px)}
+
+/* Header bar */
+.topbar{display:flex;align-items:center;gap:10px;padding:8px 20px;background:var(--panel);border:1px solid var(--ridge);border-radius:8px;flex-wrap:wrap}
+.topbar .logo{font-family:'Bricolage Grotesque',var(--display);font-weight:800;font-size:1.3rem;background:linear-gradient(135deg,var(--teal),var(--green) 40%,var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.topbar .logo-caption{font-family:var(--mono);font-size:.55rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .sep{color:var(--muted);font-size:1.2rem}
+.topbar .page-title{font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--dim)}
+.topbar .spacer{flex:1}
+.topbar .back{font-size:.75rem;color:var(--teal);text-decoration:none;border:1px solid rgba(45,212,191,.3);padding:5px 12px;border-radius:4px;transition:all .15s}
+.topbar .back:hover{background:rgba(45,212,191,.08);border-color:var(--teal)}
+
+/* Stats strip */
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{padding:10px 16px;background:var(--panel);border:1px solid var(--ridge);border-radius:6px;display:flex;align-items:center;gap:8px}
+.stat .num{font-family:var(--display);font-weight:700;font-size:1.3rem}
+.stat .lbl{font-size:.7rem;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
+.stat.crit .num{color:var(--red)}
+.stat.high .num{color:var(--orange)}
+.stat.open .num{color:var(--yellow)}
+.stat.closed .num{color:var(--green)}
+
+/* Controls */
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:200px;font-family:var(--mono);font-size:.8rem;padding:8px 14px;background:var(--deep);border:1px solid var(--ridge);border-radius:6px;color:var(--text);outline:none;transition:border-color .2s}
+.search:focus{border-color:var(--teal)}
+.search::placeholder{color:var(--muted)}
+select{font-family:var(--mono);font-size:.75rem;padding:7px 12px;background:var(--panel);border:1px solid var(--ridge);border-radius:4px;color:var(--text);cursor:pointer;outline:none}
+select:focus{border-color:var(--teal)}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--ridge);border-radius:8px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{text-align:left;padding:10px 14px;font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:500;border-bottom:1px solid var(--ridge);background:var(--deep);position:sticky;top:0;cursor:pointer;user-select:none}
+th:hover{color:var(--text)}
+th .arrow{font-size:.55rem;margin-left:4px;opacity:.4}
+th.active .arrow{opacity:1;color:var(--teal)}
+td{padding:10px 14px;border-bottom:1px solid rgba(21,34,68,.5);vertical-align:top}
+tr:hover{background:rgba(45,212,191,.03)}
+tr.critical{border-left:3px solid var(--red)}
+tr.high{border-left:3px solid var(--orange)}
+tr.medium{border-left:3px solid var(--yellow)}
+tr.low{border-left:3px solid var(--green)}
+
+/* Badges */
+.sev{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.sev.critical{background:rgba(239,68,68,.12);color:var(--red)}
+.sev.high{background:rgba(249,115,22,.12);color:var(--orange)}
+.sev.medium{background:rgba(234,179,8,.12);color:var(--yellow)}
+.sev.low{background:rgba(52,211,153,.12);color:var(--green)}
+
+.cvss{font-family:var(--display);font-weight:700;font-size:.85rem}
+.cvss.c9{color:var(--red)}.cvss.c7{color:var(--orange)}.cvss.c4{color:var(--yellow)}.cvss.c0{color:var(--green)}
+
+.status-pill{font-size:.6rem;padding:2px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;border:none;font-family:var(--mono)}
+.status-pill.open{background:rgba(234,179,8,.12);color:var(--yellow)}
+.status-pill.in_progress{background:rgba(34,211,238,.12);color:var(--cyan)}
+.status-pill.closed{background:rgba(52,211,153,.12);color:var(--green)}
+
+.asset{font-size:.7rem;color:var(--dim);background:var(--deep);padding:2px 6px;border-radius:3px;display:inline-block}
+
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:.85rem}
+
+/* Detail panel */
+.detail-overlay{position:fixed;inset:0;background:rgba(6,9,18,.7);backdrop-filter:blur(4px);z-index:50;display:none;align-items:center;justify-content:center}
+.detail-overlay.open{display:flex}
+.detail-panel{width:95%;max-width:700px;max-height:85vh;overflow-y:auto;background:var(--panel);border:1px solid var(--ridge-b);border-radius:8px;padding:24px;box-shadow:0 16px 60px rgba(0,0,0,.5)}
+.det-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.det-head h2{font-family:var(--display);font-weight:700;font-size:1.1rem;color:var(--text)}
+.det-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;padding:2px 8px;border-radius:4px;line-height:1}
+.det-close:hover{background:var(--ridge);color:var(--text)}
+.det-row{display:grid;grid-template-columns:120px 1fr;gap:6px;padding:6px 0;border-bottom:1px solid rgba(21,34,68,.5);font-size:.8rem}
+.det-label{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.08em}
+.det-desc{font-size:.85rem;color:var(--dim);line-height:1.6;margin-top:12px;padding:12px;background:var(--deep);border-radius:6px}
+
+@media(max-width:700px){
+  .stats{flex-direction:column}
+  .controls{flex-direction:column}
+  table{font-size:.7rem}
+  th,td{padding:8px 10px}
+}
+</style>
+</head>
+<body>
+<button id="themeToggle" aria-label="Bytt tema" style="position:fixed;top:12px;right:14px;z-index:100;width:40px;height:22px;border-radius:11px;border:1px solid var(--ridge-b);background:var(--deep);cursor:pointer;padding:0;transition:background .3s"></button>
+<style>#themeToggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--teal);transition:transform .3s}[data-theme="light"] #themeToggle::after{transform:translateX(18px)}</style>
+<script>(function(){var b=document.getElementById('themeToggle'),s=localStorage.getItem('nordlys-theme');if(s)document.documentElement.setAttribute('data-theme',s);b.addEventListener('click',function(){var n=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('nordlys-theme',n)});})()</script>
+<div class="shell">
+  <nav class="topbar">
+    <a class="logo" href="/">Nordlys</a>
+    <span class="logo-caption">Security Toolkit</span>
+    <span class="sep">/</span>
+    <span class="page-title">Sårbarheter</span>
+    <span class="spacer"></span>
+    <a class="back" href="/">Dashboard</a>
+    <a class="back" href="/indicators/ui">IoC-er</a>
+  </nav>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <input class="search" id="search" type="text" placeholder="Søk etter CVE, tittel, asset, beskrivelse...">
+    <select id="fSeverity"><option value="">Alle alvorligheter</option><option value="critical">Kritisk</option><option value="high">Høy</option><option value="medium">Medium</option><option value="low">Lav</option></select>
+    <select id="fStatus"><option value="">Alle statuser</option><option value="open">Åpen</option><option value="in_progress">Under arbeid</option><option value="closed">Lukket</option></select>
+    <select id="fSort"><option value="cvss_desc">CVSS høyest</option><option value="cvss_asc">CVSS lavest</option><option value="newest">Nyest</option><option value="oldest">Eldst</option><option value="cve">CVE-ID</option></select>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:110px">CVE-ID</th>
+          <th style="width:60px">CVSS</th>
+          <th style="width:80px">Alvorlighet</th>
+          <th>Tittel</th>
+          <th style="width:140px">Asset</th>
+          <th style="width:100px">Status</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="empty" id="empty" style="display:none">Ingen treff</div>
+</div>
+
+<!-- Detail overlay -->
+<div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-panel" id="detailPanel"></div>
+</div>
+
+<script>
+var allData = [];
+var filtered = [];
+
+function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+
+function cvssClass(v){return v>=9?'c9':v>=7?'c7':v>=4?'c4':'c0';}
+
+function renderStats(){
+  var s = document.getElementById('stats');
+  var total = allData.length;
+  var open = allData.filter(function(v){return v.status==='open';}).length;
+  var crit = allData.filter(function(v){return v.severity==='critical'&&v.status==='open';}).length;
+  var high = allData.filter(function(v){return v.severity==='high'&&v.status==='open';}).length;
+  var closed = allData.filter(function(v){return v.status==='closed';}).length;
+  s.innerHTML =
+    '<div class="stat open"><span class="num">'+open+'</span><span class="lbl">Åpne</span></div>'+
+    '<div class="stat crit"><span class="num">'+crit+'</span><span class="lbl">Kritiske</span></div>'+
+    '<div class="stat high"><span class="num">'+high+'</span><span class="lbl">Høye</span></div>'+
+    '<div class="stat closed"><span class="num">'+closed+'</span><span class="lbl">Lukket</span></div>'+
+    '<div class="stat"><span class="num">'+total+'</span><span class="lbl">Totalt</span></div>';
+}
+
+function applyFilters(){
+  var q = document.getElementById('search').value.toLowerCase();
+  var sev = document.getElementById('fSeverity').value;
+  var st = document.getElementById('fStatus').value;
+  var sort = document.getElementById('fSort').value;
+
+  filtered = allData.filter(function(v){
+    if(sev && v.severity !== sev) return false;
+    if(st && v.status !== st) return false;
+    if(q){
+      var hay = (v.cve_id+' '+v.title+' '+v.asset+' '+v.description).toLowerCase();
+      return hay.indexOf(q) >= 0;
+    }
+    return true;
+  });
+
+  if(sort==='cvss_desc') filtered.sort(function(a,b){return b.cvss_score-a.cvss_score;});
+  else if(sort==='cvss_asc') filtered.sort(function(a,b){return a.cvss_score-b.cvss_score;});
+  else if(sort==='newest') filtered.sort(function(a,b){return b.created_at.localeCompare(a.created_at);});
+  else if(sort==='oldest') filtered.sort(function(a,b){return a.created_at.localeCompare(b.created_at);});
+  else if(sort==='cve') filtered.sort(function(a,b){return a.cve_id.localeCompare(b.cve_id);});
+
+  renderTable();
+}
+
+function renderTable(){
+  var tbody = document.getElementById('tbody');
+  var empty = document.getElementById('empty');
+  if(filtered.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+
+  tbody.innerHTML = filtered.map(function(v, i){
+    return '<tr class="'+v.severity+'" onclick="showDetail('+i+')" style="cursor:pointer">'+
+      '<td><b>'+esc(v.cve_id)+'</b></td>'+
+      '<td><span class="cvss '+cvssClass(v.cvss_score)+'">'+v.cvss_score.toFixed(1)+'</span></td>'+
+      '<td><span class="sev '+v.severity+'">'+esc(v.severity)+'</span></td>'+
+      '<td>'+esc(v.title)+'</td>'+
+      '<td><span class="asset">'+esc(v.asset)+'</span></td>'+
+      '<td><button class="status-pill '+v.status+'" onclick="event.stopPropagation();cycleStatus(\''+v.id+'\',\''+v.status+'\')">'+statusLabel(v.status)+'</button></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function statusLabel(s){
+  return s==='open'?'Åpen':s==='in_progress'?'Under arbeid':'Lukket';
+}
+
+function cycleStatus(id, current){
+  var next = current==='open'?'in_progress':current==='in_progress'?'closed':'open';
+  fetch('/vulnerabilities/'+id, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:next})})
+    .then(function(){
+      for(var i=0;i<allData.length;i++) if(allData[i].id===id) allData[i].status=next;
+      renderStats();
+      applyFilters();
+    });
+}
+
+function showDetail(idx){
+  var v = filtered[idx]; if(!v) return;
+  var p = document.getElementById('detailPanel');
+  p.innerHTML =
+    '<div class="det-head"><h2>'+esc(v.cve_id)+' — '+esc(v.title)+'</h2><button class="det-close" onclick="closeDetail()">&times;</button></div>'+
+    '<div class="det-row"><span class="det-label">CVSS</span><span class="cvss '+cvssClass(v.cvss_score)+'">'+v.cvss_score.toFixed(1)+'</span></div>'+
+    '<div class="det-row"><span class="det-label">Alvorlighet</span><span class="sev '+v.severity+'">'+esc(v.severity)+'</span></div>'+
+    '<div class="det-row"><span class="det-label">Asset</span><span class="asset">'+esc(v.asset)+'</span></div>'+
+    '<div class="det-row"><span class="det-label">Status</span><button class="status-pill '+v.status+'" onclick="cycleStatus(\''+v.id+'\',\''+v.status+'\');showDetail('+idx+')">'+statusLabel(v.status)+'</button></div>'+
+    '<div class="det-row"><span class="det-label">Registrert</span><span>'+new Date(v.created_at).toLocaleString('nb-NO')+'</span></div>'+
+    '<div class="det-desc">'+esc(v.description)+'</div>';
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function closeDetail(){document.getElementById('detailOverlay').classList.remove('open');}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDetail();});
+
+document.getElementById('search').addEventListener('input', applyFilters);
+document.getElementById('fSeverity').addEventListener('change', applyFilters);
+document.getElementById('fStatus').addEventListener('change', applyFilters);
+document.getElementById('fSort').addEventListener('change', applyFilters);
+
+fetch('/vulnerabilities')
+  .then(function(r){return r.json();})
+  .then(function(data){
+    allData = data;
+    renderStats();
+    applyFilters();
+  });
+</script>
+</body>
+</html>
