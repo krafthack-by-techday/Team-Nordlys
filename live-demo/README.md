@@ -48,3 +48,31 @@ ngrok http 8803
 Copy the generated URL (e.g. `https://abc123.ngrok-free.app`) and set it as `PEER_PUBLIC_URL` in your `.env` before running `setup.sh`.
 
 > **Warning:** Many companies restrict or prohibit the use of tunnel services like ngrok on corporate networks. Check your organization's security policy before exposing any local services to the internet.
+
+## Once your node is running
+
+After registration your node is a full participant in the STK gossip mesh. Everything happens automatically.
+
+### Peer discovery
+
+Every 10 seconds your node crawls `/.well-known/stk` on all known peers to discover new nodes. As the mesh grows, your node learns about peers it was never explicitly told about.
+
+### Gossip — push and pull
+
+STK uses a push-pull gossip protocol to share three types of data:
+
+- **Events** — security incidents, RSA-signed by the originating node
+- **Indicators** — IoCs (IPs, hashes, domains, TTPs)
+- **Chat** — per-event discussion between peers
+
+**Push:** When any node creates new data it immediately pushes to all healthy peers. Each message carries a hop counter (default 3) that decrements on each relay, preventing infinite propagation.
+
+**Pull:** Every sync cycle (10s) your node pulls `GET /events/since/{cursor}`, `/indicators/since/{cursor}`, and `/chat/since/{cursor}` from each peer, using persistent cursors to avoid re-fetching.
+
+### Health tracking
+
+Your node tracks consecutive failures per peer. After 3 failed attempts a peer is marked offline and excluded from push targets until it recovers.
+
+### Trust and revocation
+
+All events are RSA-signed and verified against the originating node's public key. KraftCERT can revoke trust for any peer — revoked nodes' events are rejected and their identities are skipped during sync.
