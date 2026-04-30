@@ -187,6 +187,40 @@ def push_event(event: dict, exclude: str | None = None):
             _log_activity("push_fail", peer)
 
 
+def push_indicator(indicator: dict, exclude: str | None = None):
+    """Push a single IoC to healthy peers."""
+    hops = indicator.get("hops", MAX_HOPS)
+    if hops <= 0:
+        return
+    data = {**indicator, "hops": hops - 1}
+    for peer in _get_healthy_peers():
+        if peer == exclude:
+            continue
+        try:
+            httpx.post(f"{peer}/indicators/sync", json=[data], timeout=3)
+            _mark_peer_ok(peer)
+            _log_activity("push", peer, detail=f"IoC: {indicator.get('value','')}", count=1)
+        except Exception:
+            _mark_peer_fail(peer)
+
+
+def push_chat(message: dict, exclude: str | None = None):
+    """Push a chat message to healthy peers."""
+    hops = message.get("hops", MAX_HOPS)
+    if hops <= 0:
+        return
+    data = {**message, "hops": hops - 1}
+    for peer in _get_healthy_peers():
+        if peer == exclude:
+            continue
+        try:
+            httpx.post(f"{peer}/chat/sync", json=[data], timeout=3)
+            _mark_peer_ok(peer)
+            _log_activity("push", peer, detail="chat", count=1)
+        except Exception:
+            _mark_peer_fail(peer)
+
+
 # ── Pull (sync) ─────────────────────────────────────────────────────
 
 
@@ -261,6 +295,7 @@ def _sync_once():
     _sync_identities()
 
     for peer in get_peers():
+        # ── Pull events ──
         try:
             cursor = _last_seen_for_peer(peer)
             resp = httpx.get(f"{peer}/events/since/{cursor}", timeout=5)
@@ -268,19 +303,48 @@ def _sync_once():
             _mark_peer_ok(peer)
             if not events:
                 _log_activity("pull_empty", peer)
-                continue
-            # Pull-synced events get hops=0 so they don't re-push
-            for e in events:
-                e["hops"] = 0
-            httpx.post("http://localhost:8000/events/sync", json=events, timeout=5)
-            latest = max(e["created_at"] for e in events)
-            _update_cursor(peer, latest)
-            _log_activity("pull", peer, count=len(events))
-            log.info(f"Pulled {len(events)} events from {peer}")
+            else:
+                for e in events:
+                    e["hops"] = 0
+                httpx.post("http://localhost:8000/events/sync", json=events, timeout=5)
+                latest = max(e["created_at"] for e in events)
+                _update_cursor(peer, latest)
+                _log_activity("pull", peer, count=len(events))
+                log.info(f"Pulled {len(events)} events from {peer}")
         except Exception as e:
             _mark_peer_fail(peer)
             _log_activity("pull_fail", peer)
             log.warning(f"Pull failed for {peer}: {e}")
+
+        # ── Pull indicators ──
+        try:
+            cursor = _last_seen_for_peer(f"ind:{peer}")
+            resp = httpx.get(f"{peer}/indicators/since/{cursor}", timeout=5)
+            indicators = resp.json()
+            if indicators:
+                for ind in indicators:
+                    ind["hops"] = 0
+                httpx.post("http://localhost:8000/indicators/sync", json=indicators, timeout=5)
+                latest = max(i["created_at"] for i in indicators)
+                _update_cursor(f"ind:{peer}", latest)
+                log.info(f"Pulled {len(indicators)} indicators from {peer}")
+        except Exception:
+            pass
+
+        # ── Pull chat messages ──
+        try:
+            cursor = _last_seen_for_peer(f"chat:{peer}")
+            resp = httpx.get(f"{peer}/chat/since/{cursor}", timeout=5)
+            messages = resp.json()
+            if messages:
+                for m in messages:
+                    m["hops"] = 0
+                httpx.post("http://localhost:8000/chat/sync", json=messages, timeout=5)
+                latest = max(m["created_at"] for m in messages)
+                _update_cursor(f"chat:{peer}", latest)
+                log.info(f"Pulled {len(messages)} chat messages from {peer}")
+        except Exception:
+            pass
 
 
 # ── Loop ────────────────────────────────────────────────────────────

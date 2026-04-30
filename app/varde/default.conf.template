@@ -3,11 +3,13 @@ server {
     server_name _;
 
     location / {
-        proxy_pass ${UPSTREAM_URL};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
+        proxy_pass          ${UPSTREAM_URL};
+        proxy_ssl_server_name on;
+        proxy_ssl_verify    off;
+        proxy_set_header    Host $proxy_host;
+        proxy_set_header    X-Real-IP $remote_addr;
+        proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_http_version  1.1;
+        proxy_set_header    Connection "";
     }
 }

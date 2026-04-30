@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>STK — Security Toolkit</title>
+    <title>Nordlys — Security Toolkit</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap"
@@ -32,6 +32,7 @@
         --mono: 'DM Mono', 'Menlo', monospace;
         --display: 'Outfit', sans-serif;
       }
+[data-theme="light"]{--void:#f4f1eb;--deep:#e8e4db;--panel:#ffffff;--panel2:#f0ede6;--ridge:#d4d0c8;--ridge-b:#bfbab0;--teal:#0d8f64;--green:#1a8a5e;--cyan:#1a7fa3;--purple:#7c5cbf;--red:#dc2626;--orange:#ea580c;--yellow:#b8860b;--grey:#94a3b8;--text:#1a1e2a;--dim:#5c5f6a;--muted:#7c7f8a}
       *,
       *::before,
       *::after {
@@ -144,8 +145,8 @@
       .header {
         display: flex;
         align-items: center;
-        gap: clamp(16px, 2vw, 30px);
-        padding: clamp(20px, 2.2vw, 34px) clamp(20px, 2.8vw, 36px);
+        gap: clamp(12px, 1.4vw, 20px);
+        padding: clamp(8px, 0.8vw, 12px) clamp(16px, 2vw, 28px);
         background: linear-gradient(135deg, var(--panel) 0%, var(--deep) 100%);
         border: 1px solid var(--ridge);
         border-radius: 10px;
@@ -162,22 +163,29 @@
       .brand {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 2px;
       }
       .brand-row {
         display: flex;
         align-items: baseline;
-        gap: 14px;
+        gap: 8px;
       }
       .logo {
         font-family: 'Bricolage Grotesque', var(--display);
         font-weight: 800;
-        font-size: clamp(2.6rem, 3.6vw, 3.8rem);
+        font-size: clamp(1.3rem, 1.8vw, 1.8rem);
         letter-spacing: -0.03em;
         background: linear-gradient(135deg, var(--teal), var(--green) 40%, var(--purple));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+      }
+      .logo-caption {
+        font-family: var(--mono);
+        font-size: clamp(0.55rem, 0.2vw + 0.5rem, 0.68rem);
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
       }
       .brand-sub {
         font-family: var(--display);
@@ -274,17 +282,17 @@
       /* ── Counters strip ─────────────────────────────────── */
       .counters {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
-        gap: clamp(12px, 1.5vw, 20px);
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: clamp(8px, 1vw, 14px);
       }
       .counter {
-        padding: clamp(18px, 1.7vw, 26px) clamp(18px, 1.9vw, 28px);
+        padding: clamp(10px, 1vw, 14px) clamp(12px, 1.2vw, 18px);
         background: var(--panel);
         border: 1px solid var(--ridge);
-        border-radius: 10px;
+        border-radius: 8px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 4px;
         position: relative;
         overflow: hidden;
       }
@@ -310,7 +318,7 @@
         --accent: var(--purple);
       }
       .c-label {
-        font-size: clamp(0.68rem, 0.2vw + 0.62rem, 0.82rem);
+        font-size: clamp(0.58rem, 0.15vw + 0.54rem, 0.7rem);
         letter-spacing: 0.12em;
         text-transform: uppercase;
         color: var(--dim);
@@ -323,7 +331,7 @@
         line-height: 1;
       }
       .c-sub {
-        font-size: clamp(0.74rem, 0.2vw + 0.7rem, 0.88rem);
+        font-size: clamp(0.62rem, 0.15vw + 0.58rem, 0.75rem);
         color: var(--muted);
         letter-spacing: 0.04em;
       }
@@ -331,51 +339,146 @@
         color: var(--dim);
         font-weight: 500;
       }
+      a.counter {
+        transition: all 0.15s ease;
+      }
+      a.counter:hover {
+        border-color: var(--ridge-b);
+        background: var(--panel2);
+        transform: translateY(-1px);
+      }
+
+      /* ── Live feed ──────────────────────────────────── */
+      .feed {
+        background: var(--panel);
+        border: 1px solid var(--ridge);
+        border-radius: 10px;
+        overflow: hidden;
+        flex: 1;
+        min-height: 260px;
+        display: flex;
+        flex-direction: column;
+      }
+      .feed-hdr {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--ridge);
+        font-family: var(--display);
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+      .feed-hdr .live-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--red);
+        box-shadow: 0 0 8px var(--red);
+        animation: pulse-r 1.6s ease-out infinite;
+      }
+      .feed-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0;
+        list-style: none;
+        scrollbar-width: thin;
+        scrollbar-color: var(--ridge) transparent;
+      }
+      .feed-list::-webkit-scrollbar { width: 5px; }
+      .feed-list::-webkit-scrollbar-thumb { background: var(--ridge); border-radius: 3px; }
+      .feed-item {
+        display: grid;
+        grid-template-columns: 68px 1fr auto;
+        gap: 10px;
+        align-items: start;
+        padding: 10px 20px;
+        border-bottom: 1px solid rgba(21,34,68,0.5);
+        font-size: 0.82rem;
+        animation: feed-in 0.35s ease-out;
+      }
+      .feed-item:hover { background: rgba(45,212,191,0.03); }
+      @keyframes feed-in {
+        from { opacity: 0; transform: translateY(-6px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .feed-time {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .feed-body {
+        color: var(--text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .feed-body .feed-src {
+        color: var(--teal);
+        font-weight: 500;
+      }
+      .feed-sev {
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .feed-sev.critical { background: rgba(239,68,68,0.18); color: var(--red); }
+      .feed-sev.high     { background: rgba(234,179,8,0.16); color: var(--yellow); }
+      .feed-sev.medium   { background: rgba(34,211,238,0.12); color: var(--cyan); }
+      .feed-sev.low      { background: rgba(52,211,153,0.12); color: var(--green); }
+      .feed-sev.info     { background: rgba(100,116,139,0.14); color: var(--dim); }
+      .feed-empty {
+        padding: 40px 20px;
+        text-align: center;
+        color: var(--muted);
+        font-style: italic;
+      }
 
       /* ── Mesh footer ─────────────────────────────────── */
       .mesh {
         display: flex;
         align-items: center;
-        gap: clamp(14px, 1.8vw, 26px);
-        padding: clamp(18px, 1.9vw, 28px) clamp(18px, 2.5vw, 34px);
-        background: linear-gradient(135deg, var(--panel2) 0%, var(--panel) 100%);
+        padding: 6px 12px;
+        background: var(--panel);
         border: 1px solid var(--ridge);
-        border-radius: 10px;
+        border-radius: 6px;
         flex-wrap: wrap;
         margin-top: auto;
       }
       .mesh-actions {
         display: flex;
-        gap: 8px;
+        gap: 4px;
         flex-wrap: wrap;
       }
       .mesh-link {
-        font-family: var(--display);
-        font-size: clamp(0.78rem, 0.2vw + 0.74rem, 0.9rem);
-        font-weight: 500;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: var(--text);
-        background: rgba(34, 211, 238, 0.08);
-        border: 1px solid rgba(34, 211, 238, 0.3);
-        padding: 10px 16px;
-        border-radius: 6px;
+        font-family: var(--mono);
+        font-size: 0.62rem;
+        font-weight: 400;
+        letter-spacing: 0.04em;
+        color: var(--dim);
+        background: none;
+        border: none;
+        padding: 3px 8px;
+        border-radius: 3px;
         text-decoration: none;
         transition: all 0.15s ease;
       }
       .mesh-link:hover {
-        background: rgba(34, 211, 238, 0.16);
-        border-color: var(--cyan);
+        background: rgba(34, 211, 238, 0.08);
         color: var(--cyan);
       }
       .mesh-link.secondary {
-        background: transparent;
-        border-color: var(--ridge);
-        color: var(--dim);
+        color: var(--muted);
       }
       .mesh-link.secondary:hover {
-        border-color: var(--ridge-b);
-        color: var(--text);
+        color: var(--dim);
+        background: rgba(100,116,139,0.08);
       }
 
       /* ── Loading state ──────────────────────────────── */
@@ -414,6 +517,9 @@
     </style>
   </head>
   <body>
+<button id="themeToggle" aria-label="Bytt tema" style="position:fixed;top:12px;right:14px;z-index:100;width:40px;height:22px;border-radius:11px;border:1px solid var(--ridge-b);background:var(--deep);cursor:pointer;padding:0;transition:background .3s"></button>
+<style>#themeToggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--teal);transition:transform .3s}[data-theme="light"] #themeToggle::after{transform:translateX(18px)}</style>
+<script>(function(){var b=document.getElementById('themeToggle'),s=localStorage.getItem('nordlys-theme');if(s)document.documentElement.setAttribute('data-theme',s);b.addEventListener('click',function(){var n=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('nordlys-theme',n)});})()</script>
     <div class="aurora">
       <div class="aurora__blob aurora__blob--a"></div>
       <div class="aurora__blob aurora__blob--b"></div>
@@ -427,55 +533,307 @@
         <div class="brand">
           <div class="brand-row">
             <span class="logo">Nordlys</span>
+            <span class="logo-caption">Security Toolkit</span>
           </div>
           <div class="brand-meta">
-            <b>Glitrenett</b>
-            · <b>glitrenett-01</b> · <span class="role-pill peer">peer</span>
+            <b id="hdr-company">…</b>
+            · <b id="hdr-node">…</b> · <span id="hdr-role" class="role-pill peer">…</span>
           </div>
         </div>
         <div class="hdr-spacer"></div>
         <div class="hdr-block">
-          <div class="hdr-status"><span class="dot"></span><span>Online</span></div>
-          <div class="brand-meta"><b>4/5 peers</b> · <b>1,248 events</b></div>
+          <div class="hdr-status" id="hdr-status"><span class="dot"></span><span id="hdr-status-text">…</span></div>
+          <div class="brand-meta"><b id="hdr-peers">…</b> peers · <b id="hdr-events-total">…</b> hendelser totalt</div>
         </div>
       </header>
 
       <!-- Counters -->
       <section class="counters" id="counters">
-        <div class="counter" data-accent="cyan">
+        <a class="counter" data-accent="cyan" href="/topology" style="text-decoration:none;color:inherit">
           <span class="c-label">Peers online</span>
-          <span class="c-value">4</span>
-          <span class="c-sub">av <b>5</b> registrert i meshen</span>
-        </div>
-        <div class="counter" data-accent="green">
-          <span class="c-label">Events siste 24t</span>
-          <span class="c-value">186</span>
-          <span class="c-sub"><b>12</b> kritiske / høy alvorlighet</span>
-        </div>
-        <div class="counter" data-accent="red">
-          <span class="c-label">Indicators (IoC)</span>
-          <span class="c-value">73</span>
-          <span class="c-sub"><b>9</b> TLP RED · <b>21</b> AMBER</span>
-        </div>
-        <div class="counter" data-accent="purple">
-          <span class="c-label">Chat</span>
-          <span class="c-value">6</span>
-          <span class="c-sub">koordineres i Chat</span>
-        </div>
+          <span class="c-value" id="c-peers-online">–</span>
+          <span class="c-sub">av <b id="c-peers-total">–</b> registrert · <b id="c-adoption-pct">–%</b> av ~375 aktører</span>
+        </a>
+        <a class="counter" data-accent="green" href="/events/ui" style="text-decoration:none;color:inherit">
+          <span class="c-label">Hendelser siste 24t</span>
+          <span class="c-value" id="c-events-24h">–</span>
+          <span class="c-sub"><b id="c-events-crit">–</b> kritiske / høy alvorlighet</span>
+        </a>
+        <a class="counter" data-accent="red" href="/indicators/ui" style="text-decoration:none;color:inherit">
+          <span class="c-label">Indikatorer (IoC)</span>
+          <span class="c-value" id="c-ioc-total">–</span>
+          <span class="c-sub"><b id="c-ioc-red">–</b> TLP RED · <b id="c-ioc-amber">–</b> AMBER</span>
+        </a>
+        <a class="counter" data-accent="purple" href="/vulnerabilities/ui" style="text-decoration:none;color:inherit">
+          <span class="c-label">Sårbarheter</span>
+          <span class="c-value" id="c-vuln-open">–</span>
+          <span class="c-sub"><b id="c-vuln-crit">–</b> kritiske åpne</span>
+        </a>
+        <a class="counter" data-accent="green" href="/events/ui" style="text-decoration:none;color:inherit">
+          <span class="c-label">Åpne hendelser</span>
+          <span class="c-value" id="c-incidents">–</span>
+          <span class="c-sub" id="c-events-all">– hendelser totalt i noden</span>
+        </a>
+      </section>
+
+      <!-- Live event feed -->
+      <section class="feed" id="feed">
+        <div class="feed-hdr"><span class="live-dot"></span> Hendelser</div>
+        <ul class="feed-list" id="feed-list">
+          <li class="feed-empty">Laster hendelser …</li>
+        </ul>
       </section>
 
       <!-- Mesh footer -->
       <section class="mesh">
         <div class="mesh-actions">
           <a class="mesh-link" href="/topology">Mesh-kart</a>
+          <a class="mesh-link" href="/events/ui">Hendelser</a>
+          <a class="mesh-link" href="/vulnerabilities/ui">Sårbarheter</a>
+          <a class="mesh-link" href="/indicators/ui">IoC-er</a>
+          <a class="mesh-link" href="/chat/ui">Diskusjon</a>
           <a class="mesh-link" href="/node">Detalj-visning</a>
           <a class="mesh-link secondary" href="/topology/debug" target="_blank">Gossip-debug</a>
           <a class="mesh-link secondary" href="/identity" target="_blank">Identiteter</a>
           <a class="mesh-link secondary" href="/peers" target="_blank">Peers</a>
-          <a class="mesh-link secondary" href="/events" target="_blank">Events JSON</a>
+          <a class="mesh-link secondary" href="/events" target="_blank">Hendelser JSON</a>
           <a class="mesh-link secondary" href="/.well-known/stk" target="_blank">.well-known</a>
         </div>
       </section>
     </div>
+
+    <script>
+      /* ── Audio alerts (Web Audio API) ── */
+      var audioCtx = null;
+      var audioUnlocked = false;
+      var myNodeId = null;
+      var firstPoll = true;
+
+      function getAudioCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx;
+      }
+
+      function playTone(freq, duration, count, gap) {
+        if (!audioUnlocked) return;
+        var ctx = getAudioCtx();
+        if (ctx.state === 'suspended') {
+          ctx.resume().then(function() { playTone(freq, duration, count, gap); });
+          return;
+        }
+        count = count || 1;
+        gap = gap || 0.12;
+        for (var i = 0; i < count; i++) {
+          var start = ctx.currentTime + i * (duration + gap);
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value = freq;
+          osc.type = 'sine';
+          gain.gain.setValueAtTime(0.22, start);
+          gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+          osc.start(start);
+          osc.stop(start + duration);
+        }
+      }
+
+      function alertSound(severity) {
+        switch ((severity || '').toLowerCase()) {
+          case 'critical':
+            playTone(880, 0.12, 4, 0.08);
+            break;
+          case 'high':
+            playTone(660, 0.15, 2, 0.12);
+            break;
+          case 'medium':
+            playTone(520, 0.2, 1);
+            break;
+          case 'low':
+            playTone(400, 0.25, 1);
+            break;
+          // info: ingen lyd
+        }
+      }
+
+      // Unlock audio on any user interaction
+      function unlockAudio() {
+        if (audioUnlocked) return;
+        try {
+          var ctx = getAudioCtx();
+          ctx.resume().then(function() {
+            audioUnlocked = true;
+            console.log('[Nordlys] Audio unlocked, state:', ctx.state);
+            // Play a short test blip to confirm
+            var osc = ctx.createOscillator();
+            var g = ctx.createGain();
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.frequency.value = 440;
+            g.gain.setValueAtTime(0.1, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.08);
+          });
+        } catch(e) {
+          console.error('[Nordlys] Audio unlock failed:', e);
+        }
+      }
+      document.addEventListener('click', unlockAudio);
+      document.addEventListener('keydown', unlockAudio);
+      document.addEventListener('touchstart', unlockAudio);
+
+      function set(id, text) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = text;
+      }
+
+      function applyStats(s) {
+        myNodeId = s.node_id || null;
+        set('hdr-company', s.company || '–');
+        set('hdr-node', s.node_id || '–');
+        set('hdr-peers', s.peers.online);
+        set('hdr-events-total', s.events.total);
+
+        var rolePill = document.getElementById('hdr-role');
+        if (rolePill) {
+          rolePill.textContent = s.role || '–';
+          rolePill.className = 'role-pill ' + (s.role === 'kraftcert' ? 'kraftcert' : 'peer');
+        }
+
+        set('c-peers-online', s.peers.online);
+        set('c-peers-total', s.peers.total);
+        set('c-events-24h', s.events.last_24h);
+        set('c-events-crit', s.events.critical_24h);
+        set('c-ioc-total', s.indicators.total);
+        set('c-ioc-red', s.indicators.tlp_red);
+        set('c-ioc-amber', s.indicators.tlp_amber);
+        set('c-incidents', s.incidents.open);
+        set('c-vuln-open', s.vulnerabilities.open);
+        set('c-vuln-crit', s.vulnerabilities.critical);
+
+        var eventsAll = document.getElementById('c-events-all');
+        if (eventsAll) eventsAll.textContent = s.events.total + ' hendelser totalt i noden';
+
+        var total = s.peers.total || 0;
+        var pct = Math.round((total / 375) * 100 * 10) / 10;
+        set('c-adoption-pct', pct + '%');
+      }
+
+      function setOnline(online) {
+        var statusEl = document.getElementById('hdr-status');
+        var statusText = document.getElementById('hdr-status-text');
+        if (!statusEl) return;
+        if (online) {
+          statusEl.className = 'hdr-status';
+          if (statusText) statusText.textContent = 'Online';
+        } else {
+          statusEl.className = 'hdr-status offline';
+          if (statusText) statusText.textContent = 'Offline';
+        }
+      }
+
+      function poll() {
+        fetch('/stats')
+          .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
+          .then(function(data) {
+            setOnline(true);
+            applyStats(data);
+          })
+          .catch(function() {
+            setOnline(false);
+          });
+      }
+
+      poll();
+      setInterval(poll, 10000);
+
+      /* ── Live feed ── */
+      var feedKnown = {};
+      var feedMax = 80;
+
+      function sevClass(s) {
+        if (!s) return 'info';
+        var l = s.toLowerCase();
+        if (l === 'critical') return 'critical';
+        if (l === 'high') return 'high';
+        if (l === 'medium') return 'medium';
+        if (l === 'low') return 'low';
+        return 'info';
+      }
+
+      function fmtTime(iso) {
+        try { var d = new Date(iso); return d.toLocaleTimeString('nb-NO', {hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+        catch(e) { return '–'; }
+      }
+
+      function renderFeedItem(ev) {
+        var li = document.createElement('li');
+        li.className = 'feed-item';
+        li.style.cursor = 'pointer';
+        li.onclick = function() { window.location.href = '/events/ui/detail#' + ev.id; };
+        var src = ev.company || ev.source || ev.node_id || '?';
+        var desc = ev.title || ev.description || ev.event_type || '–';
+        var sev = ev.severity || 'info';
+        li.innerHTML =
+          '<span class="feed-time">' + fmtTime(ev.created_at) + '</span>' +
+          '<span class="feed-body"><span class="feed-src">' + src + '</span> ' + desc + '</span>' +
+          '<span class="feed-sev ' + sevClass(sev) + '">' + sev + '</span>';
+        return li;
+      }
+
+      function pollFeed() {
+        fetch('/events')
+          .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
+          .then(function(events) {
+            var list = document.getElementById('feed-list');
+            var newItems = [];
+            for (var i = 0; i < events.length; i++) {
+              var ev = events[i];
+              if (!feedKnown[ev.id]) {
+                feedKnown[ev.id] = true;
+                newItems.push(ev);
+              }
+            }
+            if (newItems.length === 0 && Object.keys(feedKnown).length === 0) {
+              list.innerHTML = '<li class="feed-empty">Ingen hendelser ennå</li>';
+              firstPoll = false;
+              return;
+            }
+            // Play sound for highest-severity new event not from this node
+            if (!firstPoll && newItems.length > 0) {
+              var dominated = null;
+              var sevRank = {critical:0, high:1, medium:2, low:3, info:4};
+              for (var k = 0; k < newItems.length; k++) {
+                var nev = newItems[k];
+                if (nev.node_id === myNodeId) continue;
+                if (nev.event_type === 'chat') continue;
+                var s = (nev.severity || 'info').toLowerCase();
+                if (dominated === null || (sevRank[s] || 4) < (sevRank[dominated] || 4)) {
+                  dominated = s;
+                }
+              }
+              if (dominated && dominated !== 'info') alertSound(dominated);
+            }
+            firstPoll = false;
+            // Remove empty placeholder
+            var empty = list.querySelector('.feed-empty');
+            if (empty) empty.remove();
+            // Prepend new items (newest first — events already sorted DESC)
+            for (var j = 0; j < newItems.length; j++) {
+              var item = renderFeedItem(newItems[j]);
+              list.insertBefore(item, list.firstChild);
+            }
+            // Trim old items
+            while (list.children.length > feedMax) {
+              list.removeChild(list.lastChild);
+            }
+          })
+          .catch(function() {});
+      }
+
+      pollFeed();
+      setInterval(pollFeed, 5000);
+    </script>
   </body>
 </html>

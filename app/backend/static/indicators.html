@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Nordlys — Indikatorer (IoC)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--void:#060912;--deep:#080e1c;--panel:#0d1528;--panel2:#111c35;--ridge:#152244;--ridge-b:#1e3468;--teal:#2dd4bf;--green:#34d399;--cyan:#22d3ee;--purple:#a78bfa;--red:#ef4444;--orange:#f97316;--yellow:#eab308;--grey:#334155;--text:#e2e8f0;--dim:#64748b;--muted:#475569;--mono:'DM Mono','Menlo',monospace;--display:'Outfit',sans-serif}
+[data-theme="light"]{--void:#f4f1eb;--deep:#e8e4db;--panel:#ffffff;--panel2:#f0ede6;--ridge:#d4d0c8;--ridge-b:#bfbab0;--teal:#0d8f64;--green:#1a8a5e;--cyan:#1a7fa3;--purple:#7c5cbf;--red:#dc2626;--orange:#ea580c;--yellow:#b8860b;--grey:#94a3b8;--text:#1a1e2a;--dim:#5c5f6a;--muted:#7c7f8a}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:clamp(14px,.3vw+13px,16px)}
+body{background:var(--void);color:var(--text);font-family:var(--mono);min-height:100vh;line-height:1.5}
+
+.shell{max-width:1700px;margin:0 auto;padding:clamp(18px,2.6vw,34px) clamp(18px,3.2vw,48px);display:flex;flex-direction:column;gap:clamp(14px,1.6vw,22px)}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:8px 20px;background:var(--panel);border:1px solid var(--ridge);border-radius:8px;flex-wrap:wrap}
+.topbar .logo{font-family:'Bricolage Grotesque',var(--display);font-weight:800;font-size:1.3rem;background:linear-gradient(135deg,var(--teal),var(--green) 40%,var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none}
+.topbar .logo-caption{font-family:var(--mono);font-size:.55rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .sep{color:var(--muted);font-size:1.2rem}
+.topbar .page-title{font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--dim)}
+.topbar .spacer{flex:1}
+.topbar .back{font-size:.75rem;color:var(--teal);text-decoration:none;border:1px solid rgba(45,212,191,.3);padding:5px 12px;border-radius:4px;transition:all .15s}
+.topbar .back:hover{background:rgba(45,212,191,.08);border-color:var(--teal)}
+
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{padding:10px 16px;background:var(--panel);border:1px solid var(--ridge);border-radius:6px;display:flex;align-items:center;gap:8px}
+.stat .num{font-family:var(--display);font-weight:700;font-size:1.3rem}
+.stat .lbl{font-size:.7rem;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
+.stat.red .num{color:var(--red)}.stat.amber .num{color:var(--orange)}.stat.green .num{color:var(--green)}
+
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:200px;font-family:var(--mono);font-size:.8rem;padding:8px 14px;background:var(--deep);border:1px solid var(--ridge);border-radius:6px;color:var(--text);outline:none;transition:border-color .2s}
+.search:focus{border-color:var(--teal)}
+.search::placeholder{color:var(--muted)}
+select{font-family:var(--mono);font-size:.75rem;padding:7px 12px;background:var(--panel);border:1px solid var(--ridge);border-radius:4px;color:var(--text);cursor:pointer;outline:none}
+.btn{font-family:var(--mono);font-size:.75rem;padding:7px 14px;border:1px solid rgba(45,212,191,.3);border-radius:4px;background:rgba(45,212,191,.08);color:var(--teal);cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{background:rgba(45,212,191,.16);border-color:var(--teal)}
+
+/* Cards */
+.ioc-grid{display:flex;flex-direction:column;gap:6px}
+.ioc-card{display:grid;grid-template-columns:80px 1fr 70px 80px 120px;gap:14px;align-items:center;padding:12px 16px;background:var(--panel);border:1px solid var(--ridge);border-radius:6px;transition:all .15s}
+.ioc-card:hover{background:var(--panel2);border-color:var(--ridge-b)}
+.ioc-type{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);font-weight:600}
+.ioc-value{font-size:.85rem;font-weight:500;word-break:break-all}
+.tlp{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.tlp.RED{background:rgba(239,68,68,.12);color:var(--red)}
+.tlp.AMBER{background:rgba(249,115,22,.12);color:var(--orange)}
+.tlp.GREEN{background:rgba(52,211,153,.12);color:var(--green)}
+.tlp.WHITE{background:rgba(226,232,240,.08);color:var(--dim)}
+.sev{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.6rem;font-weight:600;text-transform:uppercase}
+.sev.critical{background:rgba(239,68,68,.12);color:var(--red)}
+.sev.high{background:rgba(249,115,22,.12);color:var(--orange)}
+.sev.medium{background:rgba(234,179,8,.12);color:var(--yellow)}
+.sev.low{background:rgba(52,211,153,.12);color:var(--green)}
+.ioc-meta{font-size:.65rem;color:var(--muted)}
+.ioc-desc{font-size:.72rem;color:var(--dim);margin-top:4px}
+
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:.85rem}
+
+/* Create form overlay */
+.form-overlay{position:fixed;inset:0;background:rgba(6,9,18,.7);backdrop-filter:blur(4px);z-index:50;display:none;align-items:center;justify-content:center}
+.form-overlay.open{display:flex}
+.form-panel{width:95%;max-width:520px;background:var(--panel);border:1px solid var(--ridge-b);border-radius:8px;padding:24px;box-shadow:0 16px 60px rgba(0,0,0,.5)}
+.form-panel h2{font-family:var(--display);font-weight:700;font-size:1rem;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.form-panel .det-close{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:2px 8px;border-radius:4px}
+.form-panel .det-close:hover{background:var(--ridge);color:var(--text)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;font-family:var(--mono);font-size:.8rem;padding:8px 12px;background:var(--deep);border:1px solid var(--ridge);border-radius:4px;color:var(--text);outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal)}
+.field textarea{resize:vertical;min-height:60px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.submit-btn{font-family:var(--mono);font-size:.8rem;padding:10px 20px;border:none;border-radius:6px;background:linear-gradient(135deg,rgba(45,212,191,.2),rgba(52,211,153,.2));color:var(--teal);cursor:pointer;width:100%;font-weight:600;transition:all .15s}
+.submit-btn:hover{background:linear-gradient(135deg,rgba(45,212,191,.3),rgba(52,211,153,.3))}
+
+@media(max-width:900px){
+  .ioc-card{grid-template-columns:1fr;gap:6px}
+}
+</style>
+</head>
+<body>
+<button id="themeToggle" aria-label="Bytt tema" style="position:fixed;top:12px;right:14px;z-index:100;width:40px;height:22px;border-radius:11px;border:1px solid var(--ridge-b);background:var(--deep);cursor:pointer;padding:0;transition:background .3s"></button>
+<style>#themeToggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--teal);transition:transform .3s}[data-theme="light"] #themeToggle::after{transform:translateX(18px)}</style>
+<script>(function(){var b=document.getElementById('themeToggle'),s=localStorage.getItem('nordlys-theme');if(s)document.documentElement.setAttribute('data-theme',s);b.addEventListener('click',function(){var n=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('nordlys-theme',n)});})()</script>
+<div class="shell">
+  <nav class="topbar">
+    <a class="logo" href="/">Nordlys</a>
+    <span class="logo-caption">Security Toolkit</span>
+    <span class="sep">/</span>
+    <span class="page-title">Indikatorer (IoC)</span>
+    <span class="spacer"></span>
+    <a class="back" href="/">Dashboard</a>
+    <a class="back" href="/vulnerabilities/ui">Sårbarheter</a>
+  </nav>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <input class="search" id="search" type="text" placeholder="Søk etter IP, domene, hash, TTP, beskrivelse...">
+    <select id="fType"><option value="">Alle typer</option><option value="ip">IP</option><option value="domain">Domene</option><option value="hash">Hash</option><option value="ttp">TTP</option></select>
+    <select id="fTlp"><option value="">Alle TLP</option><option value="RED">RED</option><option value="AMBER">AMBER</option><option value="GREEN">GREEN</option><option value="WHITE">WHITE</option></select>
+    <select id="fSeverity"><option value="">Alle alvorligheter</option><option value="critical">Kritisk</option><option value="high">Høy</option><option value="medium">Medium</option><option value="low">Lav</option></select>
+    <button class="btn" onclick="openForm()">+ Ny IoC</button>
+  </div>
+
+  <div class="ioc-grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none">Ingen treff</div>
+</div>
+
+<!-- Create form -->
+<div class="form-overlay" id="formOverlay" onclick="if(event.target===this)closeForm()">
+  <div class="form-panel">
+    <h2>Ny Indicator (IoC) <button class="det-close" onclick="closeForm()">&times;</button></h2>
+    <form id="createForm" onsubmit="return submitIoc(event)">
+      <div class="form-row">
+        <div class="field"><label>Type</label><select id="nType"><option value="ip">IP</option><option value="domain">Domene</option><option value="hash">Hash</option><option value="ttp">TTP</option></select></div>
+        <div class="field"><label>TLP</label><select id="nTlp"><option value="RED">RED</option><option value="AMBER" selected>AMBER</option><option value="GREEN">GREEN</option><option value="WHITE">WHITE</option></select></div>
+      </div>
+      <div class="field"><label>Verdi</label><input id="nValue" required placeholder="f.eks. 185.220.101.34 eller T1190"></div>
+      <div class="form-row">
+        <div class="field"><label>Alvorlighet</label><select id="nSev"><option value="critical">Kritisk</option><option value="high" selected>Hoy</option><option value="medium">Medium</option><option value="low">Lav</option></select></div>
+      </div>
+      <div class="field"><label>Beskrivelse</label><textarea id="nDesc" placeholder="Kontekst, kilde, observasjon..."></textarea></div>
+      <button class="submit-btn" type="submit">Publiser IoC til meshen</button>
+    </form>
+  </div>
+</div>
+
+<script>
+var allData = [];
+
+function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+
+function renderStats(){
+  var s=document.getElementById('stats');
+  var total=allData.length;
+  var red=allData.filter(function(i){return i.tlp==='RED';}).length;
+  var amber=allData.filter(function(i){return i.tlp==='AMBER';}).length;
+  var green=allData.filter(function(i){return i.tlp==='GREEN';}).length;
+  s.innerHTML=
+    '<div class="stat"><span class="num">'+total+'</span><span class="lbl">Totalt</span></div>'+
+    '<div class="stat red"><span class="num">'+red+'</span><span class="lbl">TLP RED</span></div>'+
+    '<div class="stat amber"><span class="num">'+amber+'</span><span class="lbl">TLP AMBER</span></div>'+
+    '<div class="stat green"><span class="num">'+green+'</span><span class="lbl">TLP GREEN</span></div>';
+}
+
+function applyFilters(){
+  var q=document.getElementById('search').value.toLowerCase();
+  var ft=document.getElementById('fType').value;
+  var fl=document.getElementById('fTlp').value;
+  var fs=document.getElementById('fSeverity').value;
+
+  var filtered=allData.filter(function(i){
+    if(ft && i.type!==ft) return false;
+    if(fl && i.tlp!==fl) return false;
+    if(fs && i.severity!==fs) return false;
+    if(q){
+      var hay=(i.value+' '+i.type+' '+i.tlp+' '+i.description+' '+i.company).toLowerCase();
+      return hay.indexOf(q)>=0;
+    }
+    return true;
+  });
+
+  var grid=document.getElementById('grid');
+  var empty=document.getElementById('empty');
+  if(filtered.length===0){grid.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+
+  grid.innerHTML=filtered.map(function(i){
+    return '<div class="ioc-card">'+
+      '<span class="ioc-type">'+esc(i.type)+'</span>'+
+      '<div><span class="ioc-value">'+esc(i.value)+'</span>'+
+        (i.description?'<div class="ioc-desc">'+esc(i.description)+'</div>':'')+
+        '<div class="ioc-meta">'+esc(i.company)+' &middot; '+new Date(i.created_at).toLocaleString('nb-NO')+'</div>'+
+      '</div>'+
+      '<span class="tlp '+i.tlp+'">TLP:'+i.tlp+'</span>'+
+      '<span class="sev '+i.severity+'">'+esc(i.severity)+'</span>'+
+      '<span class="ioc-meta" style="text-align:right">'+esc(i.node_id)+'</span>'+
+    '</div>';
+  }).join('');
+}
+
+function openForm(){document.getElementById('formOverlay').classList.add('open');}
+function closeForm(){document.getElementById('formOverlay').classList.remove('open');}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeForm();});
+
+function submitIoc(e){
+  e.preventDefault();
+  var body={
+    type:document.getElementById('nType').value,
+    value:document.getElementById('nValue').value,
+    tlp:document.getElementById('nTlp').value,
+    severity:document.getElementById('nSev').value,
+    description:document.getElementById('nDesc').value,
+  };
+  fetch('/indicators',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(){closeForm();loadData();});
+  return false;
+}
+
+document.getElementById('search').addEventListener('input',applyFilters);
+document.getElementById('fType').addEventListener('change',applyFilters);
+document.getElementById('fTlp').addEventListener('change',applyFilters);
+document.getElementById('fSeverity').addEventListener('change',applyFilters);
+
+function loadData(){
+  fetch('/indicators').then(function(r){return r.json();}).then(function(data){
+    allData=data;
+    renderStats();
+    applyFilters();
+  });
+}
+loadData();
+setInterval(loadData,15000);
+</script>
+</body>
+</html>

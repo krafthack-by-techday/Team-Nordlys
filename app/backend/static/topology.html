@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STK — Situasjonsforst&aring;else</title>
+<title>Nordlys — Situasjonsforst&aring;else</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -30,6 +30,7 @@
   --mono: 'DM Mono', 'Menlo', monospace;
   --display: 'Outfit', sans-serif;
 }
+[data-theme="light"]{--void:#f4f1eb;--deep:#e8e4db;--panel:#ffffff;--panel2:#f0ede6;--ridge:#d4d0c8;--ridge-b:#bfbab0;--teal:#0d8f64;--green:#1a8a5e;--cyan:#1a7fa3;--purple:#7c5cbf;--red:#dc2626;--orange:#ea580c;--yellow:#b8860b;--grey:#94a3b8;--text:#1a1e2a;--dim:#5c5f6a;--muted:#7c7f8a}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:14px}
 body{background:var(--void);color:var(--text);font-family:var(--mono);overflow:hidden;height:100vh}
@@ -173,15 +174,19 @@ canvas:active{cursor:grabbing}
 </style>
 </head>
 <body>
+<button id="themeToggle" aria-label="Bytt tema" style="position:fixed;top:12px;right:14px;z-index:100;width:40px;height:22px;border-radius:11px;border:1px solid var(--ridge-b);background:var(--deep);cursor:pointer;padding:0;transition:background .3s"></button>
+<style>#themeToggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--teal);transition:transform .3s}[data-theme="light"] #themeToggle::after{transform:translateX(18px)}</style>
+<script>(function(){var b=document.getElementById('themeToggle'),s=localStorage.getItem('nordlys-theme');if(s)document.documentElement.setAttribute('data-theme',s);b.addEventListener('click',function(){var n=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('nordlys-theme',n)});})()</script>
 <div class="shell">
   <header class="header">
-    <div class="logo">STK</div>
+    <a class="logo" href="/" style="text-decoration:none;cursor:pointer">Nordlys</a>
     <div class="logo-sub">situasjonsforst&aring;else</div>
     <div class="hdr-spacer"></div>
     <div class="hdr-stat" id="hdrStat"><span class="pulse"></span><span class="hdr-count" id="hdrCount">&mdash;</span> peers</div>
     <div class="clock" id="clock">--:--:--</div>
     <button class="sim-btn" onclick="simulateEvent()">Simuler hendelse</button>
     <button class="help-btn" onclick="openHelp()">Hjelp</button>
+    <a class="sim-btn" href="/" style="text-decoration:none">Dashboard</a>
   </header>
   <div class="alert" id="alert"><div class="alert-icon">!</div><div id="alertBody"></div></div>
   <div class="main">
@@ -283,7 +288,7 @@ canvas:active{cursor:grabbing}
 
 <script>
 // ── Config ─────────────────────────────────────
-const SEED = new URLSearchParams(location.search).get('seed') || 'http://localhost:8000';
+const SEED = new URLSearchParams(location.search).get('seed') || location.origin;
 const POLL = 3500;
 
 // ── State ──────────────────────────────────────
