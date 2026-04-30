@@ -1,0 +1,30 @@
+services:
+
+  # ── Peer node ────────────────────────────────────────────────────────
+  peer:
+    build: ../app/backend
+    restart: unless-stopped
+    environment:
+      NODE_ID:       ${PEER_NAME:-peer}-01
+      COMPANY:       ${PEER_NAME}
+      ROLE:          peer
+      PEERS:         ${KRAFTCERT_URL}
+      KRAFTCERT_URL: ${KRAFTCERT_URL}
+      INVITE_TOKEN:  ${PEER_INVITE_TOKEN}
+      PUBLIC_URL:    ${PEER_PUBLIC_URL}
+      SELF_URL:      ${PEER_PUBLIC_URL}
+    volumes:
+      - peer-data:/data
+
+  varde-peer:
+    build: ../app/varde
+    restart: unless-stopped
+    ports:
+      - "${PEER_PORT:-8803}:8000"
+    environment:
+      UPSTREAM_URL: http://peer:8000
+    depends_on:
+      - peer
+
+volumes:
+  peer-data:
