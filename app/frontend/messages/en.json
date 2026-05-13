@@ -85,6 +85,8 @@
 	"pagination_page_of": "Page {page} of {total}",
 
 	"nav_health": "Health",
+	"nav_extensions": "Extensions",
+	"extensions_caption": "Install and manage plugins",
 	"nav_settings": "Settings",
 	"logout": "Log out",
 	"topology_layout_cluster": "Cluster",

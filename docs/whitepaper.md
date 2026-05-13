@@ -432,10 +432,10 @@ men er ikke en sentral server — meshet fungerer uten den.
 
 ## Bakgrunn
 
-Nordlys STK ble unnfanget på **Krafthack 2026** — KraftCERTs
+Nordlys STK ble unnfanget på **Krafthack 2026** — TechDay sin
 årlige cybersikkerhets-hackathon for den norske kraftsektoren.
 Team Nordlys bygget en fungerende prototype på 48 timer og vant
-**fagjuryens pris** for løsningen.
+**fagjuryens pris** for beste løsning.
 
 Ideen vokste ut av en konkret frustrasjon: når koordinerte angrep
 rammer flere selskaper samtidig, finnes det i dag ingen felles
@@ -458,7 +458,7 @@ Nordlys er åpen kildekode. Dette er et bevisst sikkerhetsvalg:
   Alle kryptoalgoritmer i Nordlys er offentlige standarder
   (Ed25519 [⁷], X25519, XChaCha20-Poly1305).
 
-- **Audit-mulighet:** Hver organisasjon som deployer Nordlys kan
+- **Audit-mulighet:** Hver organisasjon som setter opp Nordlys kan
   gjennomgå kildekoden selv — eller hyre en tredjepart til å
   gjøre det. Ingen blind tillit til en lukket leverandør.
 

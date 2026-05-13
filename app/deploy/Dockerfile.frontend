@@ -25,7 +25,7 @@ COPY --from=builder /workspace/app/frontend/build ./build
 COPY --from=builder /workspace/app/frontend/package.json ./
 
 ENV PORT=4173
-ENV ORIGIN=https://kraftcert-stk.a1.cappern.net
+ENV ORIGIN=https://kraftcert-stk.n0rdlys.no
 EXPOSE 4173
 
 CMD ["bun", "./build/index.js"]

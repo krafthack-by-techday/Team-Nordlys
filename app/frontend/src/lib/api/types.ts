@@ -60,6 +60,7 @@ export interface Stats {
 		total: number;
 		last_24h: number;
 		critical_24h: number;
+		actionable: number;
 	};
 	indicators: {
 		total: number;

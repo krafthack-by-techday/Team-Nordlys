@@ -118,7 +118,7 @@
 		font-weight: 800;
 		letter-spacing: 0.15em;
 		color: var(--color-bg);
-		background: var(--color-aurora-solar);
+		background: var(--color-warning);
 		padding: 2px 14px;
 		border-radius: 3px;
 		transform: rotate(-20deg);

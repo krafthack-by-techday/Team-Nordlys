@@ -7,6 +7,7 @@
 	const links = [
 		{ label: m.nav_events(), href: '/dashboard/events' },
 		{ label: m.nav_vulnerabilities(), href: '/dashboard/vulnerabilities' },
+		{ label: 'Extensions', href: '/dashboard/extensions' },
 		{ label: m.nav_topology(), href: '/dashboard/topology' },
 		{ label: m.nav_health(), href: '/dashboard/health' },
 		{ label: m.nav_settings(), href: '/dashboard/settings' }

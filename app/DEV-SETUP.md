@@ -6,7 +6,7 @@ Systemet har to typer noder:
 
 | Rolle | Beskrivelse | Hvem | Domene (pre-prod) |
 |-------|-------------|------|--------------------|
-| `kraftcert` (IDP) | Identity Provider — utsteder og signerer peer-identiteter | KraftCERT | kraftcert-stk.a1.cappern.net (NAS) |
+| `kraftcert` (IDP) | Identity Provider — utsteder og signerer peer-identiteter | KraftCERT | kraftcert-stk.n0rdlys.no |
 | `peer` | Vanlig deltakernode (f.eks. Statnett, Hafslund, etc.) | Energiselskap | TBD |
 
 ### Rolletildeling
@@ -19,7 +19,7 @@ Rollen utledes **automatisk** fra `node_id`:
 
 ### Rekkefølge for utrulling
 
-1. **KraftCERT-noden** (`kraftcert-stk.a1.cappern.net`) deployes først (på NAS).
+1. **KraftCERT-noden** (`kraftcert-stk.n0rdlys.no`) deployes først.
 2. **Peer-noder** (f.eks. Statnett) settes opp etter at KraftCERT-noden er operativ.
 
 ## Onboarding (Setup Wizard)
@@ -92,8 +92,8 @@ I dev-stacken kjører alt lokalt som en enkelt node:
 
 ## Veien til prod
 
-- [ ] Deploy KraftCERT-node til kraftcert-stk.a1.cappern.net (NAS)
-- [ ] Sett opp Synology reverse proxy: kraftcert-stk.a1.cappern.net → port 4173
+- [ ] Deploy KraftCERT-node til kraftcert-stk.n0rdlys.no
+- [ ] Sett opp reverse proxy: kraftcert-stk.n0rdlys.no → port 4173
 - [ ] Kjør setup wizard (company="KraftCERT", nodeName=...) → verifiser med cli-verify
 - [ ] Verifiser at varde-svc aksepterer connections og KraftCERT kan utstede identiteter
-- [ ] Sett opp første peer-node (f.eks. Statnett) med `VARDE_BOOTSTRAP` pekende mot kraftcert-stk.a1.cappern.net
+- [ ] Sett opp første peer-node (f.eks. Statnett) med `VARDE_BOOTSTRAP` pekende mot kraftcert-stk.n0rdlys.no

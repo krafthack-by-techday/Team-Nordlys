@@ -20,6 +20,11 @@
 			<span>{m.kpi_peers_of_registered({ total: String(stats.peers.total), pct: String(adoptionPct) })}</span>
 		</KpiCard>
 
+		<KpiCard label="Krever handling" value={stats.events.actionable} href="/dashboard/events" accent="mint" tone="warning">
+			<span>{stats.events.critical_24h} kritiske · {stats.incidents.open} åpne hendelser</span>
+			<span>Lokalt relevante siste 24 t</span>
+		</KpiCard>
+
 		<KpiCard label={m.kpi_events_24h()} value={stats.events.last_24h} href="/dashboard/events" accent="mint">
 			<span>{m.kpi_events_critical({ critical: String(stats.events.critical_24h), open: String(stats.incidents.open) })}</span>
 			<span>{m.kpi_events_total_node({ total: String(stats.events.total) })}</span>

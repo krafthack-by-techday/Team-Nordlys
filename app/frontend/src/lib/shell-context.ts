@@ -26,6 +26,7 @@ export function getRouteLabel(pathname: string): string {
 		'/dashboard/events': () => m.nav_events(),
 		'/dashboard/vulnerabilities': () => m.nav_vulnerabilities(),
 		'/dashboard/health': () => m.nav_health(),
+		'/dashboard/extensions': () => m.nav_extensions(),
 		'/dashboard/settings': () => m.nav_settings(),
 		'/styleguide': () => 'Styleguide'
 	};
@@ -39,6 +40,7 @@ export function getRouteCaption(pathname: string): string | null {
 		'/dashboard/vulnerabilities': () => m.vuln_subtitle(),
 		'/dashboard/health': () => m.health_subtitle(),
 		'/dashboard/topology': () => m.topology_caption(),
+		'/dashboard/extensions': () => m.extensions_caption(),
 	};
 	return captions[pathname]?.() ?? null;
 }

@@ -25,6 +25,7 @@
 		"@inlang/paraglide-js": "^2.15.2",
 		"@playwright/test": "^1.59.1",
 		"@sinclair/typebox": "^0.34.49",
+		"@sveltejs/adapter-vercel": "^6.3.3",
 		"@sveltejs/kit": "^2.57.0",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"@tailwindcss/forms": "^0.5.11",

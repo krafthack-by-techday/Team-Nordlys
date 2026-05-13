@@ -1,8 +1,8 @@
 # ──────────────────────────────────────────────────────────────
-# Nordlys v0.2 — KraftCERT node (production, Synology NAS)
+# Nordlys v0.2 — KraftCERT node (production)
 #
-# Domain: kraftcert-stk.a1.cappern.net
-# Synology reverse proxy → frontend:4173 (HTTPS terminated at NAS)
+# Domain: kraftcert-stk.n0rdlys.no
+# Reverse proxy → frontend:4173 (HTTPS terminated externally)
 #
 # ──────────────────────────────────────────────────────────────
 
@@ -137,8 +137,7 @@ services:
       DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
       VARDE_ID: varde-kraftcert-v2
       # Public WSS URL advertised in roster gossip so peers can dial in.
-      # Synology reverse proxy: varde-kraftcert-stk.a1.cappern.net → host:3020
-      PUBLIC_URL: https://varde-kraftcert-stk.a1.cappern.net
+      PUBLIC_URL: https://varde-kraftcert-stk.n0rdlys.no
       VARDE_TEST_MODE: "true"
     ports:
       - "3020:3020"
@@ -166,7 +165,7 @@ services:
       MESH_SVC_URL: http://mesh-svc:3011
       COLLECTOR_SVC_URL: http://collector-svc:3012
       SCANNER_SVC_URL: http://scanner-svc:3013
-      CORS_ORIGIN: "https://kraftcert-stk.a1.cappern.net"
+      CORS_ORIGIN: "https://kraftcert-stk.n0rdlys.no"
       REDIS_URL: redis://redis:6379
       API_KEYS: "ingest:ingest-secret-v2"
     healthcheck:
@@ -189,7 +188,7 @@ services:
     environment:
       CORE_API_URL: http://api-gateway:3000
       PORT: "4173"
-      ORIGIN: "https://kraftcert-stk.a1.cappern.net"
+      ORIGIN: "https://kraftcert-stk.n0rdlys.no"
     ports:
       - "4173:4173"
     depends_on:

@@ -85,6 +85,8 @@
 	"pagination_page_of": "Side {page} av {total}",
 
 	"nav_health": "Helse",
+	"nav_extensions": "Utvidelser",
+	"extensions_caption": "Installer og administrer plugins",
 	"nav_settings": "Innstillinger",
 	"logout": "Logg ut",
 	"topology_layout_cluster": "Klynge",
