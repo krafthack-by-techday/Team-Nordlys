@@ -1,0 +1,24 @@
+# Dev Dockerfile for the SvelteKit frontend.
+# Runs Vite dev server with HMR exposed on port 5173.
+# Build context is repo root so we can reach style-kit/ and app/be/packages/contracts/.
+FROM oven/bun:1.3-alpine
+
+WORKDIR /workspace
+
+# ── Contracts + Style-kit (needed at build time via aliases) ─────
+COPY app/be/packages/contracts ./app/be/packages/contracts
+COPY style-kit ./style-kit
+
+# ── Install frontend deps ────────────────────────────────────────
+COPY app/frontend/package.json app/frontend/package-lock.json ./app/frontend/
+
+WORKDIR /workspace/app/frontend
+RUN bun install
+
+# ── Copy frontend sources ────────────────────────────────────────
+COPY app/frontend/ ./
+
+EXPOSE 5173
+
+# Vite dev with --host so it's reachable from outside the container
+CMD ["bun", "run", "dev", "--", "--host", "0.0.0.0"]

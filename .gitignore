@@ -32,6 +32,10 @@ var/
 wheels/
 *.egg-info/
 .installed.cfg
+
+# SvelteKit's $lib aliases src/lib — let it through.
+!app/frontend/src/lib/
+!app/frontend/src/lib/**
 *.egg
 MANIFEST
 

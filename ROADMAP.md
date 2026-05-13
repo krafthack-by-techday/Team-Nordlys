@@ -64,6 +64,7 @@ De fem UI-kortene i dashbordet er i dag bare overskrifter. `/stats` returnerer h
 | 2.7 | `/stats` med ekte tall | **Must** | Hardkodet 0 | Erstatt placeholders med spørringer mot nye tabeller. Krever 2.1–2.3 først. |
 | 2.8 | Endepunkt-tester for hovedflyter | **Must** | Ingen tester | pytest + httpx for events/sync, /events/ingest, /invite-/register-/revoke-flyt. Minimum 60% linjedekning på `app/backend/`. |
 | 2.9 | k-av-n-godkjenning av IoC før gossip | **Nice** | Ikke startet | Krev m signaturer fra distinkte peers før en IoC propagerer videre enn første hop. Hever terskelen mot kompromittert peer. Kan utsettes til v0.4. |
+| 2.10 | Sårbarhet → sakshåndtering (webhook-ruting) | **Should** | Ikke startet | SOC tilordner sårbarhet til ansvarlig via konfigurerbart webhook-endepunkt (ServiceNow, SuperOffice, Jira o.l.). Nordlys sender CVE-kontekst, mottar status-callback. Lokal changelog oppdateres. Krav: konfigurerbart per organisasjon, autentisering mot eksternt system, idempotent retry. |
 
 ### v0.3.0 — Driftshardning
 

@@ -1,0 +1,5 @@
+[install]
+# Use hoisted linker — all deps flat at root, only workspace packages symlinked.
+# The EISDIR symlink bug on x64-baseline only affects workspace links,
+# which we dereference in the Dockerfile before compiling.
+linker = "hoisted"

@@ -1,0 +1,529 @@
+/* ──────────────────────────────────────────────────────────────
+   Nordlys · Table Component System
+   Part of the Nordlys design system for the Norwegian power sector.
+
+   CONTENTS
+   ─────────
+   1. Wrapper         — .table-wrapper
+   2. Base            — .table, thead th, tbody td
+   3. Sortable        — [aria-sort] + ::after indicators
+   4. Density         — .table--dense
+   5. Zebra           — .table--zebra
+   6. Sticky header   — .table--sticky-header
+   7. Cell variants   — .table__cell--*
+   8. Empty state     — .table__empty
+   9. Selection       — tr[aria-selected="true"]
+  10. Light theme     — [data-theme="light"] overrides
+  11. Reduced motion  — @media prefers-reduced-motion
+
+   USAGE EXAMPLE
+   ─────────────
+   <div class="table-wrapper">
+     <table class="table table--zebra">
+       <thead>
+         <tr>
+           <th aria-sort="descending">Tidspunkt</th>
+           <th aria-sort="none">Kilde</th>
+           <th>Hendelse</th>
+           <th class="table__cell--num">Severity</th>
+           <th class="table__cell--actions">Handling</th>
+         </tr>
+       </thead>
+       <tbody>
+         <tr aria-selected="true">
+           <td class="table__cell--mono">2026-05-01 14:32</td>
+           <td>hafslund-01</td>
+           <td class="table__cell--truncate">Brute-force forsøkt mot RTU</td>
+           <td><span class="badge badge--severity-high">HIGH</span></td>
+           <td class="table__cell--actions">
+             <button class="btn btn--ghost btn--sm" aria-label="Detaljer">→</button>
+           </td>
+         </tr>
+       </tbody>
+     </table>
+   </div>
+
+   DESIGN DECISIONS
+   ─────────────────
+   - border-collapse: separate with border-spacing: 0 enables per-cell
+     border control without inherited collapse side-effects.
+   - sort indicators are rendered via ::after pseudo-elements; no
+     JavaScript or SVG required.
+   - Selected rows use a left accent border (2px mint) on the first cell
+     to avoid layout shift on the full row — the row itself carries the
+     background tint.
+   - Sticky header background is solid + backdrop-filter so the blurred
+     atmosphere blobs remain visible through the glass effect.
+   - All WCAG 2.2 AA contrast ratios verified (≥ 4.5:1 for text,
+     ≥ 3:1 for UI components and graphical objects).
+   ────────────────────────────────────────────────────────────── */
+
+@layer components {
+
+  /* ════════════════════════════════════════════════════════════
+     1. WRAPPER
+     Handles horizontal overflow scrolling for narrow viewports.
+     ════════════════════════════════════════════════════════════ */
+
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    /* Subtle inset border — visible across the full scroll region */
+    border: 1px solid var(--color-line);
+    /* Clip rounded corners if consumer adds border-radius on wrapper */
+    border-radius: 0;
+    /* Thin custom scrollbar to match the dark aesthetic */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-hi) transparent;
+  }
+
+  .table-wrapper::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .table-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .table-wrapper::-webkit-scrollbar-thumb {
+    background: var(--color-line-hi);
+    border-radius: 2px;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     2. BASE TABLE
+     ════════════════════════════════════════════════════════════ */
+
+  .table {
+    width: 100%;
+    /* separate + spacing-0 = full border control without collapse quirks */
+    border-collapse: separate;
+    border-spacing: 0;
+    /* Fixed UI size — tables live in dashboards, not on stage. */
+    font-size: var(--text-ui);
+    font-family: var(--font-display);
+  }
+
+  /* ── Header row ─────────────────────────────────────────────── */
+
+  .table thead th {
+    font-family: var(--font-mono);
+    font-size: var(--text-mono-sm);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-fg-dim);
+    font-weight: 500;
+    text-align: left;
+    padding: 0.7rem 1rem;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--color-line-hi);
+    /* Slightly elevated surface so headers feel like a control strip */
+    background: rgb(from var(--color-bg-raised) r g b / 0.4);
+    /* Prevent wrapping — headers should be single-line labels */
+    vertical-align: middle;
+  }
+
+  /* Avoid double-border on the right edge of the last header */
+  .table thead th:last-child {
+    border-right: none;
+  }
+
+  /* ── Body cells ──────────────────────────────────────────────── */
+
+  .table tbody td {
+    color: var(--color-fg);
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--color-line);
+    vertical-align: top;
+    line-height: 1.45;
+  }
+
+  /* No border on the final row — wrapper border handles the bottom edge */
+  .table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* ── Row hover ───────────────────────────────────────────────── */
+
+  .table tbody tr {
+    transition: background-color var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  .table tbody tr:hover {
+    background: rgb(from var(--color-aurora-mint) r g b / 0.04);
+  }
+
+  /* Signal that rows are clickable when the consumer marks them so.
+     Apply role="button" or tabindex="0" on <tr> for full a11y. */
+  .table tbody tr[role="button"],
+  .table tbody tr[tabindex] {
+    cursor: pointer;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     3. SORTABLE HEADERS
+     Uses [aria-sort] attribute — no extra classes or JS needed.
+     ARIA values: "none" | "ascending" | "descending" | "other"
+     ════════════════════════════════════════════════════════════ */
+
+  .table thead th[aria-sort] {
+    cursor: pointer;
+    /* Reserve space for the indicator so column width doesn't shift */
+    padding-right: 1.8rem;
+    position: relative;
+    /* Lift above sibling headers so :focus-visible outline isn't clipped */
+    z-index: 1;
+    /* Subtle hover to signal interactivity before click */
+    transition: color var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  .table thead th[aria-sort]:hover {
+    color: var(--color-aurora-mint);
+  }
+
+  /* Keyboard focus ring — WCAG 2.4.7 / 2.4.11.
+     Sortable headers must expose a visible focus state when reached
+     via Tab (consumer adds tabindex="0" + click/keydown handler). */
+  .table thead th[aria-sort]:focus-visible {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: var(--ring-offset);
+  }
+
+  /* Shared indicator positioning */
+  .table thead th[aria-sort]::after {
+    content: '';
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9em;
+    line-height: 1;
+    /* Prevent the pseudo-element inheriting letter-spacing from th */
+    letter-spacing: 0;
+    transition:
+      opacity var(--motion-duration-fast) var(--motion-ease),
+      color var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  /* Unsorted — bidirectional arrows at low opacity */
+  .table thead th[aria-sort="none"]::after {
+    content: '↕';
+    opacity: 0.35;
+    color: var(--color-fg-dim);
+  }
+
+  /* Hover on unsorted — raise opacity to signal it's sortable */
+  .table thead th[aria-sort="none"]:hover::after {
+    opacity: 0.8;
+    color: var(--color-aurora-mint);
+  }
+
+  /* Ascending — active sort, full-weight mint.
+     Glyph (▲) is shape-distinct from descending so direction is
+     conveyed without colour, satisfying WCAG 1.4.1 (Use of Color). */
+  .table thead th[aria-sort="ascending"]::after {
+    content: '▲';
+    opacity: 1;
+    color: var(--color-aurora-mint);
+  }
+
+  /* Descending — active sort, full-weight mint.
+     Glyph (▼) differs in shape from ▲ to avoid colour-only signalling. */
+  .table thead th[aria-sort="descending"]::after {
+    content: '▼';
+    opacity: 1;
+    color: var(--color-aurora-mint);
+  }
+
+  /* "other" — non-standard sort, dimmed indicator */
+  .table thead th[aria-sort="other"]::after {
+    content: '≈';
+    opacity: 0.5;
+    color: var(--color-fg-dim);
+  }
+
+  /* Active sorted column header gets a mint tint to reinforce which
+     column is currently controlling the sort order */
+  .table thead th[aria-sort="ascending"],
+  .table thead th[aria-sort="descending"] {
+    color: var(--color-aurora-mint);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     4. DENSITY MODIFIER — .table--dense
+     Compact padding for data-heavy views (peers list, indicators).
+     ════════════════════════════════════════════════════════════ */
+
+  .table--dense {
+    /* Step the entire row text down one notch for dense data views */
+    font-size: var(--text-ui-sm);
+  }
+
+  .table--dense thead th {
+    padding: 0.4rem 0.7rem;
+    /* Slightly smaller label text in dense mode */
+    font-size: calc(var(--text-mono-sm) * 0.9);
+  }
+
+  .table--dense thead th[aria-sort] {
+    padding-right: 1.5rem;
+  }
+
+  .table--dense thead th[aria-sort]::after {
+    right: 0.4rem;
+  }
+
+  .table--dense tbody td {
+    padding: 0.5rem 0.7rem;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     5. ZEBRA MODIFIER — .table--zebra
+     Alternating row tint for easier horizontal scanning across
+     wide tables (vulnerabilities, indicators).
+     ════════════════════════════════════════════════════════════ */
+
+  .table--zebra tbody tr:nth-child(odd) {
+    background: rgb(255 255 255 / 0.02);
+  }
+
+  /* Hover on zebra rows must override the stripe bg cleanly */
+  .table--zebra tbody tr:nth-child(odd):hover {
+    background: rgb(from var(--color-aurora-mint) r g b / 0.05);
+  }
+
+  .table--zebra tbody tr:nth-child(even):hover {
+    background: rgb(from var(--color-aurora-mint) r g b / 0.04);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     6. STICKY HEADER — .table--sticky-header
+     Keeps column labels visible when scrolling long tables.
+     Requires .table-wrapper to have a bounded height (set by
+     consumer via max-height or height on the wrapper).
+     ════════════════════════════════════════════════════════════ */
+
+  .table--sticky-header thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    /* Opaque backdrop so rows don't bleed through on scroll */
+    background: rgb(from var(--color-bg-raised) r g b / 0.92);
+    /* Frosted glass over the atmosphere blobs */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    /* Re-apply border — sticky breaks the inherited border-bottom
+       from the non-sticky header rule in some browsers */
+    border-bottom: 1px solid var(--color-line-hi);
+    /* Ensure the shadow appears below the sticky row */
+    box-shadow: 0 1px 0 var(--color-line-hi), 0 4px 16px -4px rgb(from var(--color-bg) r g b / 0.6);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     7. CELL VARIANTS
+     Apply directly to <td> or <th> elements.
+     ════════════════════════════════════════════════════════════ */
+
+  /* ── Numeric — right-aligned, tabular figures ─────────────── */
+  .table__cell--num {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── Mono — code values: hashes, IDs, IPs, ports ─────────── */
+  .table__cell--mono {
+    font-family: var(--font-mono);
+    /* Mono is visually denser than Bricolage — step down one UI level */
+    font-size: var(--text-ui-sm);
+    letter-spacing: 0.03em;
+    color: var(--color-fg);
+  }
+
+  /* ── Actions — right-aligned controls, no line-break ─────── */
+  .table__cell--actions {
+    text-align: right;
+    white-space: nowrap;
+    /* Nudge closer to row edge for visual breathing room */
+    padding-right: 0.75rem;
+  }
+
+  /* Small gap between adjacent action buttons */
+  .table__cell--actions > * + * {
+    margin-left: 0.35rem;
+  }
+
+  /* ── Truncate — long strings with ellipsis ────────────────── */
+  /* IMPORTANT: consumer must set a fixed or max-width on the column
+     (e.g. via <col> or width style) for ellipsis to engage. */
+  .table__cell--truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 30ch;
+  }
+
+  /* ── Status — narrow pill/badge column ───────────────────── */
+  /* width: 1px collapses to min-content; the badge/pill sets the real width */
+  .table__cell--status {
+    width: 1px;
+    white-space: nowrap;
+    /* Center pills vertically with the row text */
+    vertical-align: middle;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     8. EMPTY STATE
+     Renders a centered message when the table has no rows.
+     Markup: <tr><td colspan="X" class="table__empty">…</td></tr>
+     ════════════════════════════════════════════════════════════ */
+
+  .table__empty {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: var(--color-fg-dim);
+    font-family: var(--font-mono);
+    font-size: var(--text-mono-sm);
+    letter-spacing: 0.1em;
+    /* No row hover effect on empty state */
+    background: transparent !important;
+    cursor: default;
+  }
+
+  /* Ensure the parent row has no hover highlight either */
+  .table tbody tr:has(.table__empty):hover {
+    background: transparent;
+    cursor: default;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     9. SELECTION STATE — tr[aria-selected="true"]
+     Highlights a selected row with a mint left-accent border
+     and a subtle green tint. Works on both zebra and plain tables.
+     ════════════════════════════════════════════════════════════ */
+
+  .table tbody tr[aria-selected="true"] {
+    background: rgb(from var(--color-aurora-mint) r g b / 0.08);
+  }
+
+  /* Left accent stripe — applied to the first cell only.
+     This avoids adding a fake border column or duplicating the row border. */
+  .table tbody tr[aria-selected="true"] td:first-child {
+    border-left: 2px solid var(--color-aurora-mint);
+    /* Compensate so text alignment doesn't shift */
+    padding-left: calc(1rem - 2px);
+  }
+
+  /* Dense variant: maintain the offset compensation */
+  .table--dense tbody tr[aria-selected="true"] td:first-child {
+    padding-left: calc(0.7rem - 2px);
+  }
+
+  /* Hover on selected row — slightly stronger tint */
+  .table tbody tr[aria-selected="true"]:hover {
+    background: rgb(from var(--color-aurora-mint) r g b / 0.11);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     10. LIGHT THEME OVERRIDES
+     Re-calibrate surfaces and borders for the warm light palette.
+     ════════════════════════════════════════════════════════════ */
+
+  [data-theme='light'] .table-wrapper {
+    border-color: var(--color-line);
+  }
+
+  [data-theme='light'] .table thead th {
+    /* --color-fg flips per theme to the dark warm-grey on light bg */
+    background: rgb(from var(--color-fg) r g b / 0.04);
+    color: var(--color-fg-dim);
+    border-bottom-color: var(--color-line-hi);
+  }
+
+  [data-theme='light'] .table tbody td {
+    color: var(--color-fg);
+    border-bottom-color: var(--color-line);
+  }
+
+  [data-theme='light'] .table tbody tr:hover {
+    background: rgb(from var(--color-aurora-mint) r g b / 0.04);
+  }
+
+  [data-theme='light'] .table--zebra tbody tr:nth-child(odd) {
+    background: rgb(0 0 0 / 0.02);
+  }
+
+  [data-theme='light'] .table--zebra tbody tr:nth-child(odd):hover {
+    background: rgb(from var(--color-aurora-mint) r g b / 0.05);
+  }
+
+  [data-theme='light'] .table--sticky-header thead th {
+    background: rgb(from var(--color-bg) r g b / 0.95);
+    box-shadow: 0 1px 0 var(--color-line-hi), 0 4px 12px -4px rgb(from var(--color-fg) r g b / 0.14);
+  }
+
+  [data-theme='light'] .table tbody tr[aria-selected="true"] {
+    background: rgb(from var(--color-aurora-mint) r g b / 0.08);
+  }
+
+  [data-theme='light'] .table tbody tr[aria-selected="true"]:hover {
+    background: rgb(from var(--color-aurora-mint) r g b / 0.12);
+  }
+
+  [data-theme='light'] .table thead th[aria-sort="ascending"],
+  [data-theme='light'] .table thead th[aria-sort="descending"] {
+    color: var(--color-aurora-mint);
+  }
+
+  [data-theme='light'] .table thead th[aria-sort]:hover {
+    color: var(--color-aurora-mint);
+  }
+
+} /* end @layer components */
+
+
+/* ── Reduced motion ─────────────────────────────────────────────
+   Disable row transition animations for vestibular accessibility.
+   Sort indicator transitions are instantaneous — no override needed. */
+@media (prefers-reduced-motion: reduce) {
+  .table tbody tr,
+  .table thead th[aria-sort]::after {
+    transition: none !important;
+  }
+}
+
+
+/* ── Forced colors (Windows High Contrast / a11y mode) ──────────
+   Custom colour tokens are replaced by system palette values, which
+   means the mint sort glyph, mint focus tint, and mint selected-row
+   left-bar all collapse. Re-establish each cue with system colours so
+   keyboard focus, sort direction, and selection remain perceivable. */
+@media (forced-colors: active) {
+  /* Visible focus ring on sortable headers */
+  .table thead th[aria-sort]:focus-visible {
+    outline: 1px solid CanvasText;
+    outline-offset: var(--ring-offset);
+  }
+
+  /* Sort indicator must remain visible — system text colour */
+  .table thead th[aria-sort]::after {
+    color: CanvasText;
+  }
+
+  /* Selected rows: mint left-bar disappears; replace with a system
+     Highlight outline pulled inside the row so it doesn't shift layout. */
+  .table tbody tr[aria-selected="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

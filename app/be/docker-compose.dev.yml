@@ -1,0 +1,161 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nordlys
+      POSTGRES_PASSWORD: nordlys
+      POSTGRES_DB: nordlys
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nordlys"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # one-shot migration runner — node-stack DB (shared by core/mesh/
+  # collector/scanner in this dev compose; production splits them).
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: packages/db
+    command: ["bun", "/app/packages/db/src/migrate.ts"]
+    environment:
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/api-gateway
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      CORE_SVC_URL: http://core-svc:3010
+      MESH_SVC_URL: http://mesh-svc:3011
+      COLLECTOR_SVC_URL: http://collector-svc:3012
+      SCANNER_SVC_URL: http://scanner-svc:3013
+      CORS_ORIGIN: "http://localhost:5173"
+      REDIS_URL: redis://redis:6379
+      API_KEYS: "dev-key:dev-secret"
+    ports:
+      - "3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+      core-svc:
+        condition: service_started
+      mesh-svc:
+        condition: service_started
+      collector-svc:
+        condition: service_started
+      scanner-svc:
+        condition: service_started
+
+  core-svc:
+    build:
+      context: .
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/core-svc
+    environment:
+      PORT: 3010
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      REDIS_URL: redis://redis:6379
+      NODE_ID: hafslund-1
+      COMPANY: Hafslund
+      ROLE: peer
+      MESH_SVC_URL: http://mesh-svc:3011
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+
+  mesh-svc:
+    build:
+      context: .
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/mesh-svc
+    environment:
+      PORT: 3011
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      REDIS_URL: redis://redis:6379
+      NODE_ID: hafslund-1
+      COMPANY: Hafslund
+      CORE_SVC_URL: http://core-svc:3010
+      VARDE_BOOTSTRAP: "ws://varde-svc:3020/ws"
+    depends_on:
+      core-svc:
+        condition: service_started
+      varde-svc:
+        condition: service_started
+
+  collector-svc:
+    build:
+      context: .
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/collector-svc
+    environment:
+      PORT: 3012
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      CORE_SVC_URL: http://core-svc:3010
+      SCENARIOS_DIR: /app/services/collector-svc/scenarios
+    depends_on:
+      core-svc:
+        condition: service_started
+
+  scanner-svc:
+    build:
+      context: .
+      dockerfile: Dockerfile.scanner
+    environment:
+      PORT: 3013
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      CORE_SVC_URL: http://core-svc:3010
+      SCANNER_MOCK_WHEN_MISSING: "false"
+    depends_on:
+      core-svc:
+        condition: service_started
+
+  varde-svc:
+    build:
+      context: .
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/varde-svc
+    environment:
+      PORT: 3020
+      # In production each Varde has its own DB; the dev compose shares
+      # the node-stack DB for simplicity. Fine because all writes go
+      # through dedup'd UUID PKs.
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      VARDE_ID: varde-1
+      PUBLIC_URL: http://varde-svc:3020
+      VARDE_TEST_MODE: "true"
+    ports:
+      - "3020:3020"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:

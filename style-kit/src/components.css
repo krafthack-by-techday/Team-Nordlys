@@ -1,0 +1,279 @@
+/* ──────────────────────────────────────────────────────────────
+   Nordlys Component Library
+   Composite, repeating UI elements that aren't sensible to express
+   as pure utility chains. Use Tailwind utilities for one-off layout;
+   reach for these classes for the recurring pieces.
+   ────────────────────────────────────────────────────────────── */
+
+@layer components {
+	/* ── Atmospheric layers (apply on body or section root) ────── */
+	.atmosphere {
+		position: fixed;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+		overflow: hidden;
+		contain: strict;
+	}
+
+	.atmosphere__blob {
+		position: absolute;
+		border-radius: 50%;
+		filter: blur(140px);
+		mix-blend-mode: screen;
+		will-change: transform;
+	}
+
+	/* Safari perf: reduce blur and disable scale animations that
+	   force expensive re-rasterization of the blur texture. */
+	@supports (hanging-punctuation: first) {
+		.atmosphere__blob {
+			filter: blur(80px);
+			animation-duration: 0s !important;
+		}
+	}
+
+	.atmosphere__blob--mint {
+		top: -25vh;
+		left: -15vw;
+		width: 95vw;
+		height: 95vh;
+		opacity: 0.4;
+		background: radial-gradient(circle at 30% 30%, var(--color-aurora-mint-soft) 0%, transparent 60%);
+		animation: ds-drift-a 26s ease-in-out infinite alternate;
+	}
+
+	.atmosphere__blob--arctic {
+		bottom: -30vh;
+		right: -20vw;
+		width: 100vw;
+		height: 100vh;
+		opacity: 0.32;
+		background: radial-gradient(circle at 70% 70%, var(--color-aurora-arctic-soft) 0%, transparent 55%);
+		animation: ds-drift-b 32s ease-in-out infinite alternate;
+	}
+
+	.atmosphere__blob--lichen {
+		top: 25%;
+		left: 35%;
+		width: 65vw;
+		height: 65vh;
+		opacity: 0.18;
+		background: radial-gradient(circle, var(--color-aurora-lichen-soft) 0%, transparent 60%);
+		animation: ds-drift-c 40s ease-in-out infinite alternate;
+	}
+
+	[data-theme='light'] .atmosphere__blob {
+		mix-blend-mode: multiply;
+	}
+	[data-theme='light'] .atmosphere__blob--mint {
+		opacity: 0.12;
+	}
+	[data-theme='light'] .atmosphere__blob--arctic {
+		opacity: 0.1;
+	}
+	[data-theme='light'] .atmosphere__blob--lichen {
+		opacity: 0.06;
+	}
+
+	.grain {
+		position: fixed;
+		inset: 0;
+		z-index: 1;
+		pointer-events: none;
+		opacity: 0.06;
+		mix-blend-mode: overlay;
+		background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+	}
+
+	[data-theme='light'] .grain {
+		opacity: 0.03;
+		mix-blend-mode: multiply;
+	}
+
+	/* ── Badge: small status pill with pulsing dot ─────────────── */
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.7rem;
+		padding: 0.55rem 1rem 0.55rem 0.9rem;
+		border: 1px solid var(--color-line-hi);
+		border-radius: 9999px;
+		background: rgb(6 9 18 / 0.55);
+		backdrop-filter: blur(14px);
+		font-family: var(--font-mono);
+		font-size: var(--text-mono-sm);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-fg);
+	}
+
+	.badge__dot {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--color-aurora-mint);
+		box-shadow: 0 0 14px var(--color-aurora-mint);
+		animation: ds-pulse 2.4s ease-in-out infinite;
+	}
+
+	/* ── Tile: navigation/feature card ─────────────────────────── */
+	.tile {
+		width: 200px;
+		min-height: 8rem;
+		padding: 1.4rem 1.2rem;
+		border: 1px solid var(--color-line-hi);
+		background: rgb(14 21 36 / 0.55);
+		backdrop-filter: blur(8px);
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		transition:
+			border-color var(--motion-duration-slow) var(--motion-ease),
+			background var(--motion-duration-slow) var(--motion-ease),
+			transform var(--motion-duration-slow) var(--motion-ease);
+	}
+
+	.tile:hover {
+		border-color: var(--color-aurora-mint);
+		background: rgb(127 220 181 / 0.1);
+		transform: translateY(-2px);
+	}
+
+	.tile__num {
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		letter-spacing: 0.18em;
+		color: var(--color-aurora-mint);
+	}
+
+	.tile__name {
+		font-size: 1.4rem;
+		font-weight: 500;
+		line-height: 1.05;
+		letter-spacing: -0.01em;
+	}
+
+	/* ── URL pill: action-link styled as console URL ───────────── */
+	.url-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 1.5rem;
+		padding: 1rem 1.6rem;
+		border: 1px solid var(--color-aurora-mint);
+		background: rgb(127 220 181 / 0.08);
+		font-family: var(--font-mono);
+		font-size: 1.4rem;
+		letter-spacing: 0.02em;
+		color: var(--color-fg);
+		box-shadow: 0 0 36px -12px rgb(127 220 181 / 0.45);
+	}
+
+	.url-pill__arrow {
+		color: var(--color-aurora-mint);
+	}
+
+	.url-pill__label {
+		color: var(--color-aurora-mint);
+		text-transform: uppercase;
+		font-size: 0.65em;
+		letter-spacing: 0.22em;
+		border-right: 1px solid rgb(127 220 181 / 0.32);
+		padding-right: 1.2rem;
+	}
+
+	/* ── Section tag: numbered/labeled prefix line ─────────────── */
+	.section-tag {
+		font-family: var(--font-mono);
+		font-size: 0.82rem;
+		letter-spacing: 0.18em;
+		color: var(--color-fg-dim);
+		text-transform: uppercase;
+	}
+
+	.section-tag b {
+		font-weight: 500;
+		color: var(--color-aurora-mint);
+		margin-right: 0.4rem;
+	}
+
+	/* ── Aurora rule: short accent line ────────────────────────── */
+	.aurora-rule {
+		width: 4.5rem;
+		height: 2px;
+		background: var(--color-aurora-mint);
+	}
+
+	/* ── Shimmer text: gradient hero treatment ─────────────────── */
+	.shimmer-text {
+		background: linear-gradient(
+			110deg,
+			var(--color-aurora-lichen) 0%,
+			var(--color-aurora-mint) 50%,
+			var(--color-aurora-arctic) 100%
+		);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		background-size: 220% 100%;
+		animation: ds-shimmer 9s ease-in-out infinite alternate;
+	}
+}
+
+/* ── Keyframes (outside @layer so they're not purged) ──────────── */
+@keyframes ds-pulse {
+	0%,
+	100% {
+		opacity: 0.55;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.25);
+	}
+}
+
+@keyframes ds-shimmer {
+	0% {
+		background-position: 0% 50%;
+	}
+	100% {
+		background-position: 100% 50%;
+	}
+}
+
+@keyframes ds-drift-a {
+	0% {
+		transform: translate(0, 0) scale(1);
+	}
+	100% {
+		transform: translate(22vw, 12vh) scale(1.18);
+	}
+}
+
+@keyframes ds-drift-b {
+	0% {
+		transform: translate(0, 0) scale(1);
+	}
+	100% {
+		transform: translate(-18vw, -22vh) scale(1.12);
+	}
+}
+
+@keyframes ds-drift-c {
+	0% {
+		transform: translate(0, 0) scale(1) rotate(0);
+	}
+	100% {
+		transform: translate(-12vw, 14vh) scale(0.85) rotate(50deg);
+	}
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+	.badge__dot,
+	.atmosphere__blob,
+	.shimmer-text {
+		animation: none !important;
+	}
+}

@@ -1,0 +1,512 @@
+/* ──────────────────────────────────────────────────────────────
+   Nordlys Design System — Card Component
+   cards.css · @layer components
+
+   The Card is the primary content container on dashboard and event
+   pages. Unlike .tile (navigation, fixed width), Cards are fluid,
+   structured with explicit header / body / footer slots, and are
+   designed to hold rich content including meta-rows, action buttons,
+   and optional accent-colour categorisation.
+
+   Sharp corners are intentional — they match the Nordlys aesthetic
+   of precision instrumentation over decorative rounding.
+
+   ── Quick usage ──────────────────────────────────────────────
+
+   <article class="card">
+     <div class="card__header">
+       <div>
+         <h3 class="card__title">Mistenkelig pålogging fra ukjent IP</h3>
+         <p class="card__subtitle">Hafslund-01 · Hendelse #2048</p>
+       </div>
+       <div class="card__meta">
+         <span>14:32:18</span>
+         <span>TLP:AMBER</span>
+       </div>
+     </div>
+     <div class="card__body">
+       <p>Tre mislykkede autentiseringsforsøk registrert fra 185.220.101.47.</p>
+     </div>
+     <div class="card__footer">
+       <button class="btn btn--primary">Eskalér</button>
+       <button class="btn btn--ghost">Avvis</button>
+     </div>
+   </article>
+
+   Variants (add to .card):
+     .card--interactive   — hover/focus-visible state; use <button> or <a>
+     .card--elevated      — stronger shadow + brighter border
+     .card--accent-mint   — left accent bar, mint (e.g. informational)
+     .card--accent-arctic — left accent bar, arctic (e.g. network/comms)
+     .card--accent-lichen — left accent bar, lichen (e.g. warning/advisory)
+     .card--compact       — reduced padding for dense layouts
+     .card--feature       — full-bleed feature treatment with .card__media slot
+
+   Grid layout helper:
+     .card-grid           — auto-fill grid, 280 px minimum column width
+   ────────────────────────────────────────────────────────────── */
+
+@layer components {
+
+	/* ────────────────────────────────────────────────────────────
+	   BASE CARD
+	   ────────────────────────────────────────────────────────── */
+
+	.card {
+		display: block;
+		border: 1px solid var(--color-line-hi);
+		background: rgb(from var(--color-bg-raised) r g b / 0.55);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		padding: 1.6rem 2rem;
+
+		/* Intentionally no border-radius — Nordlys precision aesthetic */
+		border-radius: 0;
+
+		/* Contain stacking context so internal z-index is predictable */
+		position: relative;
+		isolation: isolate;
+	}
+
+	/* Light-theme surface adjustment */
+	[data-theme='light'] .card {
+		/* --color-bg-raised flips per theme to the warm off-white */
+		background: rgb(from var(--color-bg-raised) r g b / 0.7);
+		border-color: var(--color-line-hi);
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   HEADER
+	   ────────────────────────────────────────────────────────────
+	   Flex row: title/subtitle group on the left, metadata on the
+	   right, aligned to baseline so mixed font-sizes sit correctly.
+	   ────────────────────────────────────────────────────────── */
+
+	.card__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 1.2rem;
+		padding-bottom: 1rem;
+		margin-bottom: 1rem;
+		border-bottom: 1px solid var(--color-line);
+	}
+
+	/* Left-hand column inside the header — wraps title + subtitle */
+	.card__header > :first-child {
+		min-width: 0; /* allow long titles to truncate */
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   TITLE & SUBTITLE
+	   ────────────────────────────────────────────────────────── */
+
+	.card__title {
+		font-family: var(--font-display);
+		font-weight: 500;
+		font-size: var(--text-ui-title);
+		line-height: 1.3;
+		letter-spacing: -0.01em;
+		color: var(--color-fg);
+		margin: 0;
+
+		/* Prevent overflow on narrow cards while staying readable */
+		overflow-wrap: break-word;
+	}
+
+	.card__subtitle {
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-fg-dim);
+		margin: 0.3rem 0 0;
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   BODY
+	   ────────────────────────────────────────────────────────── */
+
+	.card__body {
+		font-size: var(--text-ui);
+		line-height: 1.55;
+		color: var(--color-fg);
+	}
+
+	/* Vertical rhythm for direct children */
+	.card__body > * + * {
+		margin-top: 0.75em;
+	}
+
+	/* Remove default top margin from the very first child */
+	.card__body > :first-child {
+		margin-top: 0;
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   FOOTER
+	   ────────────────────────────────────────────────────────────
+	   Typically holds 1–3 action buttons. Flex with gap so buttons
+	   remain legible at any card width and wrap gracefully.
+	   ────────────────────────────────────────────────────────── */
+
+	.card__footer {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+		padding-top: 1rem;
+		margin-top: 1rem;
+		border-top: 1px solid var(--color-line);
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   META ROW
+	   ────────────────────────────────────────────────────────────
+	   Horizontal list of short mono tokens: timestamps, peer IDs,
+	   TLP classification, signature status, etc.
+	   Can appear inside .card__header (right-aligned) or standalone
+	   below .card__subtitle.
+	   ────────────────────────────────────────────────────────── */
+
+	.card__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem 1rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-mono-sm);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-fg-dim);
+
+		/* Allow metadata to shrink rather than wrapping the title */
+		flex-shrink: 0;
+	}
+
+	/* Subtle separator between meta tokens */
+	.card__meta > * + *::before {
+		content: '·';
+		margin-right: 1rem;
+		opacity: 0.4;
+		pointer-events: none;
+		user-select: none;
+	}
+
+	/* When .card__meta is a standalone block (not in header row) */
+	.card__body .card__meta,
+	.card__footer .card__meta {
+		flex-shrink: 1;
+		flex-wrap: wrap;
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   MEDIA SLOT (used by .card--feature)
+	   ────────────────────────────────────────────────────────── */
+
+	.card__media {
+		/* Negative margins bleed to card edges; adjust for padding */
+		margin: -1.6rem -2rem 1.6rem;
+		overflow: hidden;
+		position: relative;
+	}
+
+	.card__media img,
+	.card__media video {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	/* Gradient overlay so text above media remains legible */
+	.card__media::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			to bottom,
+			transparent 50%,
+			rgb(from var(--color-bg) r g b / 0.75) 100%
+		);
+		pointer-events: none;
+	}
+
+	[data-theme='light'] .card__media::after {
+		background: linear-gradient(
+			to bottom,
+			transparent 50%,
+			rgb(from var(--color-bg) r g b / 0.7) 100%
+		);
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   VARIANT — INTERACTIVE
+	   ────────────────────────────────────────────────────────────
+	   For clickable cards. Semantically should be rendered as a
+	   <button> or <a> element so keyboard users receive native
+	   focus management and the UA exposes the correct ARIA role.
+	   Using a <div> with onclick is not accessible.
+	   ────────────────────────────────────────────────────────── */
+
+	.card--interactive {
+		cursor: pointer;
+		/* Reset button/anchor base styles that may conflict */
+		text-align: left;
+		text-decoration: none;
+		color: inherit;
+		font: inherit;
+		-webkit-appearance: none;
+		appearance: none;
+		width: 100%;
+
+		transition:
+			border-color var(--motion-duration) var(--motion-ease),
+			background var(--motion-duration) var(--motion-ease);
+	}
+
+	.card--interactive:hover {
+		border-color: var(--color-aurora-mint);
+		background: rgb(from var(--color-bg-raised) r g b / 0.72);
+	}
+
+	[data-theme='light'] .card--interactive:hover {
+		background: rgb(from var(--color-bg-raised) r g b / 0.9);
+	}
+
+	/* High-contrast focus ring — satisfies WCAG 2.2 §2.4.11 */
+	.card--interactive:focus-visible {
+		outline: var(--ring-width) solid var(--ring-color);
+		outline-offset: var(--ring-offset);
+		border-color: var(--color-aurora-mint);
+	}
+
+	@media (forced-colors: active) {
+		.card--interactive:focus-visible {
+			outline-color: Highlight;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.card--interactive {
+			transition: none;
+		}
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   VARIANT — ELEVATED
+	   ────────────────────────────────────────────────────────────
+	   Stronger visual presence. Use sparingly for the most important
+	   card on a given view (primary event, active incident, etc.).
+	   ────────────────────────────────────────────────────────── */
+
+	.card--elevated {
+		border-color: var(--color-line-hi);
+		box-shadow:
+			0 0 0 1px rgb(from var(--color-aurora-mint) r g b / 0.1),
+			0 4px 24px -4px rgb(from var(--color-bg) r g b / 0.7),
+			0 0 40px -16px rgb(from var(--color-aurora-mint) r g b / 0.18);
+	}
+
+	[data-theme='light'] .card--elevated {
+		box-shadow:
+			0 0 0 1px rgb(from var(--color-aurora-mint) r g b / 0.12),
+			0 4px 24px -4px rgb(from var(--color-fg) r g b / 0.12),
+			0 0 40px -16px rgb(from var(--color-aurora-mint) r g b / 0.1);
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   VARIANT — ACCENT BARS
+	   ────────────────────────────────────────────────────────────
+	   Replaces the full border with a coloured left-edge bar.
+	   Use to signal event severity, TLP classification, or peer
+	   affiliation at a glance without changing the body layout.
+
+	   The full border is removed and replaced by a box-shadow left
+	   inset so the layout box dimensions don't change (no content shift).
+	   ────────────────────────────────────────────────────────── */
+
+	.card--accent-mint,
+	.card--accent-arctic,
+	.card--accent-lichen {
+		border-color: transparent;
+		/* Left inset shadow acts as the accent bar */
+	}
+
+	.card--accent-mint {
+		box-shadow: inset 4px 0 0 0 var(--color-aurora-mint);
+		border-left-color: var(--color-aurora-mint);
+	}
+
+	.card--accent-arctic {
+		box-shadow: inset 4px 0 0 0 var(--color-aurora-arctic);
+		border-left-color: var(--color-aurora-arctic);
+	}
+
+	.card--accent-lichen {
+		box-shadow: inset 4px 0 0 0 var(--color-aurora-lichen);
+		border-left-color: var(--color-aurora-lichen);
+	}
+
+	/* Restore a subtle full perimeter on accent cards so they don't
+	   float completely frameless against complex backgrounds */
+	.card--accent-mint,
+	.card--accent-arctic,
+	.card--accent-lichen {
+		border: 1px solid var(--color-line);
+	}
+
+	/* Accent + elevated combination: keep the accent bar prominent */
+	.card--accent-mint.card--elevated {
+		box-shadow:
+			inset 4px 0 0 0 var(--color-aurora-mint),
+			0 4px 24px -4px rgb(from var(--color-bg) r g b / 0.7),
+			0 0 40px -16px rgb(from var(--color-aurora-mint) r g b / 0.18);
+	}
+
+	.card--accent-arctic.card--elevated {
+		box-shadow:
+			inset 4px 0 0 0 var(--color-aurora-arctic),
+			0 4px 24px -4px rgb(from var(--color-bg) r g b / 0.7),
+			0 0 40px -16px rgb(from var(--color-aurora-arctic) r g b / 0.18);
+	}
+
+	.card--accent-lichen.card--elevated {
+		box-shadow:
+			inset 4px 0 0 0 var(--color-aurora-lichen),
+			0 4px 24px -4px rgb(from var(--color-bg) r g b / 0.7),
+			0 0 40px -16px rgb(from var(--color-aurora-lichen) r g b / 0.18);
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   VARIANT — COMPACT
+	   ────────────────────────────────────────────────────────────
+	   Reduced padding for dense list views, event feeds, and
+	   sidepanels where screen real-estate is at a premium.
+	   ────────────────────────────────────────────────────────── */
+
+	.card--compact {
+		padding: 1rem 1.2rem;
+	}
+
+	.card--compact .card__header {
+		padding-bottom: 0.65rem;
+		margin-bottom: 0.65rem;
+	}
+
+	.card--compact .card__footer {
+		padding-top: 0.65rem;
+		margin-top: 0.65rem;
+	}
+
+	.card--compact .card__title {
+		font-size: var(--text-ui-md);
+	}
+
+	.card--compact .card__body {
+		font-size: var(--text-ui-sm);
+	}
+
+	.card--compact .card__media {
+		margin: -1rem -1.2rem 1rem;
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   VARIANT — FEATURE
+	   ────────────────────────────────────────────────────────────
+	   Hero-level card for the top-of-page "primary event" slot or
+	   marketing sections. Supports an optional .card__media slot
+	   at the top. Uses a larger title treatment and more breathing
+	   room throughout.
+	   ────────────────────────────────────────────────────────── */
+
+	.card--feature {
+		padding: 2rem 2.4rem;
+	}
+
+	.card--feature .card__title {
+		font-size: clamp(1.4rem, 2vw, 1.9rem);
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		line-height: 1.15;
+	}
+
+	.card--feature .card__header {
+		padding-bottom: 1.2rem;
+		margin-bottom: 1.2rem;
+	}
+
+	.card--feature .card__footer {
+		padding-top: 1.2rem;
+		margin-top: 1.2rem;
+		gap: 1rem;
+	}
+
+	.card--feature .card__body {
+		font-size: var(--text-ui-lg);
+	}
+
+	/* Media slot bleed compensation */
+	.card--feature .card__media {
+		margin: -2rem -2.4rem 2rem;
+	}
+
+
+	/* ────────────────────────────────────────────────────────────
+	   LAYOUT HELPER — CARD GRID
+	   ────────────────────────────────────────────────────────────
+	   Responsive auto-fill grid for dashboard views. Cards fill
+	   columns down to 280 px before wrapping to a new row.
+	   ────────────────────────────────────────────────────────── */
+
+	.card-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 1rem;
+		align-items: start; /* don't stretch cards to equal height by default */
+	}
+
+	/* Allow opt-in equal-height rows when content alignment matters */
+	.card-grid--equal-height {
+		align-items: stretch;
+	}
+
+	/* Narrow contexts: force single column */
+	@media (max-width: 360px) {
+		.card-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   FORCED COLORS (Windows High Contrast / a11y mode)
+   The accent-bar variants paint their left edge via inset
+   box-shadow + custom colour tokens. In forced-colors mode the
+   shadow is suppressed and tokens collapse to system palette,
+   so the accent disappears. Re-establish the bar with a real
+   border-left in the system Highlight colour. forced-color-adjust
+   is left at its default ("auto") so user overrides still apply
+   to the rest of the card chrome.
+   ════════════════════════════════════════════════════════════ */
+
+@media (forced-colors: active) {
+	.card--accent-mint,
+	.card--accent-arctic,
+	.card--accent-lichen {
+		border-left: 4px solid Highlight;
+	}
+}

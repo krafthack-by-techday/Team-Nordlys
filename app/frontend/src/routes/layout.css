@@ -1,0 +1,31 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+@import '@nordlys/style-kit/tokens.css';
+@import '@nordlys/style-kit/components.css';
+@import '@nordlys/style-kit/components/buttons.css';
+@import '@nordlys/style-kit/components/badges.css';
+@import '@nordlys/style-kit/components/cards.css';
+@import '@nordlys/style-kit/components/tags.css';
+@import '@nordlys/style-kit/components/tables.css';
+@import '@nordlys/style-kit/components/forms.css';
+@import '@nordlys/style-kit/components/feedback.css';
+@import '@nordlys/style-kit/components/dialog.css';
+@import '@nordlys/style-kit/components/utilities.css';
+
+@layer base {
+	html {
+		background: var(--color-bg);
+		color: var(--color-fg);
+		font-family: var(--font-display);
+		font-feature-settings: 'ss01', 'ss02';
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizeLegibility;
+	}
+
+	::selection {
+		background: var(--color-aurora-mint);
+		color: var(--color-bg);
+	}
+}

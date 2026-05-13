@@ -1,0 +1,12 @@
+# Migration runner — one-shot container, uses bun directly.
+FROM oven/bun:1-alpine
+
+WORKDIR /app
+
+COPY package.json bun.lock bunfig.toml tsconfig.base.json ./
+COPY packages ./packages
+COPY services ./services
+
+RUN bun install --frozen-lockfile
+
+CMD ["bun", "/app/packages/db/src/migrate.ts"]

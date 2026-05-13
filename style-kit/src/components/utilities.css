@@ -1,0 +1,109 @@
+/* ──────────────────────────────────────────────────────────────
+   Nordlys Utilities
+   Reusable micro-patterns extracted from the dashboard components.
+   ────────────────────────────────────────────────────────────── */
+
+/* ── Glass surfaces ──────────────────────────────────────────── */
+.glass {
+	background: rgb(from var(--color-bg-raised) r g b / 0.55);
+	backdrop-filter: blur(8px);
+	border: 1px solid var(--color-line-hi);
+}
+
+.glass--tooltip {
+	background: rgb(from var(--color-bg) r g b / 0.92);
+	backdrop-filter: blur(12px);
+	border: 1px solid var(--color-line-hi);
+}
+
+.glass--drawer {
+	background: rgb(from var(--color-bg) r g b / 0.96);
+	backdrop-filter: blur(12px);
+	border-left: 1px solid var(--color-line-hi);
+}
+
+.glass--controls {
+	background: rgb(from var(--color-bg-raised) r g b / 0.75);
+	backdrop-filter: blur(8px);
+	border: 1px solid var(--color-line-hi);
+}
+
+/* ── Mono label (uppercase mono text pattern) ────────────────── */
+.mono-label {
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--color-fg-dim);
+}
+
+.mono-label--sm {
+	font-size: 0.65rem;
+	letter-spacing: 0.08em;
+}
+
+.mono-label--xs {
+	font-size: 0.58rem;
+	letter-spacing: 0.06em;
+}
+
+/* ── Dot separator (inline · between items) ──────────────────── */
+.sep-dot::before {
+	content: '·';
+	margin-inline: 0.4em;
+	color: var(--color-fg-dim);
+	opacity: 0.6;
+}
+
+/* ── Thin scrollbar ──────────────────────────────────────────── */
+.scroll-thin {
+	scrollbar-width: thin;
+	scrollbar-color: var(--color-line-hi) transparent;
+}
+
+/* ── Keyframes ───────────────────────────────────────────────── */
+
+/** Expanding ring pulse — live indicators, status dots */
+@keyframes ds-pulse-ring {
+	0% {
+		transform: scale(1);
+		opacity: 0.5;
+	}
+	100% {
+		transform: scale(2.5);
+		opacity: 0;
+	}
+}
+
+/** Slide-in-up — feed items, new event rows */
+@keyframes ds-slide-in-up {
+	from {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/** Fade-in — timeline entries */
+@keyframes ds-fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.glass,
+	.glass--tooltip,
+	.glass--drawer,
+	.glass--controls {
+		backdrop-filter: none;
+	}
+}

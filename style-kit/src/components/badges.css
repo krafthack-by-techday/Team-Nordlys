@@ -1,0 +1,378 @@
+/* ──────────────────────────────────────────────────────────────
+   Nordlys — Badge Modifier Classes
+   Extends the base .badge defined in components.css.
+   The base pill handles layout, font, border-radius, and
+   backdrop-filter. These modifiers layer semantic colour,
+   glow, and icon content on top.
+
+   Usage examples:
+     <span class="badge badge--severity-high">
+       <span class="badge__dot"></span>CVE-2025-12345
+     </span>
+
+     <span class="badge badge--tlp-amber">TLP:AMBER</span>
+
+     <span class="badge badge--status-verified">Verifisert</span>
+
+     <span class="badge badge--mint">Aurora Nord</span>
+
+   All modifiers are safe to combine with the base .badge.
+   Severity and TLP modifiers intentionally avoid overriding
+   background entirely — they tint the existing frosted-glass
+   base so the atmosphere blobs still show through.
+   ────────────────────────────────────────────────────────────── */
+
+@layer components {
+
+  /* ══════════════════════════════════════════════════════════════
+     SIZE MODIFIERS
+     The base .badge in components.css is the default (md) size.
+     These modifiers tighten or loosen all internal scales coherently
+     — padding, font-size, gap, dot diameter, letter-spacing.
+     ══════════════════════════════════════════════════════════════ */
+
+  /* XS — for inline use in dense table cells */
+  .badge--xs {
+    padding: 0.1rem 0.5rem 0.1rem 0.45rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    gap: 0.4rem;
+  }
+
+  .badge--xs .badge__dot {
+    width: 5px;
+    height: 5px;
+    box-shadow: 0 0 8px var(--color-aurora-mint);
+  }
+
+  /* SM — for dense rows, compact cards, inline status */
+  .badge--sm {
+    padding: 0.25rem 0.7rem 0.25rem 0.6rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    gap: 0.5rem;
+  }
+
+  .badge--sm .badge__dot {
+    width: 6px;
+    height: 6px;
+    box-shadow: 0 0 10px var(--color-aurora-mint);
+  }
+
+  /* MD (default — no class needed; provided as explicit reset) */
+  .badge--md {
+    padding: 0.55rem 1rem 0.55rem 0.9rem;
+    font-size: var(--text-mono-sm);
+    letter-spacing: 0.14em;
+    gap: 0.7rem;
+  }
+
+  .badge--md .badge__dot {
+    width: 7px;
+    height: 7px;
+  }
+
+  /* LG — for hero KPI displays, header status indicators */
+  .badge--lg {
+    padding: 0.75rem 1.4rem 0.75rem 1.2rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.16em;
+    gap: 0.85rem;
+  }
+
+  .badge--lg .badge__dot {
+    width: 9px;
+    height: 9px;
+    box-shadow: 0 0 18px var(--color-aurora-mint);
+  }
+
+
+  /* ── Local helper: per-modifier accent colour ──────────────── */
+  /* Each modifier sets --_badge-accent and --_badge-accent-dim,
+     which the shared rules below consume. This avoids repeating
+     border + dot + glow declarations for every variant. */
+
+  /* ══════════════════════════════════════════════════════════════
+     SEVERITY — security severity classification
+     ══════════════════════════════════════════════════════════════ */
+
+  /* LOW — muted green, lightest presence */
+  .badge--severity-low {
+    --_badge-accent: var(--color-success);
+    --_badge-accent-dim: var(--color-success-dim);
+    --_badge-glow-radius: 8px;
+    --_badge-bg-tint: rgb(95 181 154 / 0.08);
+  }
+
+  /* MEDIUM — amber, moderate attention */
+  .badge--severity-medium {
+    --_badge-accent: var(--color-warning);
+    --_badge-accent-dim: var(--color-warning-dim);
+    --_badge-glow-radius: 10px;
+    --_badge-bg-tint: rgb(216 185 106 / 0.08);
+  }
+
+  /* HIGH — orange-red, desaturated danger */
+  /* Uses danger at 80% opacity on border to feel "almost critical" */
+  .badge--severity-high {
+    --_badge-accent: color-mix(in oklch, var(--color-danger) 80%, var(--color-warning) 20%);
+    --_badge-accent-dim: var(--color-danger-dim);
+    --_badge-glow-radius: 12px;
+    --_badge-bg-tint: rgb(224 123 107 / 0.1);
+  }
+
+  /* CRITICAL — full red, maximum attention, stronger glow */
+  .badge--severity-critical {
+    --_badge-accent: var(--color-danger);
+    --_badge-accent-dim: var(--color-danger-dim);
+    --_badge-glow-radius: 18px;
+    --_badge-bg-tint: rgb(224 123 107 / 0.14);
+  }
+
+  /* Shared severity chrome — applied via the presence of any severity class */
+  .badge--severity-low,
+  .badge--severity-medium,
+  .badge--severity-high,
+  .badge--severity-critical {
+    border-color: var(--_badge-accent);
+    background: var(--_badge-bg-tint);
+    color: var(--_badge-accent);
+    box-shadow: 0 0 var(--_badge-glow-radius) -2px var(--_badge-accent-dim);
+  }
+
+  /* Dot inherits severity accent */
+  .badge--severity-low .badge__dot,
+  .badge--severity-medium .badge__dot,
+  .badge--severity-high .badge__dot,
+  .badge--severity-critical .badge__dot {
+    background: var(--_badge-accent);
+    box-shadow: 0 0 10px var(--_badge-accent);
+  }
+
+  /* Critical dot pulses faster to signal urgency */
+  .badge--severity-critical .badge__dot {
+    animation: ds-pulse 1.4s ease-in-out infinite;
+  }
+
+
+  /* ══════════════════════════════════════════════════════════════
+     TLP — Traffic Light Protocol (FIRST standard)
+     More pronounced than severity — consumers scan for these
+     markings to determine information shareability.
+     ══════════════════════════════════════════════════════════════ */
+
+  /* TLP:CLEAR — previously TLP:WHITE — unrestricted sharing */
+  .badge--tlp-clear {
+    border-color: var(--color-fg-dim);
+    background: rgb(154 151 137 / 0.1);
+    color: var(--color-fg-dim);
+    /* No glow — neutral marking */
+  }
+
+  /* TLP:GREEN — sharing within community */
+  .badge--tlp-green {
+    border-color: var(--color-success);
+    background: rgb(95 181 154 / 0.12);
+    color: var(--color-success);
+    box-shadow:
+      0 0 0 1px rgb(95 181 154 / 0.2),
+      0 0 16px -4px var(--color-success-dim);
+  }
+
+  /* TLP:AMBER — sharing with recipients and their org only */
+  .badge--tlp-amber {
+    border-color: var(--color-warning);
+    background: rgb(216 185 106 / 0.12);
+    color: var(--color-warning);
+    box-shadow:
+      0 0 0 1px rgb(216 185 106 / 0.2),
+      0 0 16px -4px var(--color-warning-dim);
+  }
+
+  /* TLP:RED — not for disclosure, recipients only */
+  .badge--tlp-red {
+    border-color: var(--color-danger);
+    background: rgb(224 123 107 / 0.14);
+    color: var(--color-danger);
+    box-shadow:
+      0 0 0 1px rgb(224 123 107 / 0.25),
+      0 0 20px -4px var(--color-danger-dim);
+  }
+
+
+  /* ══════════════════════════════════════════════════════════════
+     STATUS — peer / event lifecycle states
+     Each variant adds a leading icon via ::before for rapid
+     visual scanning without relying on colour alone (WCAG 1.4.1).
+     ══════════════════════════════════════════════════════════════ */
+
+  /* Shared status ::before positioning */
+  .badge--status-verified::before,
+  .badge--status-pending::before,
+  .badge--status-revoked::before,
+  .badge--status-active::before {
+    font-style: normal;
+    line-height: 1;
+    /* Slightly larger than the text to read cleanly at badge scale */
+    font-size: 1.1em;
+    flex-shrink: 0;
+  }
+
+  /* VERIFIED — confirmed/authenticated peer or intel */
+  .badge--status-verified {
+    border-color: var(--color-success);
+    background: rgb(95 181 154 / 0.1);
+    color: var(--color-success);
+    box-shadow: 0 0 14px -4px var(--color-success-dim);
+  }
+
+  .badge--status-verified::before {
+    content: '✓';
+  }
+
+  /* PENDING — awaiting confirmation or processing */
+  .badge--status-pending {
+    border-color: var(--color-warning);
+    background: rgb(216 185 106 / 0.08);
+    color: var(--color-warning);
+  }
+
+  .badge--status-pending::before {
+    content: '⏳';
+    font-size: 0.9em;
+  }
+
+  /* REVOKED — intel or peer status withdrawn */
+  .badge--status-revoked {
+    border-color: var(--color-danger);
+    background: rgb(224 123 107 / 0.08);
+    color: var(--color-danger);
+    /* Slight opacity reduction — revoked is de-emphasised */
+    opacity: 0.85;
+  }
+
+  .badge--status-revoked::before {
+    content: '✕';
+  }
+
+  /* ACTIVE — live / currently connected */
+  .badge--status-active {
+    border-color: var(--color-aurora-mint);
+    background: rgb(127 220 181 / 0.08);
+    color: var(--color-aurora-mint);
+    box-shadow: 0 0 14px -4px color-mix(in oklch, var(--color-aurora-mint) 60%, transparent);
+  }
+
+  /* Active uses a pulsing dot instead of ::before glyph */
+  .badge--status-active .badge__dot {
+    background: var(--color-aurora-mint);
+    box-shadow: 0 0 12px var(--color-aurora-mint);
+    animation: ds-pulse 2.4s ease-in-out infinite;
+  }
+
+
+  /* ══════════════════════════════════════════════════════════════
+     GENERIC AURORA — non-semantic emphasis pills
+     Use when no severity/TLP/status semantics apply but you need
+     to visually group or accent a badge.
+     ══════════════════════════════════════════════════════════════ */
+
+  .badge--mint {
+    border-color: var(--color-aurora-mint);
+    background: rgb(127 220 181 / 0.08);
+    color: var(--color-aurora-mint);
+  }
+
+  .badge--arctic {
+    border-color: var(--color-aurora-arctic);
+    background: rgb(143 195 223 / 0.08);
+    color: var(--color-aurora-arctic);
+  }
+
+  .badge--lichen {
+    border-color: var(--color-aurora-lichen);
+    background: rgb(216 201 138 / 0.08);
+    color: var(--color-aurora-lichen);
+  }
+
+
+  /* ══════════════════════════════════════════════════════════════
+     LIGHT THEME OVERRIDES
+     The frosted-glass base background is too dark for light theme.
+     Re-calibrate tints so contrast stays WCAG 2.2 AA (≥ 4.5:1).
+     ══════════════════════════════════════════════════════════════ */
+
+  [data-theme='light'] .badge--severity-low,
+  [data-theme='light'] .badge--severity-medium,
+  [data-theme='light'] .badge--severity-high,
+  [data-theme='light'] .badge--severity-critical,
+  [data-theme='light'] .badge--tlp-clear,
+  [data-theme='light'] .badge--tlp-green,
+  [data-theme='light'] .badge--tlp-amber,
+  [data-theme='light'] .badge--tlp-red,
+  [data-theme='light'] .badge--status-verified,
+  [data-theme='light'] .badge--status-pending,
+  [data-theme='light'] .badge--status-revoked,
+  [data-theme='light'] .badge--status-active,
+  [data-theme='light'] .badge--mint,
+  [data-theme='light'] .badge--arctic,
+  [data-theme='light'] .badge--lichen {
+    /* Lift the tint opacity so it's visible on the warm-light bg */
+    backdrop-filter: blur(8px);
+  }
+
+  [data-theme='light'] .badge--severity-low { background: rgb(26 154 114 / 0.1); }
+  [data-theme='light'] .badge--severity-medium { background: rgb(154 122 32 / 0.1); }
+  [data-theme='light'] .badge--severity-high { background: rgb(196 78 58 / 0.1); }
+  [data-theme='light'] .badge--severity-critical { background: rgb(196 78 58 / 0.14); }
+
+  [data-theme='light'] .badge--tlp-green { background: rgb(26 154 114 / 0.1); }
+  [data-theme='light'] .badge--tlp-amber { background: rgb(154 122 32 / 0.1); }
+  [data-theme='light'] .badge--tlp-red { background: rgb(196 78 58 / 0.12); }
+
+  [data-theme='light'] .badge--status-verified { background: rgb(26 154 114 / 0.1); }
+  [data-theme='light'] .badge--status-pending { background: rgb(154 122 32 / 0.08); }
+  [data-theme='light'] .badge--status-revoked { background: rgb(196 78 58 / 0.08); }
+  [data-theme='light'] .badge--status-active { background: rgb(26 158 114 / 0.08); }
+
+  [data-theme='light'] .badge--mint { background: rgb(26 158 114 / 0.08); }
+  [data-theme='light'] .badge--arctic { background: rgb(43 126 163 / 0.08); }
+  [data-theme='light'] .badge--lichen { background: rgb(154 133 48 / 0.08); }
+
+
+  /* ══════════════════════════════════════════════════════════════
+     FORCED COLORS (Windows high-contrast mode)
+     Badges encode severity/TLP/status via colour, which is replaced
+     by system colours. Strategy:
+     - Status badges have leading glyphs (✓ ⏳ ✕), so they remain
+       distinguishable without colour. Force their colour through
+       to preserve brand semantics.
+     - Severity/TLP rely on colour alone — pin their accents via
+       forced-color-adjust so they retain meaning.
+     ══════════════════════════════════════════════════════════════ */
+
+  @media (forced-colors: active) {
+    .badge--severity-low,
+    .badge--severity-medium,
+    .badge--severity-high,
+    .badge--severity-critical,
+    .badge--tlp-clear,
+    .badge--tlp-green,
+    .badge--tlp-amber,
+    .badge--tlp-red,
+    .badge--status-verified,
+    .badge--status-pending,
+    .badge--status-revoked,
+    .badge--status-active {
+      forced-color-adjust: none;
+    }
+
+    /* Critical and TLP:RED are the most important to preserve —
+       reinforce with a thicker border so they survive even if the
+       above declaration is overridden. */
+    .badge--severity-critical,
+    .badge--tlp-red {
+      border-width: 2px;
+    }
+  }
+}

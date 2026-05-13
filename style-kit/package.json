@@ -1,0 +1,30 @@
+{
+	"name": "@nordlys/style-kit",
+	"private": true,
+	"version": "0.1.0",
+	"description": "Nordlys design tokens and component library, Tailwind v4 source of truth.",
+	"type": "module",
+	"main": "src/tokens.css",
+	"files": ["src"],
+	"exports": {
+		"./tokens.css": "./src/tokens.css",
+		"./components.css": "./src/components.css",
+		"./input.css": "./src/input.css"
+	},
+	"scripts": {
+		"dev": "concurrently -k -n tw,serve -c cyan,magenta \"npm run watch\" \"npm run serve\"",
+		"watch": "tailwindcss -i ./src/input.css -o ./dist/style-kit.css --watch",
+		"build": "tailwindcss -i ./src/input.css -o ./dist/style-kit.css --minify",
+		"serve": "http-server . -p 4180 -c-1 -s",
+		"clean": "rimraf dist"
+	},
+	"devDependencies": {
+		"@tailwindcss/cli": "^4.2.2",
+		"@tailwindcss/forms": "^0.5.11",
+		"@tailwindcss/typography": "^0.5.19",
+		"concurrently": "^9.1.0",
+		"http-server": "^14.1.1",
+		"rimraf": "^6.0.1",
+		"tailwindcss": "^4.2.2"
+	}
+}

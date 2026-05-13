@@ -1,0 +1,31 @@
+# Production Dockerfile for SvelteKit frontend (svelte-adapter-bun).
+# Build context: Team-Nordlys/ (repo root)
+FROM node:22-alpine AS builder
+
+WORKDIR /workspace
+
+# Contracts + style-kit needed at build time
+COPY app/be/packages/contracts ./app/be/packages/contracts
+COPY style-kit ./style-kit
+
+# Install frontend deps
+COPY app/frontend/package.json app/frontend/package-lock.json* ./app/frontend/
+WORKDIR /workspace/app/frontend
+RUN npm install --legacy-peer-deps
+
+# Copy sources and build
+COPY app/frontend/ ./
+RUN npx svelte-kit sync && npm run build
+
+# ── Production stage ──────────────────────────────────────────
+FROM oven/bun:1-debian
+
+WORKDIR /app
+COPY --from=builder /workspace/app/frontend/build ./build
+COPY --from=builder /workspace/app/frontend/package.json ./
+
+ENV PORT=4173
+ENV ORIGIN=https://kraftcert-stk.a1.cappern.net
+EXPOSE 4173
+
+CMD ["bun", "./build/index.js"]

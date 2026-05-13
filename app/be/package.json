@@ -1,0 +1,24 @@
+{
+  "name": "@nordlys/be",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "bun test",
+    "dev:gateway": "bun --watch services/api-gateway/src/index.ts",
+    "dev:core": "bun --watch services/core-svc/src/index.ts",
+    "dev:mesh": "bun --watch services/mesh-svc/src/index.ts",
+    "dev:collector": "bun --watch services/collector-svc/src/index.ts",
+    "dev:scanner": "bun --watch services/scanner-svc/src/index.ts",
+    "dev:varde": "bun --watch services/varde-svc/src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.6.0"
+  }
+}

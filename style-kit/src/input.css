@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+@import './tokens.css';
+@import './components.css';
+@import './components/buttons.css';
+@import './components/forms.css';
+@import './components/badges.css';
+@import './components/tags.css';
+@import './components/cards.css';
+@import './components/tables.css';
+@import './components/tabs.css';
+@import './components/feedback.css';
+@import './components/combobox.css';
+@import './components/dialog.css';
+@import './components/pagination.css';
+@import './components/utilities.css';
+
+/* Base layer — minimal global defaults that complement the tokens. */
+@layer base {
+	html {
+		background: var(--color-bg);
+		color: var(--color-fg);
+		font-family: var(--font-display);
+		font-feature-settings: 'ss01', 'ss02';
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizeLegibility;
+	}
+
+	::selection {
+		background: var(--color-aurora-mint);
+		color: var(--color-bg);
+	}
+
+	::-webkit-scrollbar {
+		width: 10px;
+	}
+	::-webkit-scrollbar-track {
+		background: var(--color-bg);
+	}
+	::-webkit-scrollbar-thumb {
+		background: var(--color-line-hi);
+		border-radius: 10px;
+	}
+
+	/* Honour explicit data-theme override; otherwise track system pref. */
+	@media (prefers-color-scheme: light) {
+		html:not([data-theme]) {
+			color-scheme: light;
+		}
+	}
+}

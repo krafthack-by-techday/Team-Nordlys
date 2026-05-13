@@ -1,0 +1,1259 @@
+<!doctype html>
+<html lang="nb-NO" data-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Nordlys · Style Kit</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="./dist/style-kit.css" />
+		<style>
+			/* Docs-page styling — local to this reference page only.
+			   Component CSS lives in style-kit/src/. */
+
+			html { scroll-behavior: smooth; }
+			html { scroll-padding-top: 2rem; }
+
+			/* Sidebar TOC ─────────────────────────────────── */
+			.docs-toc { font-family: var(--font-mono); }
+
+			.docs-toc__heading {
+				font-size: 0.65rem;
+				letter-spacing: 0.22em;
+				text-transform: uppercase;
+				color: var(--color-aurora-mint);
+				margin: 1.4rem 0 0.6rem;
+				padding-left: 0.75rem;
+			}
+			.docs-toc__heading:first-child { margin-top: 0; }
+
+			.docs-toc__list {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 0.05rem;
+			}
+
+			.docs-toc__link {
+				display: block;
+				padding: 0.35rem 0.75rem;
+				font-size: 0.8rem;
+				color: var(--color-fg-dim);
+				text-decoration: none;
+				border-left: 2px solid transparent;
+				transition:
+					color var(--motion-duration-fast) var(--motion-ease),
+					border-color var(--motion-duration-fast) var(--motion-ease),
+					background var(--motion-duration-fast) var(--motion-ease);
+			}
+
+			.docs-toc__link:hover {
+				color: var(--color-fg);
+				background: rgb(127 220 181 / 0.04);
+			}
+
+			.docs-toc__link.is-active {
+				color: var(--color-aurora-mint);
+				border-left-color: var(--color-aurora-mint);
+				background: rgb(127 220 181 / 0.06);
+			}
+
+			.docs-toc__link:focus-visible {
+				outline: var(--ring-width) solid var(--ring-color);
+				outline-offset: -2px;
+			}
+
+			/* Section headers ─────────────────────────────── */
+			.docs-section { margin-bottom: 6rem; scroll-margin-top: 1.5rem; }
+			.docs-section:last-child { margin-bottom: 3rem; }
+
+			.docs-section__num {
+				font-family: var(--font-mono);
+				font-size: 0.7rem;
+				letter-spacing: 0.22em;
+				text-transform: uppercase;
+				color: var(--color-aurora-mint);
+				margin-bottom: 0.4rem;
+			}
+
+			.docs-section__title {
+				font-family: var(--font-display);
+				font-weight: 600;
+				font-size: clamp(1.8rem, 3vw, 2.6rem);
+				line-height: 1.05;
+				letter-spacing: -0.02em;
+				color: var(--color-fg);
+				margin: 0 0 0.6rem;
+			}
+
+			.docs-section__lede {
+				font-size: 1rem;
+				line-height: 1.55;
+				color: var(--color-fg-dim);
+				max-width: 65ch;
+				margin: 0 0 2.5rem;
+			}
+
+			/* Sub-heading per component within a section */
+			.docs-component {
+				font-family: var(--font-display);
+				font-weight: 500;
+				font-size: 1.4rem;
+				line-height: 1.2;
+				letter-spacing: -0.01em;
+				color: var(--color-fg);
+				margin: 2.5rem 0 0.9rem;
+			}
+			.docs-component:first-child { margin-top: 0; }
+
+			.docs-component__lede {
+				font-size: 0.9375rem;
+				line-height: 1.55;
+				color: var(--color-fg-dim);
+				max-width: 65ch;
+				margin: 0 0 1.4rem;
+			}
+
+			/* Caption above a demo container */
+			.docs-caption {
+				font-family: var(--font-mono);
+				font-size: 0.7rem;
+				letter-spacing: 0.18em;
+				text-transform: uppercase;
+				color: var(--color-fg-dim);
+				margin: 0 0 0.7rem;
+			}
+
+			/* Demo container — unified pattern */
+			.docs-demo {
+				border: 1px solid var(--color-line);
+				background: rgb(6 9 18 / 0.4);
+				backdrop-filter: blur(4px);
+				padding: 2.5rem;
+				margin-bottom: 1.5rem;
+			}
+			.docs-demo--row {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				justify-content: center;
+				gap: 1rem;
+				min-height: 8rem;
+			}
+			.docs-demo--col {
+				display: flex;
+				flex-direction: column;
+				gap: 1.5rem;
+			}
+			.docs-demo--allow-overflow { overflow: visible; }
+		</style>
+	</head>
+	<body class="relative mx-auto max-w-[1400px] px-8 pt-16 pb-24 lg:px-16">
+		<!-- Atmosphere: aurora blobs + grain -->
+		<div class="atmosphere">
+			<div class="atmosphere__blob atmosphere__blob--mint"></div>
+			<div class="atmosphere__blob atmosphere__blob--arctic"></div>
+			<div class="atmosphere__blob atmosphere__blob--lichen"></div>
+		</div>
+		<div class="grain"></div>
+
+		<!-- Theme toggle -->
+		<button
+			id="themeToggle"
+			class="fixed top-5 right-6 z-50 flex h-7 w-12 items-center rounded-full border border-line-hi bg-bg-raised p-0 transition-colors"
+			aria-label="Bytt tema"
+		>
+			<span
+				id="themeKnob"
+				class="ml-0.5 inline-block h-4 w-4 rounded-full bg-aurora-mint transition-transform"
+			></span>
+		</button>
+
+		<!-- ════════════ HEADER (intro only — TOC lives in sidebar) ════════════ -->
+		<header class="relative z-10 mb-16">
+			<div class="font-mono text-mono-sm text-fg-dim mb-6 flex items-center gap-4">
+				<span class="bg-aurora-mint inline-block h-px w-10"></span>
+				Nordlys · Style Kit · v0.1
+			</div>
+			<h1 class="shimmer-text font-display mb-4 text-display leading-[0.86] tracking-[-0.04em]">
+				Style Kit
+			</h1>
+			<p class="text-body-lg text-fg max-w-[60ch] font-light">
+				Felles designgrunnlag for Nordlys. Tokens og komponenter, bygget på Tailwind v4. Importer
+				<code class="text-aurora-mint font-mono">tokens.css</code> fra
+				<code class="text-aurora-mint font-mono">@nordlys/style-kit</code> i app-en din for å arve
+				både utility-klasser og runtime-variabler.
+			</p>
+		</header>
+
+		<!-- ════════════ REFERENCE SHELL: sticky sidebar TOC + main content ════════════ -->
+		<div class="relative z-10 lg:grid lg:grid-cols-[14rem_1fr] lg:gap-16 lg:items-start">
+			<!-- ── Sticky TOC ─────────────────────────────── -->
+			<aside
+				class="mb-12 lg:sticky lg:top-8 lg:mb-0 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:pb-8"
+				aria-label="Innhold"
+			>
+				<nav class="docs-toc">
+					<p class="docs-toc__heading">Foundations</p>
+					<ul class="docs-toc__list">
+						<li><a class="docs-toc__link" href="#tokens">Tokens</a></li>
+						<li><a class="docs-toc__link" href="#typography">Typografi</a></li>
+					</ul>
+
+					<p class="docs-toc__heading">Komponenter</p>
+					<ul class="docs-toc__list">
+						<li><a class="docs-toc__link" href="#actions">Knapper</a></li>
+						<li><a class="docs-toc__link" href="#forms">Skjemaer</a></li>
+						<li><a class="docs-toc__link" href="#status">Status &amp; merker</a></li>
+						<li><a class="docs-toc__link" href="#containers">Beholdere</a></li>
+						<li><a class="docs-toc__link" href="#data">Data</a></li>
+						<li><a class="docs-toc__link" href="#navigation">Navigasjon</a></li>
+						<li><a class="docs-toc__link" href="#overlays">Overlegg</a></li>
+						<li><a class="docs-toc__link" href="#decorative">Dekor</a></li>
+					</ul>
+
+					<p class="docs-toc__heading">Reference</p>
+					<ul class="docs-toc__list">
+						<li><a class="docs-toc__link" href="#usage">Bruk</a></li>
+					</ul>
+				</nav>
+			</aside>
+
+			<!-- ── Main content ───────────────────────────── -->
+			<main class="min-w-0">
+
+				<!-- ════════════ 01 · TOKENS ════════════ -->
+				<section id="tokens" class="docs-section">
+					<div class="docs-section__num">01 · Foundations</div>
+					<h2 class="docs-section__title">Tokens</h2>
+					<p class="docs-section__lede">
+						Tokens er CSS-variabler under <code class="code">:root</code> og
+						<code class="code">[data-theme="light"]</code>. Tailwind genererer utility-klasser fra dem
+						(<code class="code">bg-bg</code>, <code class="code">text-aurora-mint</code>,
+						<code class="code">border-line-hi</code>, …).
+					</p>
+
+					<h3 class="docs-component">Flater og tekst</h3>
+					<div class="mb-10 grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
+						<div class="border-line bg-bg-raised/50 border backdrop-blur-sm">
+							<div class="border-line h-28 border-b" style="background: var(--color-bg)"></div>
+							<div class="flex flex-col gap-0.5 p-4">
+								<span class="text-fg font-medium">Midnight</span>
+								<span class="text-aurora-mint font-mono text-xs">--color-bg</span>
+							</div>
+						</div>
+						<div class="border-line bg-bg-raised/50 border backdrop-blur-sm">
+							<div class="border-line h-28 border-b" style="background: var(--color-bg-raised)"></div>
+							<div class="flex flex-col gap-0.5 p-4">
+								<span class="text-fg font-medium">Raised</span>
+								<span class="text-aurora-mint font-mono text-xs">--color-bg-raised</span>
+							</div>
+						</div>
+						<div class="border-line bg-bg-raised/50 border backdrop-blur-sm">
+							<div class="border-line h-28 border-b" style="background: var(--color-fg)"></div>
+							<div class="flex flex-col gap-0.5 p-4">
+								<span class="text-fg font-medium">Parchment</span>
+								<span class="text-aurora-mint font-mono text-xs">--color-fg</span>
+							</div>
+						</div>
+						<div class="border-line bg-bg-raised/50 border backdrop-blur-sm">
+							<div class="border-line h-28 border-b" style="background: var(--color-fg-dim)"></div>
+							<div class="flex flex-col gap-0.5 p-4">
+								<span class="text-fg font-medium">Slate</span>
+								<span class="text-aurora-mint font-mono text-xs">--color-fg-dim</span>
+							</div>
+						</div>
+					</div>
+
+					<h3 class="docs-component">Aurora — solid</h3>
+					<div class="mb-10 grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
+						<div class="border-line bg-bg-raised/50 border backdrop-blur-sm">
+							<div class="border-line h-28 border-b" style="background: var(--color-aurora-mint)"></div>
+							<div class="flex flex-col gap-0.5 p-4">
+								<span class="text-fg font-medium">Mint</span>
+								<span class="text-aurora-mint font-mono text-xs">--color-aurora-mint</span>
+							</div>
+						</div>
+						<div class="border-line bg-bg-raised/50 border backdrop-blur-sm">
+							<div class="border-line h-28 border-b" style="background: var(--color-aurora-arctic)"></div>
+							<div class="flex flex-col gap-0.5 p-4">
+								<span class="text-fg font-medium">Arctic</span>
+								<span class="text-aurora-mint font-mono text-xs">--color-aurora-arctic</span>
+							</div>
+						</div>
+						<div class="border-line bg-bg-raised/50 border backdrop-blur-sm">
+							<div class="border-line h-28 border-b" style="background: var(--color-aurora-lichen)"></div>
+							<div class="flex flex-col gap-0.5 p-4">
+								<span class="text-fg font-medium">Lichen</span>
+								<span class="text-aurora-mint font-mono text-xs">--color-aurora-lichen</span>
+							</div>
+						</div>
+					</div>
+
+					<h3 class="docs-component">Aurora — soft (atmosfære)</h3>
+					<div class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
+						<div class="border-line bg-bg-raised/50 border backdrop-blur-sm">
+							<div class="border-line h-28 border-b" style="background: var(--color-aurora-mint-soft)"></div>
+							<div class="flex flex-col gap-0.5 p-4">
+								<span class="text-fg font-medium">Mint soft</span>
+								<span class="text-aurora-mint font-mono text-xs">--color-aurora-mint-soft</span>
+							</div>
+						</div>
+						<div class="border-line bg-bg-raised/50 border backdrop-blur-sm">
+							<div class="border-line h-28 border-b" style="background: var(--color-aurora-arctic-soft)"></div>
+							<div class="flex flex-col gap-0.5 p-4">
+								<span class="text-fg font-medium">Arctic soft</span>
+								<span class="text-aurora-mint font-mono text-xs">--color-aurora-arctic-soft</span>
+							</div>
+						</div>
+						<div class="border-line bg-bg-raised/50 border backdrop-blur-sm">
+							<div class="border-line h-28 border-b" style="background: var(--color-aurora-lichen-soft)"></div>
+							<div class="flex flex-col gap-0.5 p-4">
+								<span class="text-fg font-medium">Lichen soft</span>
+								<span class="text-aurora-mint font-mono text-xs">--color-aurora-lichen-soft</span>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- ════════════ 02 · TYPOGRAPHY ════════════ -->
+				<section id="typography" class="docs-section">
+					<div class="docs-section__num">02 · Foundations</div>
+					<h2 class="docs-section__title">Typografi</h2>
+					<p class="docs-section__lede">
+						To familier: <strong>Bricolage Grotesque</strong> for display og brødtekst,
+						<strong>JetBrains Mono</strong> for etiketter, tall og URL-er. Tailwind-klasser:
+						<code class="code">font-display</code>, <code class="code">font-mono</code>,
+						<code class="code">text-display</code>, <code class="code">text-h1</code>,
+						<code class="code">text-body</code>, <code class="code">text-ui</code>, …
+					</p>
+
+					<div class="border-line grid grid-cols-[16ch_1fr] items-baseline gap-8 border-b py-6">
+						<div class="text-fg-dim font-mono flex flex-col gap-1 text-xs uppercase tracking-widest">
+							<b class="text-aurora-mint font-medium">Display</b><span>text-display</span>
+						</div>
+						<div class="text-display shimmer-text">Nordlys</div>
+					</div>
+					<div class="border-line grid grid-cols-[16ch_1fr] items-baseline gap-8 border-b py-6">
+						<div class="text-fg-dim font-mono flex flex-col gap-1 text-xs uppercase tracking-widest">
+							<b class="text-aurora-mint font-medium">H1</b><span>text-h1</span>
+						</div>
+						<div class="text-h1 font-display font-semibold">Norsk kraftsektor</div>
+					</div>
+					<div class="border-line grid grid-cols-[16ch_1fr] items-baseline gap-8 border-b py-6">
+						<div class="text-fg-dim font-mono flex flex-col gap-1 text-xs uppercase tracking-widest">
+							<b class="text-aurora-mint font-medium">H2</b><span>text-h2</span>
+						</div>
+						<div class="text-h2 font-display font-medium">Security Toolkit</div>
+					</div>
+					<div class="border-line grid grid-cols-[16ch_1fr] items-baseline gap-8 border-b py-6">
+						<div class="text-fg-dim font-mono flex flex-col gap-1 text-xs uppercase tracking-widest">
+							<b class="text-aurora-mint font-medium">Body lg</b><span>text-body-lg</span>
+						</div>
+						<div class="text-body-lg">Ingen felles situasjonsforståelse på tvers av selskaper.</div>
+					</div>
+					<div class="border-line grid grid-cols-[16ch_1fr] items-baseline gap-8 border-b py-6">
+						<div class="text-fg-dim font-mono flex flex-col gap-1 text-xs uppercase tracking-widest">
+							<b class="text-aurora-mint font-medium">Body</b><span>text-body</span>
+						</div>
+						<div class="text-body">Mesh-protokoll med signerte hendelser. Hver node er sin egen sannhet.</div>
+					</div>
+					<div class="border-line grid grid-cols-[16ch_1fr] items-baseline gap-8 border-b py-6">
+						<div class="text-fg-dim font-mono flex flex-col gap-1 text-xs uppercase tracking-widest">
+							<b class="text-aurora-mint font-medium">Mono</b><span>font-mono text-mono</span>
+						</div>
+						<div class="font-mono text-mono">localhost:8001</div>
+					</div>
+					<div class="grid grid-cols-[16ch_1fr] items-baseline gap-8 py-6">
+						<div class="text-fg-dim font-mono flex flex-col gap-1 text-xs uppercase tracking-widest">
+							<b class="text-aurora-mint font-medium">Mono sm</b><span>text-mono-sm</span>
+						</div>
+						<div class="font-mono text-mono-sm text-fg-dim uppercase">Demo · Krafthack 2026</div>
+					</div>
+				</section>
+
+				<!-- ════════════ 03 · ACTIONS ════════════ -->
+				<section id="actions" class="docs-section">
+					<div class="docs-section__num">03 · Komponenter</div>
+					<h2 class="docs-section__title">Knapper</h2>
+					<p class="docs-section__lede">
+						Handlingskontroller for primær- og sekundærhandlinger. Fire varianter
+						(<code class="code">primary</code>, <code class="code">secondary</code>,
+						<code class="code">ghost</code>, <code class="code">danger</code>) på tre størrelser
+						(<code class="code">sm</code>, default, <code class="code">lg</code>) med tilstander for
+						disabled, laster (<code class="code">aria-busy</code>) og icon-only.
+					</p>
+
+					<p class="docs-caption">Varianter — md (standard)</p>
+					<div class="docs-demo docs-demo--row">
+						<button class="btn btn--primary">Lagre</button>
+						<button class="btn btn--secondary">Avbryt</button>
+						<button class="btn btn--ghost">Detaljer</button>
+						<button class="btn btn--danger">Slett</button>
+					</div>
+
+					<p class="docs-caption">Størrelser — primary</p>
+					<div class="docs-demo docs-demo--row">
+						<button class="btn btn--primary btn--sm">Bekreft</button>
+						<button class="btn btn--primary">Bekreft</button>
+						<button class="btn btn--primary btn--lg">Bekreft</button>
+					</div>
+
+					<p class="docs-caption">Tilstander — disabled · laster · ikon</p>
+					<div class="docs-demo docs-demo--row">
+						<button class="btn btn--primary" disabled>Lagre</button>
+						<button class="btn btn--secondary" disabled>Avbryt</button>
+						<button class="btn btn--primary" aria-busy="true">Behandler</button>
+						<button class="btn btn--danger" aria-busy="true">Sletter</button>
+						<button class="btn btn--primary btn--icon-only" aria-label="Lukk panel">✕</button>
+						<button class="btn btn--secondary btn--icon-only" aria-label="Legg til">+</button>
+						<button class="btn btn--ghost btn--icon-only" aria-label="Vis mer">↓</button>
+					</div>
+				</section>
+
+				<!-- ════════════ 04 · FORMS ════════════ -->
+				<section id="forms" class="docs-section">
+					<div class="docs-section__num">04 · Komponenter</div>
+					<h2 class="docs-section__title">Skjemaer</h2>
+					<p class="docs-section__lede">
+						Felter, valg og kontroller for datainput. Inkluderer
+						<code class="code">.input</code>, <code class="code">.textarea</code>,
+						<code class="code">.select</code>, <code class="code">.checkbox</code>,
+						<code class="code">.radio</code>, <code class="code">.toggle</code> samt søkbar
+						<code class="code">.combobox</code>. Alle støtter
+						<code class="code">aria-invalid</code>, <code class="code">disabled</code>, og focus-ring
+						via <code class="code">--ring-*</code>-tokens.
+					</p>
+
+					<h3 class="docs-component">Felter</h3>
+					<div class="docs-demo docs-demo--col">
+						<div class="field">
+							<label class="field__label field__label--required" for="demo-host">Hostnavn</label>
+							<input class="input" id="demo-host" type="text" placeholder="stk-rtu-01.nett.no" />
+							<span class="field__hint">IPv4-adresse, IPv6 eller fullstendig FQDN</span>
+						</div>
+
+						<div class="field">
+							<label class="field__label field__label--required" for="demo-ip">IP-adresse</label>
+							<input class="input" id="demo-ip" type="text" aria-invalid="true" aria-describedby="demo-ip-error" value="999.x.x.1" />
+							<span class="field__error" id="demo-ip-error" role="alert">Ugyldig IPv4-adresse</span>
+						</div>
+
+						<div class="field">
+							<label class="field__label" for="demo-desc">Beskrivelse</label>
+							<textarea class="textarea" id="demo-desc" placeholder="Beskriv hendelsen, påvirkede systemer og observerte indikatorer…" rows="4"></textarea>
+							<span class="field__hint">Maks 2 000 tegn. Sensitiv informasjon merkes iht. TLP.</span>
+						</div>
+
+						<div class="field">
+							<label class="field__label field__label--required" for="demo-tlp">TLP-nivå</label>
+							<select class="select" id="demo-tlp">
+								<option value="">— Velg klassifisering —</option>
+								<option value="clear">TLP:CLEAR</option>
+								<option value="green">TLP:GREEN</option>
+								<option value="amber">TLP:AMBER</option>
+								<option value="amber+strict">TLP:AMBER+STRICT</option>
+								<option value="red">TLP:RED</option>
+							</select>
+							<span class="field__hint">Følger FIRST-standarden for informasjonsdeling.</span>
+						</div>
+					</div>
+
+					<h3 class="docs-component">Checkbox, radio, toggle</h3>
+					<div class="docs-demo docs-demo--col">
+						<fieldset class="fieldset">
+							<legend class="fieldset__legend">Innsendingsvalg</legend>
+
+							<div class="field mb-4">
+								<span class="field__label" id="lbl-signed">Signaturer</span>
+								<div class="mt-1 flex flex-col gap-2">
+									<label class="checkbox" aria-labelledby="lbl-signed">
+										<input type="checkbox" class="checkbox__input" id="demo-signed" checked />
+										<span class="checkbox__box" aria-hidden="true"></span>
+										Send signert (PGP)
+									</label>
+									<label class="checkbox">
+										<input type="checkbox" class="checkbox__input" id="demo-encrypt" />
+										<span class="checkbox__box" aria-hidden="true"></span>
+										Krypter vedlegg
+									</label>
+								</div>
+							</div>
+
+							<div class="field mb-4">
+								<span class="field__label" id="lbl-priority">Prioritet</span>
+								<div class="mt-1 flex flex-wrap gap-5" role="radiogroup" aria-labelledby="lbl-priority">
+									<label class="radio">
+										<input type="radio" class="radio__input" name="priority" value="low" />
+										<span class="radio__circle" aria-hidden="true"></span>
+										Lav
+									</label>
+									<label class="radio">
+										<input type="radio" class="radio__input" name="priority" value="medium" checked />
+										<span class="radio__circle" aria-hidden="true"></span>
+										Middels
+									</label>
+									<label class="radio">
+										<input type="radio" class="radio__input" name="priority" value="high" />
+										<span class="radio__circle" aria-hidden="true"></span>
+										Høy
+									</label>
+									<label class="radio">
+										<input type="radio" class="radio__input" name="priority" value="critical" />
+										<span class="radio__circle" aria-hidden="true"></span>
+										Kritisk
+									</label>
+								</div>
+							</div>
+
+							<div class="flex flex-wrap items-center gap-8">
+								<label class="toggle">
+									<input type="checkbox" class="toggle__input" checked />
+									<span class="toggle__track" aria-hidden="true"><span class="toggle__knob"></span></span>
+									<span class="toggle__label">Aktiv</span>
+								</label>
+								<label class="toggle">
+									<input type="checkbox" class="toggle__input" />
+									<span class="toggle__track" aria-hidden="true"><span class="toggle__knob"></span></span>
+									<span class="toggle__label">Varsle NCSC-NO</span>
+								</label>
+							</div>
+						</fieldset>
+					</div>
+
+					<h3 class="docs-component">Field group — inline layout</h3>
+					<div class="docs-demo docs-demo--col">
+						<div class="field-group">
+							<div class="field">
+								<label class="field__label field__label--required" for="demo-port">Port</label>
+								<input class="input" id="demo-port" type="number" placeholder="502" min="1" max="65535" />
+							</div>
+							<div class="field">
+								<label class="field__label" for="demo-proto">Protokoll</label>
+								<select class="select" id="demo-proto">
+									<option>Modbus/TCP</option>
+									<option>IEC 60870-5-104</option>
+									<option>DNP3</option>
+									<option>OPC-UA</option>
+								</select>
+							</div>
+							<button type="button" class="btn btn--secondary">Skann</button>
+						</div>
+					</div>
+
+					<h3 class="docs-component">Combobox</h3>
+					<p class="docs-component__lede">
+						Søkbar single-select. Konsumenten håndterer filtrering og keyboard-navigasjon —
+						style-kit eier ARIA-mønstre og visuelle tilstander.
+					</p>
+					<div class="docs-demo docs-demo--col docs-demo--allow-overflow">
+						<div class="flex flex-col gap-10" style="max-width:24rem">
+							<div class="field">
+								<label class="field__label" for="cb-closed">Peer-noder</label>
+								<div class="combobox">
+									<div class="combobox__control">
+										<input class="combobox__input" id="cb-closed" type="text" role="combobox" aria-expanded="false" aria-controls="cb-list-closed" aria-autocomplete="list" placeholder="Søk peer..." autocomplete="off" />
+										<button class="combobox__clear" type="button" aria-label="Tøm" hidden>✕</button>
+										<button class="combobox__trigger" type="button" aria-label="Vis alternativer" tabindex="-1">▾</button>
+									</div>
+									<ul class="combobox__listbox" id="cb-list-closed" role="listbox" hidden></ul>
+								</div>
+								<span class="field__hint">Velg én eller flere peer-noder i STK-meshen</span>
+							</div>
+
+							<div class="field">
+								<label class="field__label" for="cb-open">Peer-noder</label>
+								<div class="combobox">
+									<div class="combobox__control">
+										<input class="combobox__input" id="cb-open" type="text" role="combobox" aria-expanded="true" aria-controls="cb-list-open" aria-autocomplete="list" aria-activedescendant="opt-statnett" value="haf" autocomplete="off" />
+										<button class="combobox__clear" type="button" aria-label="Tøm">✕</button>
+										<button class="combobox__trigger" type="button" aria-label="Vis alternativer" tabindex="-1">▾</button>
+									</div>
+									<ul class="combobox__listbox" id="cb-list-open" role="listbox" aria-label="Tilgjengelige peer-noder">
+										<li class="combobox__option" role="option" aria-selected="true" id="opt-hafslund">
+											<span class="combobox__option-label">hafslund-01</span>
+											<span class="combobox__option-meta">Hafslund Nett</span>
+										</li>
+										<li class="combobox__option" role="option" aria-selected="false" id="opt-glitrenett">
+											<span class="combobox__option-label">glitrenett-02</span>
+											<span class="combobox__option-meta">Glitre Nett</span>
+										</li>
+										<li class="combobox__option" role="option" aria-selected="false" data-active="true" id="opt-statnett">
+											<span class="combobox__option-label">statnett-04</span>
+											<span class="combobox__option-meta">Statnett SF</span>
+										</li>
+										<li class="combobox__option" role="option" aria-selected="false" id="opt-statkraft">
+											<span class="combobox__option-label">statkraft-oslo-03</span>
+											<span class="combobox__option-meta">Statkraft</span>
+										</li>
+										<li class="combobox__group" role="presentation">
+											<span class="combobox__group-label" id="group-kraftcert-label">KraftCERT</span>
+											<ul role="group" aria-labelledby="group-kraftcert-label">
+												<li class="combobox__option" role="option" aria-selected="false" id="opt-kraftcert">
+													<span class="combobox__option-label">kraftcert-prod</span>
+													<span class="combobox__option-meta">KraftCERT</span>
+												</li>
+											</ul>
+										</li>
+									</ul>
+								</div>
+								<span class="field__hint">Trykk Esc for å lukke, Enter for å velge</span>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- ════════════ 05 · STATUS & MARKINGS ════════════ -->
+				<section id="status" class="docs-section">
+					<div class="docs-section__num">05 · Komponenter</div>
+					<h2 class="docs-section__title">Status &amp; merker</h2>
+					<p class="docs-section__lede">
+						Pillere og chips for klassifisering: severity-nivåer, TLP-merking, status-tilstand,
+						og IoC-typer. Alle støtter forced-colors-mode og bruker glyfer der semantikken
+						ikke kan formidles av farge alene.
+					</p>
+
+					<h3 class="docs-component">Badge — størrelser</h3>
+					<p class="docs-component__lede">
+						Fire størrelser skalerer padding, font, letter-spacing, gap og dot-diameter
+						koherent. Komponerbar med alle severity/TLP/status-modifikatorer.
+					</p>
+					<div class="docs-demo docs-demo--row">
+						<span class="badge badge--xs"><span class="badge__dot"></span>XS</span>
+						<span class="badge badge--sm"><span class="badge__dot"></span>SM</span>
+						<span class="badge"><span class="badge__dot"></span>MD (default)</span>
+						<span class="badge badge--lg"><span class="badge__dot"></span>LG</span>
+					</div>
+
+					<p class="docs-caption">Sizes × variants</p>
+					<div class="docs-demo docs-demo--row">
+						<span class="badge badge--xs badge--severity-critical"><span class="badge__dot"></span>CRITICAL</span>
+						<span class="badge badge--sm badge--tlp-amber">TLP:AMBER</span>
+						<span class="badge badge--status-verified">Verifisert</span>
+						<span class="badge badge--lg badge--status-active"><span class="badge__dot"></span>STK-MESH AKTIV</span>
+					</div>
+
+					<h3 class="docs-component">Badge — varianter</h3>
+
+					<p class="docs-caption">Severity</p>
+					<div class="docs-demo docs-demo--row">
+						<span class="badge badge--severity-low"><span class="badge__dot"></span>LOW</span>
+						<span class="badge badge--severity-medium"><span class="badge__dot"></span>MEDIUM</span>
+						<span class="badge badge--severity-high"><span class="badge__dot"></span>HIGH</span>
+						<span class="badge badge--severity-critical"><span class="badge__dot"></span>CVE-2025-12345</span>
+					</div>
+
+					<p class="docs-caption">Traffic Light Protocol</p>
+					<div class="docs-demo docs-demo--row">
+						<span class="badge badge--tlp-clear">TLP:CLEAR</span>
+						<span class="badge badge--tlp-green">TLP:GREEN</span>
+						<span class="badge badge--tlp-amber">TLP:AMBER</span>
+						<span class="badge badge--tlp-red">TLP:RED</span>
+					</div>
+
+					<p class="docs-caption">Status</p>
+					<div class="docs-demo docs-demo--row">
+						<span class="badge badge--status-verified">Verifisert</span>
+						<span class="badge badge--status-pending">Venter</span>
+						<span class="badge badge--status-revoked">Tilbakekalt</span>
+						<span class="badge badge--status-active"><span class="badge__dot"></span>Aktiv</span>
+					</div>
+
+					<p class="docs-caption">Aurora — generic emphasis</p>
+					<div class="docs-demo docs-demo--row">
+						<span class="badge badge--mint">Aurora Nord</span>
+						<span class="badge badge--arctic">Kraftnett</span>
+						<span class="badge badge--lichen">STK-01</span>
+					</div>
+
+					<h3 class="docs-component">Tags &amp; IOC chips</h3>
+					<p class="docs-component__lede">
+						Mindre og squarere enn badge — designet for tabeller, event-feeder og IoC-lister.
+						Hver IoC-type har en glyf-prefix som fungerer uten farge.
+					</p>
+
+					<p class="docs-caption">Indicator of Compromise</p>
+					<div class="docs-demo docs-demo--row">
+						<span class="tag tag--ioc-ip">192.168.1.1</span>
+						<span class="tag tag--ioc-ip">10.0.0.47</span>
+						<span class="tag tag--ioc-hash">sha256:a1b2c3d4e5f6a1b2c3d4e5f6</span>
+						<span class="tag tag--ioc-domain">evil.example.com</span>
+						<span class="tag tag--ioc-domain">c2.norpower-fake.no</span>
+						<span class="tag tag--ioc-url">https://evil.example.com/payload.ps1</span>
+						<span class="tag tag--ioc-ttp">T1566.001</span>
+						<span class="tag tag--ioc-ttp">T1071.004</span>
+					</div>
+
+					<p class="docs-caption">Color variants</p>
+					<div class="docs-demo docs-demo--row">
+						<span class="tag tag--neutral">MISP Event</span>
+						<span class="tag tag--mint">Validert</span>
+						<span class="tag tag--arctic">Nettverk</span>
+						<span class="tag tag--lichen">Fil</span>
+					</div>
+
+					<p class="docs-caption">Tag group — inline cluster</p>
+					<div class="docs-demo docs-demo--row">
+						<div class="tag-group">
+							<span class="tag tag--ioc-ip">185.220.101.34</span>
+							<span class="tag tag--ioc-domain">apt-staging.io</span>
+							<span class="tag tag--ioc-hash">md5:deadbeef1234abcd</span>
+							<span class="tag tag--ioc-ttp">T1059.003</span>
+							<span class="tag tag--ioc-ttp">T1027</span>
+						</div>
+					</div>
+				</section>
+
+				<!-- ════════════ 06 · CONTAINERS ════════════ -->
+				<section id="containers" class="docs-section">
+					<div class="docs-section__num">06 · Komponenter</div>
+					<h2 class="docs-section__title">Beholdere</h2>
+					<p class="docs-section__lede">
+						Visuelle beholdere for innhold: <code class="code">.card</code> for narrative
+						hendelseskort, <code class="code">.tile</code> for navigasjonsmosaikk, og
+						<code class="code">.url-pill</code> som hero-CTA på scene/landing.
+					</p>
+
+					<h3 class="docs-component">Card</h3>
+					<p class="docs-component__lede">
+						Strukturert beholder med <code class="code">__header</code>, <code class="code">__body</code>,
+						<code class="code">__footer</code>-slots. Variants: <code class="code">--interactive</code>,
+						<code class="code">--accent-{mint,arctic,lichen}</code>, <code class="code">--compact</code>,
+						<code class="code">--feature</code>.
+					</p>
+					<div class="docs-demo">
+						<div class="card-grid">
+							<article class="card">
+								<div class="card__header">
+									<div>
+										<h3 class="card__title">Mistenkelig pålogging fra ukjent IP</h3>
+										<p class="card__subtitle">Hafslund-01 · 14:32:18</p>
+									</div>
+									<div class="card__meta">
+										<span>TLP:AMBER</span>
+										<span>SEV-2</span>
+									</div>
+								</div>
+								<div class="card__body">
+									<p>Tre mislykkede autentiseringsforsøk fra ekstern IP 185.220.101.47. Kontoen <code class="code">drift@hafslund.no</code> er midlertidig sperret.</p>
+								</div>
+								<div class="card__footer">
+									<button class="btn btn--primary btn--sm">Eskalér</button>
+									<button class="btn btn--ghost btn--sm">Avvis</button>
+								</div>
+							</article>
+
+							<a class="card card--interactive" href="#">
+								<div class="card__header">
+									<div>
+										<h3 class="card__title">Uautorisert SCADA-tilgang oppdaget</h3>
+										<p class="card__subtitle">Statkraft-Oslo · 09:14:03</p>
+									</div>
+									<div class="card__meta"><span>TLP:RED</span></div>
+								</div>
+								<div class="card__body">
+									<p>Inntrengingsforsøk mot OT-nettverket på Ulset transformatorstasjon. Angriperen forsøkte å endre driftsparametere via Modbus TCP.</p>
+								</div>
+								<div class="card__footer">
+									<span class="card__meta"><span>Klikk for detaljer →</span></span>
+								</div>
+							</a>
+
+							<article class="card card--accent-mint">
+								<div class="card__header">
+									<div>
+										<h3 class="card__title">Ny peer tilkoblet STK-nett</h3>
+										<p class="card__subtitle">BKK-Bergen-03 · 11:00:00</p>
+									</div>
+									<div class="card__meta"><span>TLP:GREEN</span></div>
+								</div>
+								<div class="card__body">
+									<p>BKK Bergen ble vellykket onboardet. Peer-ID <code class="code">bkk-brg-03</code> er bekreftet med gyldig sertifikat.</p>
+								</div>
+								<div class="card__footer">
+									<button class="btn btn--ghost btn--sm">Vis peer-info</button>
+								</div>
+							</article>
+
+							<article class="card card--compact card--accent-lichen">
+								<div class="card__header">
+									<div>
+										<h3 class="card__title">Planlagt vedlikehold</h3>
+										<p class="card__subtitle">Lyse-Stavanger · 2026-05-03</p>
+									</div>
+								</div>
+								<div class="card__body">
+									<p>Rutinemessig firmware-oppgradering på RTU-enheter i Jæren. Forventet nedetid: 45 min.</p>
+								</div>
+								<div class="card__footer">
+									<div class="card__meta"><span>Planlagt</span><span>45 min</span></div>
+								</div>
+							</article>
+						</div>
+					</div>
+
+					<h3 class="docs-component">Tile</h3>
+					<p class="docs-component__lede">
+						Navigasjonskort med fast bredde. Brukt i scene-mosaikk og dashbord-shortcuts.
+					</p>
+					<div class="docs-demo docs-demo--row">
+						<div class="tile">
+							<span class="tile__num">01</span>
+							<span class="tile__name">Dashboard</span>
+						</div>
+						<div class="tile">
+							<span class="tile__num">02</span>
+							<span class="tile__name">Vulnerability<br />Dashboard</span>
+						</div>
+					</div>
+
+					<h3 class="docs-component">URL-pille</h3>
+					<p class="docs-component__lede">
+						Hero-CTA stilet som konsoll-URL. Brukt på scene/landing, ikke i dashbord.
+					</p>
+					<div class="docs-demo docs-demo--row">
+						<div class="url-pill">
+							<span class="url-pill__arrow">→</span>
+							<span class="url-pill__label">demo</span>
+							<span>localhost:8001</span>
+						</div>
+					</div>
+				</section>
+
+				<!-- ════════════ 07 · DATA ════════════ -->
+				<section id="data" class="docs-section">
+					<div class="docs-section__num">07 · Komponenter</div>
+					<h2 class="docs-section__title">Data</h2>
+					<p class="docs-section__lede">
+						Komponenter for tabulær og strukturert datavisning:
+						<code class="code">.table</code> med sortering, density og selection-state, og
+						<code class="code">.code-block</code> for signerte payloader, hashes og JSON.
+					</p>
+
+					<h3 class="docs-component">Table</h3>
+					<p class="docs-component__lede">
+						Sortable headers via <code class="code">[aria-sort]</code>, density via
+						<code class="code">.table--dense</code>, zebra via <code class="code">.table--zebra</code>,
+						sticky header via <code class="code">.table--sticky-header</code>, selection via
+						<code class="code">[aria-selected="true"]</code>.
+					</p>
+					<div class="docs-demo">
+						<div class="table-wrapper">
+							<table class="table table--zebra">
+								<thead>
+									<tr>
+										<th aria-sort="descending">Tidspunkt</th>
+										<th aria-sort="none">Kilde</th>
+										<th>Hendelse</th>
+										<th class="table__cell--status">Severity</th>
+										<th class="table__cell--status">TLP</th>
+										<th class="table__cell--actions">Handling</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr aria-selected="true" tabindex="0">
+										<td class="table__cell--mono">2026-05-01 14:32:07</td>
+										<td>hafslund-01</td>
+										<td class="table__cell--truncate">Brute-force forsøkt mot RTU — 312 forsøk på 4 min</td>
+										<td class="table__cell--status"><span class="badge badge--sm badge--severity-critical"><span class="badge__dot"></span>CRITICAL</span></td>
+										<td class="table__cell--status"><span class="badge badge--sm badge--tlp-red">TLP:RED</span></td>
+										<td class="table__cell--actions">
+											<button class="btn btn--secondary btn--sm">Detaljer</button>
+											<button class="btn btn--danger btn--sm">Eskalér</button>
+										</td>
+									</tr>
+									<tr tabindex="0">
+										<td class="table__cell--mono">2026-05-01 13:58:44</td>
+										<td>glitrenett-02</td>
+										<td class="table__cell--truncate">Mistenkelig firmware-skriv til feltbuss-kontroller</td>
+										<td class="table__cell--status"><span class="badge badge--sm badge--severity-high"><span class="badge__dot"></span>HIGH</span></td>
+										<td class="table__cell--status"><span class="badge badge--sm badge--tlp-amber">TLP:AMBER</span></td>
+										<td class="table__cell--actions">
+											<button class="btn btn--secondary btn--sm">Detaljer</button>
+											<button class="btn btn--ghost btn--sm">Avvis</button>
+										</td>
+									</tr>
+									<tr tabindex="0">
+										<td class="table__cell--mono">2026-05-01 13:21:19</td>
+										<td>statkraft-oslo-03</td>
+										<td class="table__cell--truncate">Endring av setpunkt utenfor godkjent vindu</td>
+										<td class="table__cell--status"><span class="badge badge--sm badge--severity-high"><span class="badge__dot"></span>HIGH</span></td>
+										<td class="table__cell--status"><span class="badge badge--sm badge--tlp-amber">TLP:AMBER</span></td>
+										<td class="table__cell--actions">
+											<button class="btn btn--secondary btn--sm">Detaljer</button>
+											<button class="btn btn--ghost btn--sm">Avvis</button>
+										</td>
+									</tr>
+									<tr tabindex="0">
+										<td class="table__cell--mono">2026-05-01 12:47:03</td>
+										<td>hafslund-01</td>
+										<td class="table__cell--truncate">Mislykket signaturverifisering av konfigurasjonsfil</td>
+										<td class="table__cell--status"><span class="badge badge--sm badge--severity-medium"><span class="badge__dot"></span>MEDIUM</span></td>
+										<td class="table__cell--status"><span class="badge badge--sm badge--tlp-green">TLP:GREEN</span></td>
+										<td class="table__cell--actions">
+											<button class="btn btn--secondary btn--sm">Detaljer</button>
+											<button class="btn btn--ghost btn--sm">Avvis</button>
+										</td>
+									</tr>
+									<tr tabindex="0">
+										<td class="table__cell--mono">2026-05-01 11:03:55</td>
+										<td>glitrenett-02</td>
+										<td class="table__cell--truncate">Uautentisert tilkobling til SCADA-grensesnitt avvist</td>
+										<td class="table__cell--status"><span class="badge badge--sm badge--severity-low"><span class="badge__dot"></span>LOW</span></td>
+										<td class="table__cell--status"><span class="badge badge--sm badge--tlp-clear">TLP:CLEAR</span></td>
+										<td class="table__cell--actions">
+											<button class="btn btn--secondary btn--sm">Detaljer</button>
+											<button class="btn btn--ghost btn--sm">Avvis</button>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<h3 class="docs-component">Code block</h3>
+					<p class="docs-component__lede">
+						Strukturert kodevisning med valgfri header, syntax-tokens
+						(<code class="code">.tok-key</code>, <code class="code">.tok-str</code>,
+						<code class="code">.tok-num</code>, …) og linjenummer-modifikator.
+					</p>
+					<div class="docs-demo">
+						<div class="code-block">
+							<div class="code-block__header">
+								<span class="code-block__lang">JSON</span>
+								<button class="code-block__copy" type="button" aria-label="Kopier kode">⎘</button>
+							</div>
+							<pre class="code-block__content"><code>{
+  <span class="tok-key">"schema_version"</span>: <span class="tok-str">"gossip/v2"</span>,
+  <span class="tok-key">"event_id"</span>:      <span class="tok-str">"evt_01HZ9QK4VFGM2X7YCRNB8WDSE"</span>,
+  <span class="tok-key">"peer_id"</span>:       <span class="tok-str">"stk-oslo-01"</span>,
+  <span class="tok-key">"timestamp"</span>:     <span class="tok-num">1746086400</span>,
+  <span class="tok-key">"severity"</span>:      <span class="tok-str">"HIGH"</span>,
+  <span class="tok-key">"tlp"</span>:           <span class="tok-str">"AMBER"</span>,
+  <span class="tok-key">"payload"</span>: {
+    <span class="tok-key">"type"</span>:         <span class="tok-str">"anomaly.power_flow"</span>,
+    <span class="tok-key">"substation"</span>:   <span class="tok-str">"Smestad 132kV"</span>,
+    <span class="tok-key">"delta_mw"</span>:     <span class="tok-num">-18.4</span>,
+    <span class="tok-key">"confidence"</span>:   <span class="tok-num">0.93</span>
+  },
+  <span class="tok-key">"signature"</span>:    <span class="tok-str">"3045022100e3b0c44298fc1c149afb…"</span>,
+  <span class="tok-key">"verified"</span>:     <span class="tok-var">true</span>
+}</code></pre>
+						</div>
+					</div>
+				</section>
+
+				<!-- ════════════ 08 · NAVIGATION ════════════ -->
+				<section id="navigation" class="docs-section">
+					<div class="docs-section__num">08 · Komponenter</div>
+					<h2 class="docs-section__title">Navigasjon</h2>
+					<p class="docs-section__lede">
+						Navigasjonskontroller mellom views og sider:
+						<code class="code">.tabs</code> for kontekst-bytting innen en side, og
+						<code class="code">.pagination</code> for store datasett.
+					</p>
+
+					<h3 class="docs-component">Tabs</h3>
+					<p class="docs-component__lede">
+						Horisontal og vertikal layout. Tellechip
+						<code class="code">.tabs__tab__count</code> arver tab-fargen automatisk.
+					</p>
+					<div class="docs-demo">
+						<div class="tabs">
+							<div class="tabs__list" role="tablist" aria-label="Hendelseskategorier">
+								<button class="tabs__tab" role="tab" aria-selected="true" aria-controls="demo-panel-events" id="demo-tab-events">
+									Hendelser<span class="tabs__tab__count">42</span>
+								</button>
+								<button class="tabs__tab" role="tab" aria-selected="false" aria-controls="demo-panel-indicators" id="demo-tab-indicators">
+									Indikatorer<span class="tabs__tab__count">7</span>
+								</button>
+								<button class="tabs__tab" role="tab" aria-selected="false" aria-controls="demo-panel-peers" id="demo-tab-peers">
+									Peers<span class="tabs__tab__count">3</span>
+								</button>
+								<button class="tabs__tab" role="tab" aria-selected="false" aria-controls="demo-panel-health" id="demo-tab-health" aria-disabled="true">
+									Helse
+								</button>
+							</div>
+							<div class="tabs__panel" role="tabpanel" id="demo-panel-events" aria-labelledby="demo-tab-events">
+								<p class="text-fg-dim text-body">Viser 42 hendelser fra mesh-nettverket. Siste hendelse mottatt fra <code class="code">stk-oslo-01</code> kl. 14:37 UTC.</p>
+							</div>
+						</div>
+					</div>
+
+					<h3 class="docs-component">Pagination</h3>
+					<p class="docs-component__lede">
+						Tre varianter: standard (med summary), <code class="code">--compact</code> (sidepanel),
+						<code class="code">--simple</code> (prev / "Side X av Y" / next).
+					</p>
+
+					<p class="docs-caption">Standard — Hendelseslogg (side 7 av 42, viser 61–70 av 418)</p>
+					<div class="docs-demo">
+						<nav class="pagination" role="navigation" aria-label="Paginering">
+							<button class="pagination__btn pagination__btn--nav" aria-label="Forrige side">←</button>
+							<ul class="pagination__list" role="list">
+								<li><button class="pagination__btn" aria-label="Side 1">1</button></li>
+								<li><button class="pagination__btn" aria-label="Side 2">2</button></li>
+								<li><span class="pagination__ellipsis" aria-hidden="true">…</span></li>
+								<li><button class="pagination__btn" aria-label="Side 5">5</button></li>
+								<li><button class="pagination__btn" aria-label="Side 6">6</button></li>
+								<li><button class="pagination__btn" aria-current="page" aria-label="Side 7, gjeldende">7</button></li>
+								<li><button class="pagination__btn" aria-label="Side 8">8</button></li>
+								<li><button class="pagination__btn" aria-label="Side 9">9</button></li>
+								<li><span class="pagination__ellipsis" aria-hidden="true">…</span></li>
+								<li><button class="pagination__btn" aria-label="Side 42">42</button></li>
+							</ul>
+							<button class="pagination__btn pagination__btn--nav" aria-label="Neste side">→</button>
+							<div class="pagination__summary" aria-live="polite">
+								Viser <strong>61–70</strong> av <strong>418</strong>
+							</div>
+						</nav>
+					</div>
+
+					<p class="docs-caption">Kompakt — innebygd i sidepanel</p>
+					<div class="docs-demo">
+						<nav class="pagination pagination--compact" role="navigation" aria-label="Paginering, kompakt">
+							<button class="pagination__btn pagination__btn--nav" aria-label="Forrige side" disabled>←</button>
+							<ul class="pagination__list" role="list">
+								<li><button class="pagination__btn" aria-current="page" aria-label="Side 1, gjeldende">1</button></li>
+								<li><button class="pagination__btn" aria-label="Side 2">2</button></li>
+								<li><button class="pagination__btn" aria-label="Side 3">3</button></li>
+								<li><span class="pagination__ellipsis" aria-hidden="true">…</span></li>
+								<li><button class="pagination__btn" aria-label="Side 9">9</button></li>
+							</ul>
+							<button class="pagination__btn pagination__btn--nav" aria-label="Neste side">→</button>
+						</nav>
+					</div>
+
+					<p class="docs-caption">Enkel — forrige / side X av Y / neste</p>
+					<div class="docs-demo">
+						<nav class="pagination pagination--simple" role="navigation" aria-label="Paginering, enkel">
+							<button class="pagination__btn pagination__btn--nav" aria-label="Forrige side">←</button>
+							<span class="pagination__simple-indicator" aria-live="polite">
+								Side <strong>3</strong> av <strong>17</strong>
+							</span>
+							<button class="pagination__btn pagination__btn--nav" aria-label="Neste side">→</button>
+						</nav>
+					</div>
+				</section>
+
+				<!-- ════════════ 09 · OVERLAYS ════════════ -->
+				<section id="overlays" class="docs-section">
+					<div class="docs-section__num">09 · Komponenter</div>
+					<h2 class="docs-section__title">Overlegg</h2>
+					<p class="docs-section__lede">
+						Modale dialogbokser og tomtilstander — komponenter som signaliserer at noe
+						krever oppmerksomhet eller mangler innhold.
+					</p>
+
+					<h3 class="docs-component">Dialog (modal)</h3>
+					<p class="docs-component__lede">
+						Bygd på native <code class="code">&lt;dialog&gt;</code>-elementet — focus-trap og
+						Escape-håndtering kommer gratis fra browseren. Variants:
+						<code class="code">--narrow</code>, <code class="code">--wide</code>,
+						<code class="code">--danger</code>.
+					</p>
+					<div class="docs-demo docs-demo--row">
+						<button class="btn btn--secondary" onclick="document.getElementById('demo-dialog-confirm').showModal()">Åpne bekreftelse</button>
+						<button class="btn btn--danger" onclick="document.getElementById('demo-dialog-danger').showModal()">Åpne destruktiv</button>
+					</div>
+
+					<dialog class="dialog" id="demo-dialog-confirm">
+						<form method="dialog" class="dialog__form">
+							<header class="dialog__header">
+								<div>
+									<h2 class="dialog__title">Eskalér til KraftCERT</h2>
+									<p class="dialog__subtitle">Hendelse #2048 · Hafslund-01</p>
+								</div>
+								<button class="dialog__close" type="button" aria-label="Lukk" formnovalidate onclick="this.closest('dialog').close()">✕</button>
+							</header>
+							<div class="dialog__body">
+								<p>Du eskalerer denne hendelsen til KraftCERT. De vil bli varslet umiddelbart med full event-payload signert av din node.</p>
+								<div class="field">
+									<label class="field__label field__label--required" for="esc-context">Kontekst</label>
+									<textarea class="textarea" id="esc-context" rows="3" placeholder="Kort beskrivelse til KraftCERT-vakthavende..." required></textarea>
+								</div>
+							</div>
+							<footer class="dialog__footer">
+								<button class="btn btn--ghost" type="button" formnovalidate onclick="this.closest('dialog').close()">Avbryt</button>
+								<button class="btn btn--primary" type="submit">Send eskalering</button>
+							</footer>
+						</form>
+					</dialog>
+
+					<dialog class="dialog dialog--danger dialog--narrow" id="demo-dialog-danger">
+						<form method="dialog" class="dialog__form">
+							<header class="dialog__header">
+								<div>
+									<h2 class="dialog__title">Bekreft revokering</h2>
+									<p class="dialog__subtitle">Peer hafslund-01</p>
+								</div>
+								<button class="dialog__close" type="button" aria-label="Lukk" formnovalidate onclick="this.closest('dialog').close()">✕</button>
+							</header>
+							<div class="dialog__body">
+								<p>Revokering sprer seg gjennom mesh-en og tar effekt ved neste gossip-runde (≈10 sek). Dette kan ikke reverseres uten ny invite-token fra KraftCERT.</p>
+							</div>
+							<footer class="dialog__footer">
+								<button class="btn btn--ghost" type="button" formnovalidate onclick="this.closest('dialog').close()">Avbryt</button>
+								<button class="btn btn--danger" type="submit">Revokér</button>
+							</footer>
+						</form>
+					</dialog>
+
+					<h3 class="docs-component">Empty state</h3>
+					<p class="docs-component__lede">
+						Plassholder for tomme lister, feeder eller tabeller. Default- og
+						<code class="code">--error</code>-variant; <code class="code">--compact</code> for
+						bruk inne i kort.
+					</p>
+					<div class="docs-demo">
+						<div class="empty-state">
+							<div class="empty-state__icon" aria-hidden="true">◇</div>
+							<h3 class="empty-state__title">Ingen hendelser ennå</h3>
+							<p class="empty-state__description">
+								Ingen hendelser er mottatt fra peere i mesh-nettverket. Nye hendelser publiseres automatisk via gossip-protokollen.
+							</p>
+							<div class="empty-state__action">
+								<button class="btn btn--secondary btn--sm">Oppdater feed</button>
+							</div>
+						</div>
+					</div>
+					<div class="docs-demo">
+						<div class="empty-state empty-state--error">
+							<div class="empty-state__icon" aria-hidden="true">!</div>
+							<h3 class="empty-state__title">Klarte ikke å hente data fra peer</h3>
+							<p class="empty-state__description">
+								Tilkoblingen til <code class="code">stk-tromsø-03</code> feilet. Kontroller nettverkstilgang eller prøv en annen peer.
+							</p>
+							<div class="empty-state__action">
+								<button class="btn btn--danger btn--sm">Prøv igjen</button>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- ════════════ 10 · DECORATIVE ════════════ -->
+				<section id="decorative" class="docs-section">
+					<div class="docs-section__num">10 · Komponenter</div>
+					<h2 class="docs-section__title">Dekor</h2>
+					<p class="docs-section__lede">
+						Pyntelinjer og atmosfæriske elementer for stage- og landing-kontekst. Disse
+						hører ikke hjemme i dashbord-flater — de støy ned operatørs lesing.
+					</p>
+
+					<h3 class="docs-component">Seksjonsmerke</h3>
+					<div class="docs-demo docs-demo--row">
+						<div class="section-tag"><b>02</b> / 03 — Problem</div>
+					</div>
+
+					<h3 class="docs-component">Aurora-strek</h3>
+					<div class="docs-demo docs-demo--row">
+						<div class="aurora-rule"></div>
+					</div>
+
+					<h3 class="docs-component">Atmosphere</h3>
+					<p class="docs-component__lede">
+						Driftende aurora-blobs + grain-overlay. Brukes som <code class="code">.atmosphere</code>
+						på body eller seksjon. Synlig som bakgrunn på denne siden — slå av light/dark
+						for å se variasjon.
+					</p>
+				</section>
+
+				<!-- ════════════ 11 · USAGE ════════════ -->
+				<section id="usage" class="docs-section">
+					<div class="docs-section__num">11 · Reference</div>
+					<h2 class="docs-section__title">Bruk</h2>
+					<p class="docs-section__lede">
+						Importer <code class="code">tokens.css</code> fra Tailwind-entryen din. Tailwind
+						plukker opp <code class="code">@theme</code>-blokka og genererer alle
+						utility-klassene. Komponentklassene blir tilgjengelige hvis du importerer
+						<code class="code">components.css</code> i tillegg.
+					</p>
+					<div class="code-block">
+						<div class="code-block__header">
+							<span class="code-block__lang">CSS · app/frontend/src/routes/layout.css</span>
+						</div>
+						<pre class="code-block__content"><code>@import <span class="tok-str">"tailwindcss"</span>;
+@import <span class="tok-str">"@nordlys/style-kit/tokens.css"</span>;
+@import <span class="tok-str">"@nordlys/style-kit/components.css"</span>;</code></pre>
+					</div>
+
+					<p class="docs-component__lede mt-8">
+						Krever en Vite-alias i konsumentens <code class="code">vite.config.ts</code> som
+						mapper <code class="code">@nordlys/style-kit</code> til <code class="code">style-kit/src/</code>.
+						Se README for detaljer.
+					</p>
+				</section>
+			</main>
+		</div>
+
+		<footer
+			class="border-line text-fg-dim font-mono relative z-10 mt-32 border-t pt-12 text-sm leading-relaxed tracking-wide"
+		>
+			Tokens er kilde til sannhet — endringer her propagerer til alle konsumenter ved neste Tailwind-bygg.
+			Light mode: <code class="text-aurora-mint">[data-theme="light"]</code> på
+			<code class="text-aurora-mint">&lt;html&gt;</code>.
+		</footer>
+
+		<script>
+			// ── Theme toggle ───────────────────────────────────
+			const html = document.documentElement;
+			const knob = document.getElementById('themeKnob');
+			const toggle = document.getElementById('themeToggle');
+			const apply = (theme) => {
+				html.dataset.theme = theme;
+				knob.style.transform = theme === 'light' ? 'translateX(20px)' : '';
+			};
+			const initial =
+				localStorage.getItem('theme') ||
+				(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+			apply(initial);
+			toggle.addEventListener('click', () => {
+				const next = html.dataset.theme === 'light' ? 'dark' : 'light';
+				localStorage.setItem('theme', next);
+				apply(next);
+			});
+
+			// ── TOC scroll-spy ─────────────────────────────────
+			// Highlights the current section in the sidebar as the user scrolls.
+			// Uses IntersectionObserver — well-supported, idiomatic, no library.
+			const tocLinks = Array.from(document.querySelectorAll('.docs-toc__link'));
+			const sectionToLink = new Map();
+			tocLinks.forEach((link) => {
+				const id = link.getAttribute('href').slice(1);
+				const sec = document.getElementById(id);
+				if (sec) sectionToLink.set(sec, link);
+			});
+
+			let activeLink = tocLinks[0];
+			activeLink?.classList.add('is-active');
+
+			const observer = new IntersectionObserver(
+				(entries) => {
+					// Pick the section closest to the top viewport edge that's currently intersecting
+					const intersecting = entries
+						.filter((e) => e.isIntersecting)
+						.sort((a, b) => a.target.offsetTop - b.target.offsetTop);
+					if (intersecting.length === 0) return;
+					const first = intersecting[0].target;
+					const link = sectionToLink.get(first);
+					if (!link || link === activeLink) return;
+					activeLink?.classList.remove('is-active');
+					link.classList.add('is-active');
+					activeLink = link;
+				},
+				{
+					// Activate when section enters the upper portion of the viewport
+					rootMargin: '0px 0px -65% 0px',
+					threshold: 0
+				}
+			);
+			sectionToLink.forEach((_, sec) => observer.observe(sec));
+		</script>
+	</body>
+</html>

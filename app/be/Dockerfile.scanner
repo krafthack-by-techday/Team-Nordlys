@@ -1,0 +1,32 @@
+# Scanner service — needs nmap binary.
+FROM oven/bun:1-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json bun.lock bunfig.toml tsconfig.base.json ./
+COPY packages ./packages
+COPY services ./services
+
+RUN bun install --frozen-lockfile
+
+# Bun x64-baseline has EISDIR bug with workspace symlinks — dereference them
+RUN find . -path '*/node_modules/*' -type l | while read lnk; do \
+      target=$(readlink -f "$lnk"); \
+      if [ -d "$target" ]; then \
+        rm "$lnk"; \
+        cp -rL "$target" "$lnk"; \
+      fi; \
+    done
+
+RUN bun build --compile \
+    ./services/scanner-svc/src/index.ts \
+    --outfile /app/server
+
+# ── Production stage ──────────────────────────────────────────
+FROM alpine:3.20
+
+RUN apk add --no-cache nmap libstdc++ libgcc
+
+COPY --from=builder /app/server /usr/local/bin/server
+
+CMD ["server"]

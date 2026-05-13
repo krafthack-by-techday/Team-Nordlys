@@ -1,0 +1,27 @@
+# Runtime-based build: installs deps and runs with bun runtime.
+# Used for services that need Bun-native WebSocket support (which
+# bun build --compile on x64-baseline doesn't handle correctly).
+# Build context: be/ (monorepo backend root).
+FROM oven/bun:1-alpine
+
+WORKDIR /app
+
+COPY package.json bun.lock bunfig.toml tsconfig.base.json ./
+COPY packages ./packages
+COPY services ./services
+
+RUN bun install --frozen-lockfile --production
+
+# Bun x64-baseline has EISDIR bug with workspace symlinks — dereference them
+RUN find . -path '*/node_modules/*' -type l | while read lnk; do \
+      target=$(readlink -f "$lnk"); \
+      if [ -d "$target" ]; then \
+        rm "$lnk"; \
+        cp -rL "$target" "$lnk"; \
+      fi; \
+    done
+
+ARG SERVICE_DIR
+ENV SERVICE_ENTRYPOINT=./${SERVICE_DIR}/src/index.ts
+
+CMD ["sh", "-c", "exec bun run $SERVICE_ENTRYPOINT"]

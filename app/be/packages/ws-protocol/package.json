@@ -1,0 +1,15 @@
+{
+  "name": "@nordlys/ws-protocol",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nordlys/contracts": "workspace:*",
+    "@sinclair/typebox": "^0.34.0"
+  }
+}

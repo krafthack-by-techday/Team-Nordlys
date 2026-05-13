@@ -1,0 +1,44 @@
+# Multi-stage build: compile Bun workspace service into a single static binary.
+# Build context: be/ (monorepo backend root).
+FROM oven/bun:1-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json bun.lock bunfig.toml tsconfig.base.json ./
+COPY packages ./packages
+COPY services ./services
+COPY cli ./cli
+
+RUN bun install --frozen-lockfile
+
+# Bun x64-baseline has EISDIR bug with workspace symlinks — dereference them
+RUN find . -path '*/node_modules/*' -type l | while read lnk; do \
+      target=$(readlink -f "$lnk"); \
+      if [ -d "$target" ]; then \
+        rm "$lnk"; \
+        cp -rL "$target" "$lnk"; \
+      fi; \
+    done
+
+ARG SERVICE_DIR
+RUN bun build --compile \
+    ./${SERVICE_DIR}/src/index.ts \
+    --outfile /app/server
+
+# Also compile CLI scripts if they exist
+RUN if [ -d cli ] && ls cli/*.ts 1>/dev/null 2>&1; then \
+      for f in cli/*.ts; do \
+        name=$(basename "$f" .ts); \
+        bun build --compile "$f" --outfile "/app/cli-$name"; \
+      done; \
+    fi
+
+# ── Production stage ──────────────────────────────────────────
+FROM alpine:3.20
+
+RUN apk add --no-cache libstdc++ libgcc
+
+COPY --from=builder /app/server /usr/local/bin/server
+COPY --from=builder /app/cli-* /usr/local/bin/
+
+CMD ["server"]

@@ -1,0 +1,24 @@
+# Example scenario pack — fired when a SIEM alert references ABB Relion 615
+# default-credential brute force. v0.1 reference shape; replace with real
+# scenarios developed against actual SIEM rule output.
+- id: abb-relion-615-brute-force
+  name: ABB Relion 615 brute-force
+  severity: high
+  match:
+    - field: alert.signature
+      contains: "ABB Relion"
+    - field: alert.signature
+      regex: "(brute[- ]force|password[- ]spray)"
+  title_template: "ABB Relion brute-force from {alert.src_ip}"
+  description_template: "Detected on {alert.dest_host}. Signature: {alert.signature}"
+
+- id: setpoint-tampering
+  name: SCADA setpoint tampering
+  severity: critical
+  match:
+    - field: alert.category
+      equals: "scada-write"
+    - field: alert.action
+      contains: "setpoint"
+  title_template: "Setpoint tampering on {alert.dest_host}"
+  description_template: "{alert.user} attempted setpoint write: {alert.detail}"

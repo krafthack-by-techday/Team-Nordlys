@@ -1,0 +1,242 @@
+/* ──────────────────────────────────────────────────────────────
+   Nordlys — Tabs component
+   ────────────────────────────────────────────────────────────
+   BEM blocks: .tabs, .tabs__list, .tabs__tab, .tabs__tab__count,
+               .tabs__panel
+   Modifiers:  .tabs--vertical
+
+   Accessibility contract:
+   - .tabs__list must carry role="tablist"
+   - Each .tabs__tab must carry role="tab" and aria-controls="<panel-id>"
+   - The active tab carries [aria-selected="true"]
+   - Inactive tabs carry [aria-selected="false"]
+   - Disabled tabs carry [disabled] or [aria-disabled="true"]
+   - Each .tabs__panel must carry role="tabpanel" and id="<panel-id>"
+   - Hidden panels use the native [hidden] attribute
+
+   Usage (horizontal):
+   ───────────────────
+   <div class="tabs">
+     <div class="tabs__list" role="tablist" aria-label="Hendelseskategorier">
+       <button class="tabs__tab" role="tab" aria-selected="true"  aria-controls="panel-events">
+         Hendelser<span class="tabs__tab__count">42</span>
+       </button>
+       <button class="tabs__tab" role="tab" aria-selected="false" aria-controls="panel-ind">
+         Indikatorer<span class="tabs__tab__count">7</span>
+       </button>
+       <button class="tabs__tab" role="tab" aria-selected="false" aria-controls="panel-peers" aria-disabled="true">
+         Peers
+       </button>
+     </div>
+     <div class="tabs__panel" role="tabpanel" id="panel-events">…</div>
+     <div class="tabs__panel" role="tabpanel" id="panel-ind" hidden>…</div>
+     <div class="tabs__panel" role="tabpanel" id="panel-peers" hidden>…</div>
+   </div>
+
+   Usage (vertical):
+   ─────────────────
+   <div class="tabs tabs--vertical">
+     <div class="tabs__list" role="tablist" aria-orientation="vertical" aria-label="Navigasjon">…</div>
+     …
+   </div>
+   ────────────────────────────────────────────────────────────── */
+
+@layer components {
+
+  /* ── Wrapper ──────────────────────────────────────────────────── */
+  .tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* ── Tab list (the bar of tabs) ──────────────────────────────── */
+  .tabs__list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0;
+    border-bottom: 1px solid var(--color-line-hi);
+    /* Prevent list semantics being lost — reminder: add role="tablist" in HTML */
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ── Individual tab ──────────────────────────────────────────── */
+  .tabs__tab {
+    /* Reset */
+    appearance: none;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    cursor: pointer;
+    text-decoration: none;
+
+    /* Layout */
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.2rem;
+
+    /* Typography — mono, uppercase, tracked */
+    font-family: var(--font-mono);
+    font-size: var(--text-mono-sm);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    white-space: nowrap;
+
+    /* Colour */
+    color: var(--color-fg-dim);
+
+    /* Reserve space for the 2px active indicator so no layout shift */
+    border-bottom: 2px solid transparent;
+
+    /* Smooth colour/border transitions; respect motion preference */
+    transition:
+      color var(--motion-duration-fast) var(--motion-ease),
+      border-color var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  /* Hover */
+  .tabs__tab:hover:not([disabled]):not([aria-disabled="true"]) {
+    color: var(--color-fg);
+  }
+
+  /* Focus — visible keyboard ring that sits inside the tab edge */
+  .tabs__tab:focus-visible {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: calc(var(--ring-offset) * -1);
+    /* Ensure the ring is fully visible above the tab border */
+    z-index: 1;
+    position: relative;
+  }
+
+  @media (forced-colors: active) {
+    .tabs__tab:focus-visible {
+      outline-color: Highlight;
+    }
+
+    /* Selected state currently relies on color + border tint;
+       both are replaced in forced-colors. Use bold to differentiate. */
+    .tabs__tab[aria-selected='true'] {
+      forced-color-adjust: none;
+      font-weight: 700;
+    }
+  }
+
+  /* Selected state */
+  .tabs__tab[aria-selected="true"] {
+    color: var(--color-aurora-mint);
+    border-bottom-color: var(--color-aurora-mint);
+    font-weight: 500;
+  }
+
+  /* Disabled state */
+  .tabs__tab[disabled],
+  .tabs__tab[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none; /* belt + suspenders: also block pointer events */
+  }
+
+  /* ── Count chip (e.g. "Events 42") ──────────────────────────── */
+  /*
+   * Usage: <span class="tabs__tab__count">42</span>
+   * The chip colour tracks the tab's own colour via inheritance.
+   * It uses a thin pill shape to visually separate the number from
+   * the label without reaching for a distinct background token.
+   */
+  .tabs__tab__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5em;
+    padding: 0.1em 0.45em;
+    border: 1px solid currentColor;
+    border-radius: 9999px;
+    font-size: 0.85em;    /* slightly smaller than the tab label */
+    font-weight: 400;
+    line-height: 1.4;
+    /* Inherit the tab's own colour so it shifts on hover / selected */
+    color: inherit;
+    opacity: 0.75;
+    letter-spacing: 0; /* reset wide tracking from parent */
+    transition: opacity var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  /* Selected tab: bring chip to full opacity */
+  .tabs__tab[aria-selected="true"] .tabs__tab__count {
+    opacity: 1;
+  }
+
+  /* ── Content panel ───────────────────────────────────────────── */
+  .tabs__panel {
+    padding-top: 1.5rem;
+  }
+
+  /* Native [hidden] attribute hides panels; keep specificity minimal */
+  .tabs__panel[hidden] {
+    display: none;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     VERTICAL VARIANT   .tabs--vertical
+     ════════════════════════════════════════════════════════════════ */
+
+  .tabs--vertical {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  /* Vertical list: column orientation, right border instead of bottom */
+  .tabs--vertical .tabs__list {
+    flex-direction: column;
+    flex-shrink: 0;
+    border-bottom: none;
+    border-right: 1px solid var(--color-line-hi);
+    /* Sensible default width; override at call site with a width utility */
+    min-width: 10rem;
+  }
+
+  /* Vertical tab: right indicator replaces bottom indicator */
+  .tabs--vertical .tabs__tab {
+    width: 100%;
+    justify-content: flex-start;
+    border-bottom: none;
+    border-right: 2px solid transparent;
+    /* Compensate for the 1px list border so indicator sits flush */
+    margin-right: -1px;
+    padding: 0.7rem 1.2rem;
+    text-align: left;
+  }
+
+  /* Vertical selected: indicator on the right */
+  .tabs--vertical .tabs__tab[aria-selected="true"] {
+    border-right-color: var(--color-aurora-mint);
+  }
+
+  /* Vertical panel: normal block flow, padded on the left */
+  .tabs--vertical .tabs__panel {
+    flex: 1;
+    padding-top: 0;
+    padding-left: 1.5rem;
+  }
+
+  /* ── Reduced-motion: disable transitions ─────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    .tabs__tab,
+    .tabs__tab__count {
+      transition: none;
+    }
+  }
+
+  /* ── Light-theme tweaks ──────────────────────────────────────── */
+  /*
+   * Most tab colours inherit correctly from tokens already overridden
+   * on [data-theme="light"]. No extra rules needed here.
+   */
+}

@@ -1,0 +1,229 @@
+# ──────────────────────────────────────────────────────────────
+# Nordlys — Full dev stack
+# Spins up postgres, all backend services, and the SvelteKit
+# frontend. Run from repo root:
+#
+#   docker compose -f app/docker-compose.dev.yml up --build
+#
+# Frontend: http://localhost:5173   (vite dev w/ HMR)
+# API GW:   http://localhost:3000
+# Varde:    http://localhost:3020
+# ──────────────────────────────────────────────────────────────
+
+services:
+  # ── Infra ──────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nordlys
+      POSTGRES_PASSWORD: nordlys
+      POSTGRES_DB: nordlys
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nordlys"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Migrations (one-shot) ──────────────────────────────────────
+
+  migrate:
+    build:
+      context: ./be
+      dockerfile: Dockerfile.migrate
+    environment:
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # ── Backend services ───────────────────────────────────────────
+
+  core-svc:
+    build:
+      context: ./be
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/core-svc
+    environment:
+      PORT: 3010
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      REDIS_URL: redis://redis:6379
+      MESH_SVC_URL: http://mesh-svc:3011
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3010/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  mesh-svc:
+    build:
+      context: ./be
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/mesh-svc
+    environment:
+      PORT: 3011
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      REDIS_URL: redis://redis:6379
+      CORE_SVC_URL: http://core-svc:3010
+      VARDE_BOOTSTRAP: "ws://varde-svc:3020/ws"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3011/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      core-svc:
+        condition: service_healthy
+      varde-svc:
+        condition: service_healthy
+
+  collector-svc:
+    build:
+      context: ./be
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/collector-svc
+    environment:
+      PORT: 3012
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      CORE_SVC_URL: http://core-svc:3010
+      SCENARIOS_DIR: /app/services/collector-svc/scenarios
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3012/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      core-svc:
+        condition: service_healthy
+
+  scanner-svc:
+    build:
+      context: ./be
+      dockerfile: Dockerfile.scanner
+    environment:
+      PORT: 3013
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      CORE_SVC_URL: http://core-svc:3010
+      SCANNER_MOCK_WHEN_MISSING: "false"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3013/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      core-svc:
+        condition: service_healthy
+
+  varde-svc:
+    build:
+      context: ./be
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/varde-svc
+    environment:
+      PORT: 3020
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      VARDE_ID: varde-1
+      PUBLIC_URL: http://varde-svc:3020
+      VARDE_TEST_MODE: "true"
+    ports:
+      - "3020:3020"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3020/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  api-gateway:
+    build:
+      context: ./be
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/api-gateway
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      CORE_SVC_URL: http://core-svc:3010
+      MESH_SVC_URL: http://mesh-svc:3011
+      COLLECTOR_SVC_URL: http://collector-svc:3012
+      SCANNER_SVC_URL: http://scanner-svc:3013
+      CORS_ORIGIN: "http://localhost:5173"
+      REDIS_URL: redis://redis:6379
+      API_KEYS: "dev-key:dev-secret"
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      core-svc:
+        condition: service_healthy
+      mesh-svc:
+        condition: service_healthy
+      collector-svc:
+        condition: service_healthy
+      scanner-svc:
+        condition: service_healthy
+
+  # ── Frontend (SvelteKit + Vite dev server) ─────────────────────
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: app/frontend/Dockerfile.dev
+    environment:
+      CORE_API_URL: http://api-gateway:3000
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mount sources for HMR — node_modules stays from the image build
+      - ./frontend/src:/workspace/app/frontend/src
+      - ./frontend/static:/workspace/app/frontend/static
+      - ./frontend/messages:/workspace/app/frontend/messages
+      - ./frontend/project.inlang:/workspace/app/frontend/project.inlang
+      - ./frontend/vite.config.ts:/workspace/app/frontend/vite.config.ts
+      - ../style-kit/src:/workspace/style-kit/src
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5173/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+
+volumes:
+  pgdata:

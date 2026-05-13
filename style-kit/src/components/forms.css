@@ -1,0 +1,715 @@
+/* ══════════════════════════════════════════════════════════════════
+   Nordlys Design System — Form Components
+   src/components/forms.css
+
+   Provides CSS-only, WCAG 2.2 AA-compliant form primitives that
+   match the dark-glass aesthetic of the badge / tile / url-pill
+   components. All colour references use var(--color-*) tokens from
+   tokens.css; no raw hex except short rgba() derivations.
+
+   USAGE QUICK-REFERENCE
+   ─────────────────────
+   <!-- Labeled text field with hint -->
+   <div class="field">
+     <label class="field__label field__label--required" for="host">Hostnavn</label>
+     <input class="input" id="host" type="text" placeholder="10.0.0.1" />
+     <span class="field__hint">IPv4-adresse eller FQDN</span>
+   </div>
+
+   <!-- Invalid state -->
+   <div class="field">
+     <label class="field__label" for="ip">IP-adresse</label>
+     <input class="input" id="ip" type="text" aria-invalid="true" value="999.x.x" />
+     <span class="field__error">Ugyldig IP-adresse</span>
+   </div>
+
+   <!-- Select -->
+   <div class="field">
+     <label class="field__label" for="tlp">TLP-nivå</label>
+     <select class="select" id="tlp">
+       <option>TLP:RED</option>
+       <option>TLP:AMBER</option>
+     </select>
+   </div>
+
+   <!-- Toggle -->
+   <label class="toggle">
+     <input type="checkbox" />
+     <span class="toggle__track"><span class="toggle__knob"></span></span>
+     <span class="toggle__label">Aktiv</span>
+   </label>
+
+   COMPONENT INDEX
+   ───────────────
+   1.  .field            — wrapper (flex column, gap, padding)
+   2.  .field__label     — uppercase mono label
+   3.  .field__label--required — adds mint asterisk via ::after
+   4.  .field__hint      — secondary helper text
+   5.  .field__error     — error text with warning glyph
+   6.  .input            — text / email / password / number input
+   7.  .textarea         — multi-line input (same as .input)
+   8.  .select           — single-select with custom chevron
+   9.  .checkbox         — custom styled checkbox
+   10. .radio            — custom styled radio
+   11. .toggle           — pill switch
+   12. .field-group      — horizontal inline-form row
+   13. .fieldset         — group wrapper with legend
+══════════════════════════════════════════════════════════════════ */
+
+/* ── SVG data-URIs ─────────────────────────────────────────────
+   Chevron for <select> — the fill is the aurora-mint hex encoded
+   as %23 so it survives as a data URL. If the token value changes,
+   update these two constants (dark + light). The light-theme
+   variant is overridden inside [data-theme='light'].
+─────────────────────────────────────────────────────────────── */
+
+/* Internal variable set at :root for DRY reference in @layer */
+:root {
+  --_select-chevron-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%237fdcb5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  --_select-chevron-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%231a9e72' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  --_select-chevron: var(--_select-chevron-dark);
+
+  /* Checkbox / radio checkmark — white tick on mint fill */
+  --_check-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23060912' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6l2.5 2.5 4.5-4.5'/%3E%3C/svg%3E");
+  /* Radio dot — solid circle */
+  --_radio-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Ccircle cx='6' cy='6' r='3' fill='%23060912'/%3E%3C/svg%3E");
+}
+
+[data-theme='light'] {
+  --_select-chevron: var(--_select-chevron-light);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   @layer components
+════════════════════════════════════════════════════════════════ */
+@layer components {
+
+  /* ── 1. Field wrapper ──────────────────────────────────────── */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  /* ── 2. Label ──────────────────────────────────────────────── */
+  .field__label {
+    font-family: var(--font-mono);
+    font-size: var(--text-mono-sm);         /* 0.78rem */
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-fg-dim);
+    line-height: 1.4;
+    user-select: none;
+  }
+
+  /* ── 3. Required asterisk ──────────────────────────────────── */
+  .field__label--required::after {
+    content: ' *';
+    color: var(--color-aurora-mint);
+    /* Slightly larger so it reads clearly without disrupting flow */
+    font-size: 0.9em;
+  }
+
+  /* ── 4. Hint text ──────────────────────────────────────────── */
+  .field__hint {
+    font-family: var(--font-display);
+    font-size: var(--text-ui-xs);
+    line-height: 1.4;
+    color: var(--color-fg-dim);
+    /* Slightly tighter than normal body to sit close under the control */
+    margin-top: 0.05rem;
+  }
+
+  /* ── 5. Error text ─────────────────────────────────────────── */
+  .field__error {
+    font-family: var(--font-display);
+    font-size: var(--text-ui-xs);
+    line-height: 1.4;
+    color: var(--color-danger);
+    margin-top: 0.05rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.3em;
+  }
+
+  /* Warning triangle glyph — purely decorative, so aria-hidden is
+     expected on the container or the message carries the text. */
+  .field__error::before {
+    content: '▲';
+    font-size: 0.6em;
+    line-height: 1;
+    flex-shrink: 0;
+    position: relative;
+    top: -0.05em;
+  }
+
+  /* ── 6. Input ──────────────────────────────────────────────── */
+  .input {
+    /* Reset */
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    width: 100%;
+
+    /* Geometry — sharp corners matching badge/tile aesthetic */
+    padding: 0.7rem 0.9rem;
+    border-radius: 0;
+    border: 1px solid var(--color-line-hi);
+
+    /* Surface — dark glass matching tile background */
+    background-color: rgb(14 21 36 / 0.55);
+    backdrop-filter: blur(8px);
+
+    /* Typography */
+    font-family: var(--font-display);
+    font-size: var(--text-ui-md);
+    line-height: 1.5;
+    color: var(--color-fg);
+
+    /* Smooth transitions — mint focus ring fades in/out */
+    transition:
+      border-color var(--motion-duration-fast) var(--motion-ease),
+      box-shadow var(--motion-duration-fast) var(--motion-ease),
+      background-color var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  /* Placeholder */
+  .input::placeholder {
+    color: var(--color-fg-dim);
+    opacity: 0.6;
+  }
+
+  /* Focus state — WCAG 2.4.11 / 2.4.12 non-text contrast compliant.
+     outline carries the a11y/forced-colors load; box-shadow is decorative. */
+  .input:focus-visible {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: 0;
+    border-color: var(--color-aurora-mint);
+    box-shadow: 0 0 12px -4px rgb(127 220 181 / 0.35);
+  }
+
+  /* Disabled */
+  .input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Invalid */
+  .input[aria-invalid='true'],
+  .input:user-invalid {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 10px -3px rgba(224, 123, 107, 0.35);
+  }
+
+  .input[aria-invalid='true']:focus-visible,
+  .input:user-invalid:focus-visible {
+    box-shadow:
+      0 0 0 1px var(--color-danger),
+      0 0 12px -2px rgba(224, 123, 107, 0.4);
+  }
+
+  /* ── Light-theme surface adjustment ────────────────────────── */
+  [data-theme='light'] .input {
+    background-color: rgb(232 228 219 / 0.8);
+    backdrop-filter: blur(4px);
+  }
+
+  /* ── 7. Textarea ───────────────────────────────────────────── */
+  .textarea {
+    /* Inherit all .input rules applied above */
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border-radius: 0;
+    border: 1px solid var(--color-line-hi);
+    background-color: rgb(14 21 36 / 0.55);
+    backdrop-filter: blur(8px);
+    font-family: var(--font-display);
+    font-size: var(--text-ui-md);
+    line-height: 1.5;
+    color: var(--color-fg);
+    transition:
+      border-color var(--motion-duration-fast) var(--motion-ease),
+      box-shadow var(--motion-duration-fast) var(--motion-ease);
+
+    /* Textarea-specific */
+    min-height: 5rem;
+    resize: vertical;
+  }
+
+  .textarea::placeholder {
+    color: var(--color-fg-dim);
+    opacity: 0.6;
+  }
+
+  .textarea:focus-visible {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: 0;
+    border-color: var(--color-aurora-mint);
+    box-shadow: 0 0 12px -4px rgb(127 220 181 / 0.35);
+  }
+
+  .textarea:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    resize: none;
+  }
+
+  .textarea[aria-invalid='true'],
+  .textarea:user-invalid {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 10px -3px rgba(224, 123, 107, 0.35);
+  }
+
+  .textarea[aria-invalid='true']:focus-visible,
+  .textarea:user-invalid:focus-visible {
+    box-shadow:
+      0 0 0 1px var(--color-danger),
+      0 0 12px -2px rgba(224, 123, 107, 0.4);
+  }
+
+  [data-theme='light'] .textarea {
+    background-color: rgb(232 228 219 / 0.8);
+    backdrop-filter: blur(4px);
+  }
+
+  /* ── 8. Select ─────────────────────────────────────────────── */
+  .select {
+    /* Reset native */
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    width: 100%;
+    cursor: pointer;
+
+    /* Geometry */
+    padding: 0.7rem 2.6rem 0.7rem 0.9rem; /* extra right padding for chevron */
+    border-radius: 0;
+    border: 1px solid var(--color-line-hi);
+
+    /* Surface */
+    background-color: rgb(14 21 36 / 0.55);
+    backdrop-filter: blur(8px);
+    /* Custom chevron via background-image */
+    background-image: var(--_select-chevron);
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem 1rem;
+
+    /* Typography */
+    font-family: var(--font-display);
+    font-size: var(--text-ui-md);
+    line-height: 1.5;
+    color: var(--color-fg);
+
+    transition:
+      border-color var(--motion-duration-fast) var(--motion-ease),
+      box-shadow var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  /* Option elements need a dark bg inside the native popup */
+  .select option {
+    background: var(--color-bg-raised, #0e1524);
+    color: var(--color-fg);
+  }
+
+  .select:focus-visible {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: 0;
+    border-color: var(--color-aurora-mint);
+    box-shadow: 0 0 12px -4px rgb(127 220 181 / 0.35);
+  }
+
+  .select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .select[aria-invalid='true'] {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 10px -3px rgba(224, 123, 107, 0.35);
+  }
+
+  [data-theme='light'] .select {
+    background-color: rgb(232 228 219 / 0.8);
+    backdrop-filter: blur(4px);
+  }
+
+  /* ── 9. Checkbox ───────────────────────────────────────────── */
+  /*
+    Mark-up pattern:
+      <label class="checkbox">
+        <input type="checkbox" class="checkbox__input" />
+        <span class="checkbox__box"></span>
+        Aksepter vilkår
+      </label>
+
+    Or raw <input type="checkbox"> can be targeted directly via the
+    :where(.field) scope to avoid specificity wars.
+  */
+  .checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: var(--text-ui-md);
+    color: var(--color-fg);
+    user-select: none;
+    line-height: 1.4;
+  }
+
+  .checkbox__input {
+    /* Visually hidden but still keyboard & pointer accessible */
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .checkbox__box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid var(--color-line-hi);
+    background-color: rgb(14 21 36 / 0.55);
+    /* Sharp corners — squares, not pills */
+    border-radius: 0;
+    transition:
+      border-color var(--motion-duration-fast) var(--motion-ease),
+      background-color var(--motion-duration-fast) var(--motion-ease),
+      box-shadow var(--motion-duration-fast) var(--motion-ease);
+    /* Checkmark via background-image, hidden until checked */
+    background-image: none;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 0.75rem 0.75rem;
+  }
+
+  .checkbox__input:checked + .checkbox__box {
+    background-color: var(--color-aurora-mint);
+    border-color: var(--color-aurora-mint);
+    background-image: var(--_check-svg);
+    box-shadow: 0 0 8px -2px rgba(127, 220, 181, 0.55);
+  }
+
+  .checkbox:hover .checkbox__box {
+    border-color: var(--color-aurora-mint);
+  }
+
+  .checkbox__input:focus-visible + .checkbox__box {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: var(--ring-offset);
+  }
+
+  .checkbox__input:disabled + .checkbox__box {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .checkbox:has(.checkbox__input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  [data-theme='light'] .checkbox__box {
+    background-color: rgb(232 228 219 / 0.8);
+  }
+
+  /* ── 10. Radio ─────────────────────────────────────────────── */
+  /*
+    Mark-up pattern:
+      <label class="radio">
+        <input type="radio" class="radio__input" name="tlp" value="red" />
+        <span class="radio__circle"></span>
+        TLP:RED
+      </label>
+  */
+  .radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: var(--text-ui-md);
+    color: var(--color-fg);
+    user-select: none;
+    line-height: 1.4;
+  }
+
+  .radio__input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .radio__circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid var(--color-line-hi);
+    background-color: rgb(14 21 36 / 0.55);
+    border-radius: 50%;           /* pill — distinguishes from checkbox */
+    transition:
+      border-color var(--motion-duration-fast) var(--motion-ease),
+      background-color var(--motion-duration-fast) var(--motion-ease),
+      box-shadow var(--motion-duration-fast) var(--motion-ease);
+    background-image: none;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 0.5rem 0.5rem;
+  }
+
+  .radio__input:checked + .radio__circle {
+    background-color: var(--color-aurora-mint);
+    border-color: var(--color-aurora-mint);
+    background-image: var(--_radio-dot);
+    box-shadow: 0 0 8px -2px rgba(127, 220, 181, 0.55);
+  }
+
+  .radio:hover .radio__circle {
+    border-color: var(--color-aurora-mint);
+  }
+
+  .radio__input:focus-visible + .radio__circle {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: var(--ring-offset);
+  }
+
+  .radio__input:disabled + .radio__circle {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .radio:has(.radio__input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  [data-theme='light'] .radio__circle {
+    background-color: rgb(232 228 219 / 0.8);
+  }
+
+  /* ── 11. Toggle ────────────────────────────────────────────── */
+  /*
+    Mark-up pattern:
+      <label class="toggle">
+        <input type="checkbox" class="toggle__input" />
+        <span class="toggle__track">
+          <span class="toggle__knob"></span>
+        </span>
+        <span class="toggle__label">Aktiv</span>
+      </label>
+  */
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .toggle__input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .toggle__track {
+    /* Pill-shaped track */
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 3rem;        /* ~48px */
+    height: 1.5rem;     /* ~24px */
+    border-radius: 999px;
+    border: 1px solid var(--color-line-hi);
+    background-color: rgb(14 21 36 / 0.65);
+    transition:
+      background-color var(--motion-duration) var(--motion-ease),
+      border-color var(--motion-duration) var(--motion-ease),
+      box-shadow var(--motion-duration) var(--motion-ease);
+    flex-shrink: 0;
+  }
+
+  .toggle__knob {
+    /* Sliding knob */
+    position: absolute;
+    left: 3px;
+    width: calc(1.5rem - 8px);   /* track-height minus padding */
+    height: calc(1.5rem - 8px);
+    border-radius: 50%;
+    background-color: var(--color-fg-dim);
+    transition:
+      transform var(--motion-duration) var(--motion-ease-aurora),
+      background-color var(--motion-duration) var(--motion-ease);
+  }
+
+  /* Checked state — slide knob and apply mint track */
+  .toggle__input:checked + .toggle__track {
+    background-color: rgba(127, 220, 181, 0.2);
+    border-color: var(--color-aurora-mint);
+    box-shadow: 0 0 12px -3px rgba(127, 220, 181, 0.45);
+  }
+
+  .toggle__input:checked + .toggle__track .toggle__knob {
+    transform: translateX(calc(3rem - 1.5rem + 2px)); /* track-width − track-height + left-start */
+    background-color: var(--color-aurora-mint);
+  }
+
+  /* Focus ring on track */
+  .toggle__input:focus-visible + .toggle__track {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: var(--ring-offset);
+  }
+
+  /* Disabled */
+  .toggle__input:disabled + .toggle__track {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .toggle:has(.toggle__input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* Label text alongside the track */
+  .toggle__label {
+    font-family: var(--font-display);
+    font-size: var(--text-ui-md);
+    color: var(--color-fg);
+    line-height: 1.4;
+  }
+
+  [data-theme='light'] .toggle__track {
+    background-color: rgb(210 206 197 / 0.8);
+  }
+
+  /* ── 12. Field group — horizontal inline layout ────────────── */
+  /*
+    Aligns multiple .field elements side-by-side, bottomed to the
+    control so label baselines sit flush when field heights differ.
+
+    <div class="field-group">
+      <div class="field">...</div>
+      <div class="field">...</div>
+      <button class="...">Send</button>
+    </div>
+  */
+  .field-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: flex-end;
+  }
+
+  .field-group > .field {
+    flex: 1 1 12rem;   /* grow, shrink, min ~192px before wrapping */
+    min-width: 0;      /* prevent overflow in flex children */
+  }
+
+  /* ── 13. Fieldset ──────────────────────────────────────────── */
+  /*
+    <fieldset class="fieldset">
+      <legend class="fieldset__legend">Nettverkskonfigurasjon</legend>
+      ...
+    </fieldset>
+  */
+  .fieldset {
+    border: 1px solid var(--color-line);
+    padding: 1rem 1.2rem 1.2rem;
+    margin: 0;
+    /* Remove UA default padding-inline */
+    padding-inline-start: 1.2rem;
+    background: rgb(14 21 36 / 0.25);
+  }
+
+  .fieldset__legend {
+    font-family: var(--font-mono);
+    font-size: var(--text-mono-sm);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-aurora-mint);
+    padding-inline: 0.4rem;
+    /* Float out of border so it sits on the fieldset line */
+    float: left;
+    width: 100%;
+    margin-bottom: 0.8rem;
+    /* Reset float */
+    display: block;
+    position: relative;
+    top: -1.7rem;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  /* Re-flow content below the legend */
+  .fieldset > *:not(.fieldset__legend) {
+    clear: left;
+  }
+
+  [data-theme='light'] .fieldset {
+    background: rgb(232 228 219 / 0.3);
+  }
+
+} /* end @layer components */
+
+/* ── Reduced-motion ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .input,
+  .textarea,
+  .select,
+  .checkbox__box,
+  .radio__circle,
+  .toggle__track,
+  .toggle__knob {
+    transition: none !important;
+  }
+}
+
+/* ── Forced colors (Windows high-contrast) ─────────────────────
+   Browsers replace surface and border colors with system colors.
+   We need to (a) ensure focus rings remain visible via Highlight,
+   and (b) ensure invalid states still read as different from default,
+   since border-color tinting is overridden. */
+@media (forced-colors: active) {
+  .input:focus-visible,
+  .textarea:focus-visible,
+  .select:focus-visible,
+  .checkbox__input:focus-visible + .checkbox__box,
+  .radio__input:focus-visible + .radio__circle,
+  .toggle__input:focus-visible + .toggle__track {
+    outline-color: Highlight;
+  }
+
+  /* Invalid state — border-color is replaced by system, so add a
+     thicker outline to keep the error reading distinct. */
+  .input[aria-invalid='true'],
+  .textarea[aria-invalid='true'],
+  .select[aria-invalid='true'] {
+    outline: 2px solid Mark;
+    outline-offset: 0;
+  }
+
+  /* Checked controls — ensure mint fill is preserved (forced-color-adjust
+     keeps our brand for the active indicator) */
+  .checkbox__input:checked + .checkbox__box,
+  .radio__input:checked + .radio__circle,
+  .toggle__input:checked + .toggle__track {
+    forced-color-adjust: none;
+  }
+}

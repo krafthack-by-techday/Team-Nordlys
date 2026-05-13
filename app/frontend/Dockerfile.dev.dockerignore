@@ -1,0 +1,15 @@
+# Frontend dev build — ignore heavy/unnecessary dirs
+**/node_modules
+**/.svelte-kit
+**/build
+**/dist
+**/.git
+**/test-results
+**/.env.local
+app/be/services
+app/be/node_modules
+app/legacy-backend
+app/backend
+app/varde
+app/demo
+live-demo

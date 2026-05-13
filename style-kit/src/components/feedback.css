@@ -1,0 +1,434 @@
+/* ──────────────────────────────────────────────────────────────
+   Nordlys — Feedback components
+   ────────────────────────────────────────────────────────────
+   Contents:
+   1. .empty-state  — centered placeholder for empty lists / feeds / tables
+   2. .code-block   — code display with optional header, line numbers, tokens
+   3. .code         — inline code
+
+   ────────────────────────────────────────────────────────────
+   EMPTY STATE
+   ────────────────────────────────────────────────────────────
+   BEM blocks:    .empty-state
+   BEM elements:  .empty-state__icon, .empty-state__title,
+                  .empty-state__description, .empty-state__action
+   Modifiers:     .empty-state--compact, .empty-state--error
+
+   Usage (default):
+   ────────────────
+   <div class="empty-state">
+     <div class="empty-state__icon" aria-hidden="true">
+       <svg>…</svg>
+     </div>
+     <h3 class="empty-state__title">Ingen hendelser ennå</h3>
+     <p class="empty-state__description">
+       Ingen hendelser er mottatt fra peere i mesh-nettverket ennå.
+       Nye hendelser vil vises her automatisk.
+     </p>
+     <div class="empty-state__action">
+       <button class="…">Oppdater</button>
+     </div>
+   </div>
+
+   Usage (error):
+   ──────────────
+   <div class="empty-state empty-state--error">
+     <div class="empty-state__icon" aria-hidden="true">⚠</div>
+     <h3 class="empty-state__title">Klarte ikke å hente data</h3>
+     <p class="empty-state__description">Noe gikk galt ved tilkobling.</p>
+     <div class="empty-state__action">
+       <button class="…">Prøv igjen</button>
+     </div>
+   </div>
+
+   Usage (compact — inside a card):
+   ─────────────────────────────────
+   <div class="empty-state empty-state--compact">…</div>
+
+   ────────────────────────────────────────────────────────────
+   CODE BLOCK
+   ────────────────────────────────────────────────────────────
+   BEM blocks:    .code-block
+   BEM elements:  .code-block__header, .code-block__lang,
+                  .code-block__copy, .code-block__content,
+                  .code-block__line
+   Modifiers:     .code-block--linenos
+
+   Syntax token spans (consumer wraps text in these):
+     .tok-com  comments
+     .tok-key  keywords / JSON keys
+     .tok-str  strings / string values
+     .tok-num  numbers
+     .tok-fn   function / method names
+     .tok-var  variables / property names
+
+   Usage (with header):
+   ────────────────────
+   <div class="code-block">
+     <div class="code-block__header">
+       <span class="code-block__lang">JSON</span>
+       <button class="code-block__copy" aria-label="Kopier kode" type="button">
+         <svg>…</svg>
+       </button>
+     </div>
+     <pre class="code-block__content"><code>
+       <span class="tok-key">"peer_id"</span>: <span class="tok-str">"stk-oslo-01"</span>
+     </code></pre>
+   </div>
+
+   Usage (line numbers):
+   ─────────────────────
+   <div class="code-block code-block--linenos">
+     <pre class="code-block__content"><code>
+       <span class="code-block__line">first line</span>
+       <span class="code-block__line">second line</span>
+     </code></pre>
+   </div>
+
+   Usage (inline):
+   ───────────────
+   The event carries a <code class="code">peer_id</code> field.
+   ────────────────────────────────────────────────────────────── */
+
+@layer components {
+
+  /* ════════════════════════════════════════════════════════════════
+     1. EMPTY STATE
+     ════════════════════════════════════════════════════════════════ */
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    gap: 1rem;
+    text-align: center;
+    color: var(--color-fg-dim);
+  }
+
+  /* ── Icon slot ───────────────────────────────────────────────── */
+  .empty-state__icon {
+    /* Minimum footprint — consumer SVG/emoji fills this */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3rem;
+    min-height: 3rem;
+    font-size: 3rem;        /* scales emoji / text glyphs */
+    line-height: 1;
+    color: var(--color-fg-dim);
+    opacity: 0.5;
+  }
+
+  /* Pass size through to SVG children without overriding their viewBox */
+  .empty-state__icon > svg {
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+  }
+
+  /* ── Title ───────────────────────────────────────────────────── */
+  .empty-state__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 500;
+    /* Match card-title scale — empty state lives in the same UI surface */
+    font-size: var(--text-ui-title-lg);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--color-fg);
+  }
+
+  /* ── Description ─────────────────────────────────────────────── */
+  .empty-state__description {
+    margin: 0;
+    /* Fixed UI size — empty state appears inside cards/tables/feeds */
+    font-size: var(--text-ui);
+    line-height: 1.5;
+    max-width: 40ch;
+    color: var(--color-fg-dim);
+  }
+
+  /* ── Action slot ─────────────────────────────────────────────── */
+  .empty-state__action {
+    margin-top: 0.5rem;
+    /* Let the consumer control button styling; we just space it */
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* ── Modifier: compact (inside cards, inline tables) ─────────── */
+  .empty-state--compact {
+    padding: 1.5rem;
+    gap: 0.6rem;
+  }
+
+  .empty-state--compact .empty-state__icon {
+    min-width: 2rem;
+    min-height: 2rem;
+    font-size: 2rem;
+  }
+
+  .empty-state--compact .empty-state__icon > svg {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .empty-state--compact .empty-state__title {
+    font-size: var(--text-ui-title);
+  }
+
+  .empty-state--compact .empty-state__description {
+    font-size: var(--text-ui-sm);
+  }
+
+  /* ── Modifier: error ─────────────────────────────────────────── */
+  /*
+   * Signals failure states — gossip pull errors, invalid signatures,
+   * unreachable peers. Icon shifts to danger colour; title stays neutral
+   * so it reads as informational, not alarming.
+   */
+  .empty-state--error .empty-state__icon {
+    color: var(--color-danger);
+    opacity: 1; /* restore full opacity so the warning colour reads clearly */
+  }
+
+  /* Restore full opacity on SVG children inside error icon */
+  .empty-state--error .empty-state__icon > svg {
+    color: var(--color-danger);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     2. CODE BLOCK
+     ════════════════════════════════════════════════════════════════ */
+
+  .code-block {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: rgb(6 9 18 / 0.55);
+    border: 1px solid var(--color-line);
+    overflow: hidden; /* clip child backgrounds to border */
+    /* overflow-x is handled on .code-block__content, not the wrapper,
+       so the header stays pinned while content scrolls horizontally */
+  }
+
+  /* ── Optional header bar ─────────────────────────────────────── */
+  .code-block__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background: rgb(232 227 212 / 0.05);
+    border-bottom: 1px solid var(--color-line);
+    /* Typography */
+    font-family: var(--font-mono);
+    font-size: var(--text-mono-sm);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-fg-dim);
+    /* Prevent header row from shrinking */
+    flex-shrink: 0;
+    gap: 1rem;
+  }
+
+  /* ── Language label (e.g. "JSON", "BASH") ────────────────────── */
+  .code-block__lang {
+    color: var(--color-aurora-mint);
+    font-weight: 500;
+    /* Reset uppercase tracking for the copy neighbour alignment */
+    flex-shrink: 0;
+  }
+
+  /* ── Copy button slot ────────────────────────────────────────── */
+  /*
+   * Consumer is responsible for copy logic. We only style the shell.
+   * Recommended: <button class="code-block__copy" type="button" aria-label="Kopier kode">
+   *                <svg>…</svg>
+   *              </button>
+   */
+  .code-block__copy {
+    /* Reset button */
+    appearance: none;
+    background: transparent;
+    border: 0;
+    border-radius: 2px;
+    padding: 0.25rem 0.4rem;
+    margin: 0;
+    cursor: pointer;
+    /* Inherit header font/size so it stays in visual rhythm */
+    font-family: inherit;
+    font-size: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    color: var(--color-fg-dim);
+    line-height: 1;
+    /* Smooth colour shift */
+    transition: color var(--motion-duration-fast) var(--motion-ease);
+    flex-shrink: 0;
+  }
+
+  .code-block__copy:hover {
+    color: var(--color-aurora-mint);
+  }
+
+  .code-block__copy:focus-visible {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: var(--ring-offset);
+  }
+
+  /* Ensure SVG icons inside copy button inherit colour */
+  .code-block__copy svg {
+    display: block;
+    width: 1em;
+    height: 1em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+  }
+
+  /* ── Code content area ───────────────────────────────────────── */
+  .code-block__content {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--color-fg);
+    /* Preserve whitespace and indentation */
+    white-space: pre;
+    /* Horizontal scroll when content is wider than container */
+    overflow-x: auto;
+    overflow-y: visible;
+    /* Padding: standard when no header; paired header sets own spacing */
+    padding: 1.4rem 1.6rem;
+    margin: 0; /* reset <pre> default margin */
+    tab-size: 2;
+  }
+
+  /* When .code-block has a header, reduce top padding on content */
+  .code-block__header + .code-block__content {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    padding-left: 1.4rem;
+    padding-right: 1.4rem;
+  }
+
+  /* ── Line numbers modifier ───────────────────────────────────── */
+  /*
+   * Usage: add .code-block--linenos to .code-block wrapper,
+   * then wrap each line in <span class="code-block__line">.
+   * The counter auto-numbers each line via CSS ::before.
+   */
+  .code-block--linenos {
+    counter-reset: code-line;
+  }
+
+  .code-block--linenos .code-block__line {
+    display: block;
+    counter-increment: code-line;
+    /* Ensure lines that wrap still show the number at the start */
+    padding-left: 3.5ch;
+    position: relative;
+    /* Prevent accidental selection of line numbers */
+    text-indent: 0;
+  }
+
+  .code-block--linenos .code-block__line::before {
+    content: counter(code-line);
+    position: absolute;
+    left: 0;
+    /* Align numbers to the right within their fixed column */
+    width: 2.5ch;
+    text-align: right;
+    color: var(--color-fg-dim);
+    opacity: 0.45;
+    /* Numbers are non-selectable decoration */
+    user-select: none;
+    pointer-events: none;
+  }
+
+  /* ── Syntax highlight tokens ─────────────────────────────────── */
+  /*
+   * Consumer wraps code spans in these classes. Works with any
+   * syntax highlighter or hand-authored HTML.
+   * Colours use aurora palette to stay coherent with the dark bg.
+   */
+
+  /* Comments: dim, italic */
+  .code-block .tok-com {
+    color: var(--color-fg-dim);
+    font-style: italic;
+  }
+
+  /* Keywords (JSON keys, reserved words, directives) */
+  .code-block .tok-key {
+    color: var(--color-aurora-arctic);
+  }
+
+  /* String values */
+  .code-block .tok-str {
+    color: var(--color-aurora-lichen);
+  }
+
+  /* Numeric literals */
+  .code-block .tok-num {
+    color: var(--color-aurora-mint);
+  }
+
+  /* Function / method names */
+  .code-block .tok-fn {
+    color: var(--color-fg);
+    font-weight: 500;
+  }
+
+  /* Variables / property references */
+  .code-block .tok-var {
+    color: var(--color-aurora-mint);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     3. INLINE CODE
+     ════════════════════════════════════════════════════════════════ */
+  /*
+   * Usage: The peer publishes using <code class="code">gossip/v2</code>.
+   */
+  .code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    line-height: inherit;
+    background: rgb(232 227 212 / 0.06);
+    padding: 0.1rem 0.4rem;
+    color: var(--color-aurora-mint);
+    border-radius: 2px;
+    /* Prevent inline code from hyphenating or breaking mid-token */
+    word-break: break-all;
+    white-space: nowrap;
+  }
+
+  /* ── Light theme adjustments ─────────────────────────────────── */
+  /*
+   * Aurora token colours on [data-theme="light"] are already overridden
+   * in tokens.css, so .tok-* classes inherit the correct light values
+   * automatically. Only surfaces need an explicit override.
+   */
+  [data-theme='light'] .code-block {
+    background: rgb(26 30 42 / 0.04);
+  }
+
+  [data-theme='light'] .code-block__header {
+    background: rgb(26 30 42 / 0.04);
+  }
+
+  [data-theme='light'] .code {
+    background: rgb(26 30 42 / 0.06);
+  }
+
+  /* ── Reduced motion ──────────────────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    .code-block__copy {
+      transition: none;
+    }
+  }
+}

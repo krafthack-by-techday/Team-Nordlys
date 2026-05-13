@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1777672776031,
+      "tag": "0000_fixed_enchantress",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777673924492,
+      "tag": "0001_foamy_wendell_rand",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777674331599,
+      "tag": "0002_sudden_the_professor",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1746316800000,
+      "tag": "0003_partition_events_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777904412054,
+      "tag": "0004_absent_nick_fury",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777986932971,
+      "tag": "0005_stormy_hobgoblin",
+      "breakpoints": true
+    }
+  ]
+}

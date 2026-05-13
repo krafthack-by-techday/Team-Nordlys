@@ -1,0 +1,406 @@
+/* ──────────────────────────────────────────────────────────────
+   Nordlys · Pagination Component
+   Part of the Nordlys design system for the Norwegian power sector.
+
+   CONTENTS
+   ─────────
+   1. Wrapper       (.pagination)
+   2. Page list     (.pagination__list)
+   3. Base button   (.pagination__btn)
+   4. Hover state
+   5. Current page  ([aria-current="page"])
+   6. Disabled state
+   7. Focus ring
+   8. Nav buttons   (.pagination__btn--nav)
+   9. Ellipsis      (.pagination__ellipsis)
+  10. Summary       (.pagination__summary)
+  11. Variant: compact  (.pagination--compact)
+  12. Variant: simple   (.pagination--simple)
+  13. Light theme overrides
+  14. Reduced motion
+  15. Forced colors
+
+   ── ARIA CONTRACT ──────────────────────────────────────────────
+   - <nav role="navigation" aria-label="Paginering"> wraps everything.
+   - Prev/next buttons: class="pagination__btn pagination__btn--nav",
+     aria-label="Forrige side" / "Neste side", disabled when at boundary.
+   - Page buttons: aria-label="Side N". Current page adds aria-current="page"
+     and a more descriptive label like "Side 7, gjeldende".
+   - Ellipsis spans: aria-hidden="true" — decorative, no SR announcement.
+   - Summary div: aria-live="polite" so screen readers announce range
+     updates as the user navigates.
+
+   ── CONSUMER RESPONSIBILITIES ──────────────────────────────────
+   - Page-change handler: wire click events on .pagination__btn elements
+     (excluding [aria-current] and [disabled]) to update the route / state.
+   - Page list: build the <ul> server- or client-side. Apply the ellipsis
+     logic (first page, window around current, last page) in JS/template.
+   - aria-current: move the aria-current="page" attribute to the newly
+     active page button after every navigation. Remove it from the
+     previous page button.
+   - Disabled boundary: set disabled on the Forrige / Neste button when
+     on the first / last page respectively.
+   - Summary text: update the aria-live region content to reflect the new
+     visible range after navigation.
+   ────────────────────────────────────────────────────────────── */
+
+@layer components {
+
+  /* ════════════════════════════════════════════════════════════
+     1. WRAPPER
+     Flex row, wraps at narrow widths so the summary can drop
+     to a second line without overflow.
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     2. PAGE LIST
+     The <ul> that holds individual page buttons. Keeps its own
+     tight gap (0.2 rem) separate from the outer gap so ellipses
+     and nav arrows have more visual breathing room.
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination__list {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     3. BASE BUTTON
+     Sibling to .btn--ghost: same sharp-corner mono aesthetic,
+     same token system, but purpose-built for dense paged
+     navigation with square targets and no uppercase transform
+     (digits must not be uppercased).
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination__btn {
+    /* Reset native */
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+
+    /* Square-ish touch targets — minimum 2.25 rem (36 px) */
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+
+    /* Padding: 0 vertical keeps height driven by min-height;
+       horizontal gives multi-digit numbers breathing room */
+    padding: 0 0.6rem;
+
+    /* Layout */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Typography — matches .btn and .badge mono aesthetic */
+    font-family: var(--font-mono);
+    font-size: var(--text-ui-sm);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    white-space: nowrap;
+
+    /* Nordlys sharp — no radius */
+    border-radius: 0;
+
+    /* Colour */
+    color: var(--color-fg-dim);
+
+    /* Transitions use fast duration for snappy hover/focus shifts */
+    transition:
+      color            var(--motion-duration-fast) var(--motion-ease),
+      border-color     var(--motion-duration-fast) var(--motion-ease),
+      background-color var(--motion-duration-fast) var(--motion-ease);
+
+    /* Focus ring paint target (transparent at rest, coloured on :focus-visible) */
+    outline: var(--ring-width) solid transparent;
+    outline-offset: var(--ring-offset);
+
+    /* No text selection on rapid clicks */
+    user-select: none;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     4. HOVER STATE
+     Skip current page (already visually distinct) and disabled.
+     Background uses a very faint aurora-mint wash to echo the
+     secondary button hover while staying legible at high density.
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination__btn:hover:not([disabled]):not([aria-current]) {
+    color: var(--color-fg);
+    border-color: var(--color-line-hi);
+    background-color: rgb(127 220 181 / 0.04);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     5. CURRENT PAGE
+     Aurora-mint tint + border makes the active page unmissable.
+     pointer-events: none prevents a spurious click on the page
+     the user is already viewing.
+     forced-color-adjust: none preserves the border in Windows
+     high-contrast; the 2 px forced border below is the fallback.
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination__btn[aria-current="page"] {
+    color: var(--color-aurora-mint);
+    border-color: var(--color-aurora-mint);
+    background-color: rgb(127 220 181 / 0.08);
+    font-weight: 600;
+    pointer-events: none;
+    cursor: default;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     6. DISABLED STATE
+     Opacity reduction gives a clear "not reachable" signal.
+     pointer-events: none prevents cursor interaction (cursor is
+     set to not-allowed for browsers that still show it despite
+     pointer-events: none on descendant elements).
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination__btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     7. FOCUS RING
+     Uses the ring tokens from tokens.css — same single source
+     of truth as .btn. Transparent at rest so the paint target
+     exists for forced-colors without creating visual noise.
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination__btn:focus-visible {
+    outline-color: var(--ring-color);
+  }
+
+  .pagination__btn:focus:not(:focus-visible) {
+    outline-color: transparent;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     8. NAV BUTTONS (prev / next)
+     Slightly higher visual weight than page number buttons:
+     they start with a visible border (like .btn--secondary) to
+     hint at their control function, and the hover shifts to
+     aurora-mint to match the current-page accent colour.
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination__btn--nav {
+    color: var(--color-fg);
+    border-color: var(--color-line-hi);
+  }
+
+  .pagination__btn--nav:hover:not([disabled]) {
+    border-color: var(--color-aurora-mint);
+    color: var(--color-aurora-mint);
+    /* Override the generic hover background so nav buttons stay clean */
+    background-color: rgb(127 220 181 / 0.04);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     9. ELLIPSIS
+     Decorative gap indicator — aria-hidden so screen readers
+     skip it. Non-interactive, inherits the dim text colour, and
+     sized to match button targets so the row stays optically even.
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination__ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    padding: 0 0.4rem;
+    color: var(--color-fg-dim);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+    10. SUMMARY
+     "Viser 61–70 av 418" pushed to the right edge via margin-
+     left: auto. Uses --font-display (Bricolage Grotesque) to
+     contrast with the mono page buttons. The <strong> elements
+     inside are slightly heavier in colour to make the numbers
+     pop from the dim surrounding text.
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination__summary {
+    margin-left: auto;
+    font-family: var(--font-display);
+    font-size: var(--text-ui-xs);
+    color: var(--color-fg-dim);
+    line-height: 1.4;
+    /* Wraps naturally inside the flex container at narrow widths */
+  }
+
+  .pagination__summary strong {
+    color: var(--color-fg);
+    font-weight: 500;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+    11. VARIANT: COMPACT
+     For sidebars, toolbars, and mobile contexts where the full
+     bar is too wide. Shrinks targets slightly and hides the
+     summary (use a separate summary outside the component if
+     space allows).
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination--compact .pagination__btn {
+    min-width: 1.85rem;
+    min-height: 1.85rem;
+    font-size: var(--text-ui-xs);
+    padding: 0 0.45rem;
+  }
+
+  .pagination--compact .pagination__ellipsis {
+    min-width: 1.85rem;
+    font-size: var(--text-ui-xs);
+    padding: 0 0.25rem;
+  }
+
+  .pagination--compact .pagination__summary {
+    display: none;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+    12. VARIANT: SIMPLE
+     Prev / [Side X av Y] / Next — no number list. The consumer
+     renders only two .pagination__btn--nav buttons and a
+     .pagination__simple-indicator element between them.
+
+     Markup contract for this variant:
+       <nav class="pagination pagination--simple" …>
+         <button class="pagination__btn pagination__btn--nav" aria-label="Forrige side">←</button>
+         <span class="pagination__simple-indicator" aria-live="polite">
+           Side <strong>3</strong> av <strong>17</strong>
+         </span>
+         <button class="pagination__btn pagination__btn--nav" aria-label="Neste side">→</button>
+       </nav>
+     ════════════════════════════════════════════════════════════ */
+
+  .pagination--simple {
+    /* Tighter gap — three items only */
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  .pagination__simple-indicator {
+    font-family: var(--font-display);
+    font-size: var(--text-ui-sm);
+    color: var(--color-fg-dim);
+    white-space: nowrap;
+    /* Mono-like tabular feel for the page numbers */
+    letter-spacing: 0.01em;
+  }
+
+  .pagination__simple-indicator strong {
+    color: var(--color-fg);
+    font-weight: 500;
+    /* Slightly larger to make the current page pop */
+    font-size: var(--text-ui);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+    13. LIGHT THEME OVERRIDES
+     In light mode the mint hex shifts to #1a9e72, so pure
+     rgb(127 220 181) backgrounds look washed out. Use the
+     darker mint alpha instead for legibility.
+     ════════════════════════════════════════════════════════════ */
+
+  [data-theme="light"] .pagination__btn:hover:not([disabled]):not([aria-current]) {
+    background-color: rgb(26 158 114 / 0.05);
+  }
+
+  [data-theme="light"] .pagination__btn--nav:hover:not([disabled]) {
+    background-color: rgb(26 158 114 / 0.05);
+  }
+
+  [data-theme="light"] .pagination__btn[aria-current="page"] {
+    /* Slightly stronger tint in light mode for contrast */
+    background-color: rgb(26 158 114 / 0.1);
+  }
+
+} /* end @layer components */
+
+
+/* ════════════════════════════════════════════════════════════
+   14. REDUCED MOTION
+   Disable all transitions. Users who prefer reduced motion
+   still get instant color/state feedback — just no animation.
+   ════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .pagination__btn {
+    transition: none !important;
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   15. FORCED COLORS (Windows High Contrast)
+   In forced-colors mode the browser replaces most color values
+   with system colors, which can cause the current-page indicator
+   to lose its distinction. We:
+   - Opt the current-page button out of forced-color repainting
+     (forced-color-adjust: none) and draw an explicit 2 px border
+     using ButtonText so its box shape is always visible.
+   - Set focus rings to Highlight (the system focus color).
+   - Nav buttons get a ButtonText border to stay structurally
+     visible against any system background.
+   Disabled state is handled automatically by the browser
+   (it renders disabled controls with GrayText / grayed borders).
+   ════════════════════════════════════════════════════════════ */
+
+@media (forced-colors: active) {
+  .pagination__btn {
+    border-color: ButtonText;
+  }
+
+  .pagination__btn:focus-visible {
+    outline-color: Highlight;
+  }
+
+  /* Current page: opt out of color replacement so the border shape
+     survives, then use ButtonText for the border to guarantee
+     visibility against every high-contrast theme. */
+  .pagination__btn[aria-current="page"] {
+    forced-color-adjust: none;
+    border: 2px solid ButtonText;
+    color: ButtonText;
+    background-color: Canvas;
+  }
+
+  .pagination__btn--nav {
+    border-color: ButtonText;
+  }
+}

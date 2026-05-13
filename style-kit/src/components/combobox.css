@@ -1,0 +1,669 @@
+/* ══════════════════════════════════════════════════════════════════
+   Nordlys Design System — Combobox Component
+   src/components/combobox.css
+
+   A searchable select (combobox) styled to sit alongside .input and
+   .select as a first-class form sibling. Pure CSS — all interaction
+   behaviour (filtering, keyboard nav, open/close) is the consumer's
+   responsibility. This file styles ARIA states only.
+
+   ─── ARIA CONTRACT ──────────────────────────────────────────────
+   The combobox pattern follows WAI-ARIA 1.2 §3.8 Combobox Pattern.
+
+   • <input role="combobox" aria-expanded="false|true"
+             aria-controls="<listbox-id>" aria-autocomplete="list">
+     Controls the open/closed state. Set aria-expanded="true" to
+     open the listbox; the CSS reflects this on the trigger chevron.
+
+   • <ul role="listbox" [hidden]>
+     The consumer toggles [hidden] in sync with aria-expanded.
+     Removing [hidden] triggers @starting-style for the entrance
+     animation (opacity + translateY).
+
+   • <li role="option" aria-selected="true|false">
+     Selected state is reflected via aria-selected="true".
+     Keyboard cursor (active descendant) is reflected via
+     [data-active="true"] on the focused option li.
+
+   • <li role="option" aria-disabled="true">
+     Disabled options are not interactive; cursor: not-allowed.
+
+   • Groups use role="presentation" + inner <ul role="group">.
+     The group label (<span class="combobox__group-label">) is
+     purely visual — the inner ul carries the aria-labelledby.
+
+   ─── FOCUS MANAGEMENT ───────────────────────────────────────────
+   Focus stays on .combobox__input at all times during keyboard
+   navigation. The listbox is NOT focusable (no tabindex on ul/li).
+   The consumer must:
+     1. Set aria-activedescendant on the input to the id of the
+        currently active option.
+     2. Toggle [data-active="true"] on that option element so CSS
+        can render the keyboard cursor highlight.
+     3. Call scrollIntoView() / ensure scroll-margin works (we set
+        scroll-margin: 4px on options).
+
+   .combobox__trigger has tabindex="-1" by design — it is a visual
+   affordance only, not a keyboard stop. Clicking it toggles the
+   listbox; the consumer handles the click event.
+
+   .combobox__clear is [hidden] until the input has a value; the
+   consumer toggles [hidden] via JS. It IS keyboard-reachable when
+   visible (no tabindex override needed).
+
+   ─── TOKEN USAGE ────────────────────────────────────────────────
+   All transitions use --motion-duration-* and --motion-ease-*.
+   Focus rings use --ring-width / --ring-offset / --ring-color.
+   Typography uses --text-ui-* fixed scale (dashboard context).
+   Colors use --color-* (Tailwind @theme-bound aliases of --ds-*).
+
+   ─── CONSUMER RESPONSIBILITIES ──────────────────────────────────
+   • Open/close toggling (aria-expanded + [hidden] on listbox)
+   • Filtering option visibility
+   • Keyboard navigation (Up/Down/Home/End/Enter/Escape)
+   • aria-activedescendant + [data-active] management
+   • Toggling [hidden] on .combobox__clear when input has value
+   • Announcing result counts via a live region (not scoped here)
+══════════════════════════════════════════════════════════════════ */
+
+/* ── Keyframe: listbox entrance ─────────────────────────────────
+   Used by @starting-style for the open animation.
+   Kept outside @layer so keyframe isn't purged by optimisers.   */
+@keyframes combobox-listbox-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer components {
+
+  /* ════════════════════════════════════════════════════════════
+     1. WRAPPER — .combobox
+     ════════════════════════════════════════════════════════════ */
+
+  .combobox {
+    /* Relative so the absolute-positioned listbox is anchored
+       to the combobox width, not the nearest positioned ancestor. */
+    position: relative;
+    /* Inline-block so the component respects its parent's flow
+       without forcing full width. Consumer can apply width via
+       a .field wrapper or inline style. */
+    display: block;
+    width: 100%;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     2. CONTROL ROW — .combobox__control
+     Mirrors the surface treatment of .input / .select.
+     The border lives here; the input inside is transparent.
+     ════════════════════════════════════════════════════════════ */
+
+  .combobox__control {
+    /* Flex row: [input][clear][trigger] */
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+
+    /* Surface — dark glass, identical to .input */
+    background-color: rgb(14 21 36 / 0.55);
+    backdrop-filter: blur(8px);
+
+    /* Border — single source of truth; input strips its own border */
+    border: 1px solid var(--color-line-hi);
+
+    /* Sharp corners — Nordlys aesthetic */
+    border-radius: 0;
+
+    /* Smooth border-color shift on focus */
+    transition:
+      border-color var(--motion-duration-fast) var(--motion-ease),
+      box-shadow   var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  /* Focus-within: mint border to signal the field is active.
+     We use focus-within rather than focus-visible because the
+     inner input already carries the focus-visible ring. */
+  .combobox__control:focus-within {
+    border-color: var(--color-aurora-mint);
+    box-shadow: 0 0 12px -4px rgb(127 220 181 / 0.35);
+  }
+
+  /* Light-theme surface adjustment */
+  [data-theme='light'] .combobox__control {
+    background-color: rgb(232 228 219 / 0.8);
+    backdrop-filter: blur(4px);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     3. INPUT — .combobox__input
+     Fills the flex row; parent control owns the surface/border.
+     ════════════════════════════════════════════════════════════ */
+
+  .combobox__input {
+    /* Reset native input styles */
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+
+    /* Fill available space in the flex row */
+    flex: 1 1 0%;
+    min-width: 0; /* prevent overflow in flex container */
+
+    /* Strip border — parent .combobox__control handles it */
+    border: 0;
+    outline: none; /* outline is applied on :focus-visible below */
+
+    /* Surface transparent — parent handles background */
+    background: transparent;
+
+    /* Geometry — mirrored from .input padding; right side left
+       to the flex layout (clear + trigger buttons provide offset) */
+    padding: 0.7rem 0.4rem 0.7rem 0.9rem;
+
+    /* Typography */
+    font-family: var(--font-display);
+    font-size: var(--text-ui-md); /* 16px — avoids iOS auto-zoom */
+    line-height: 1.5;
+    color: var(--color-fg);
+  }
+
+  .combobox__input::placeholder {
+    color: var(--color-fg-dim);
+    opacity: 0.6;
+  }
+
+  /* Focus ring on the input itself — WCAG 2.4.11 compliant.
+     Outline must be visible against the parent glass surface. */
+  .combobox__input:focus-visible {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: 0;
+    /* Slight negative offset pulls the ring inside the control border
+       so it doesn't double-stack with the control's own border. */
+    outline-offset: -2px;
+  }
+
+  .combobox__input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     4. CLEAR BUTTON — .combobox__clear
+     Visible only when input has a value. Consumer toggles
+     [hidden] attribute. Icon-style, no border.
+     ════════════════════════════════════════════════════════════ */
+
+  .combobox__clear {
+    /* Reset button */
+    appearance: none;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+
+    /* Icon-style sizing */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0.2rem 0.4rem;
+
+    /* Typography */
+    font-size: 0.8rem;
+    line-height: 1;
+    color: var(--color-fg-dim);
+
+    cursor: pointer;
+    user-select: none;
+
+    /* Subtle transition on color */
+    transition: color var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  /* [hidden] attribute hides it; UA display:none is sufficient */
+  .combobox__clear[hidden] {
+    display: none;
+  }
+
+  .combobox__clear:hover {
+    color: var(--color-aurora-mint);
+  }
+
+  .combobox__clear:focus-visible {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: var(--ring-offset);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     5. TRIGGER BUTTON — .combobox__trigger
+     Chevron affordance. tabindex="-1": visual only, not a tab
+     stop. Rotates 180° when the listbox is open.
+     ════════════════════════════════════════════════════════════ */
+
+  .combobox__trigger {
+    /* Reset button */
+    appearance: none;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+
+    /* Icon-style sizing */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0.2rem 0.6rem;
+
+    /* Typography */
+    font-size: 0.75rem;
+    line-height: 1;
+    color: var(--color-fg-dim);
+
+    cursor: pointer;
+    user-select: none;
+
+    /* Chevron rotation transition */
+    transition:
+      color     var(--motion-duration-fast) var(--motion-ease),
+      transform var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  .combobox__trigger:hover {
+    color: var(--color-aurora-mint);
+  }
+
+  .combobox__trigger:focus-visible {
+    outline: var(--ring-width) solid var(--ring-color);
+    outline-offset: var(--ring-offset);
+  }
+
+  /* Rotate chevron when listbox is open.
+     The [aria-expanded] attribute lives on the sibling .combobox__input,
+     but we can target via .combobox__control:has([aria-expanded="true"]).
+     This avoids any JS class toggling on the trigger itself. */
+  .combobox__control:has(.combobox__input[aria-expanded="true"]) .combobox__trigger {
+    transform: rotate(180deg);
+    color: var(--color-aurora-mint);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     6. LISTBOX — .combobox__listbox
+     Popover panel anchored below the control.
+     ════════════════════════════════════════════════════════════ */
+
+  .combobox__listbox {
+    /* Anchored to the combobox wrapper */
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+
+    /* Surface — elevated panel, dark glass */
+    background-color: rgb(14 21 36 / 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--color-line-hi);
+    border-radius: 0;
+
+    /* Scroll */
+    max-height: 16rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    /* Reset list defaults */
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem 0;
+
+    /* Entrance animation — fires when [hidden] is removed and
+       @starting-style kicks in (Chrome 117+, Firefox 129+).
+       The animation matches the keyframe defined outside @layer. */
+    animation:
+      combobox-listbox-in
+      var(--motion-duration-fast)
+      var(--motion-ease-out)
+      both;
+
+    /* @starting-style: defines the "from" state at the moment the
+       element transitions from display:none / hidden → visible.
+       Provides the open animation without a class toggle. */
+    @starting-style {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+
+  /* [hidden] hides the listbox; UA display:none is sufficient */
+  .combobox__listbox[hidden] {
+    display: none;
+  }
+
+  /* ── Custom scrollbar — matches table-wrapper pattern ──────── */
+  .combobox__listbox::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .combobox__listbox::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .combobox__listbox::-webkit-scrollbar-thumb {
+    background: var(--color-line-hi);
+    border-radius: 2px;
+  }
+
+  .combobox__listbox::-webkit-scrollbar-thumb:hover {
+    background: var(--color-aurora-mint);
+  }
+
+  /* Firefox scrollbar */
+  .combobox__listbox {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-hi) transparent;
+  }
+
+  /* Light-theme surface adjustment */
+  [data-theme='light'] .combobox__listbox {
+    background-color: rgb(232 228 219 / 0.97);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     7. OPTION — .combobox__option
+     Single selectable row. States:
+       [aria-selected="true"]   — selected value
+       [data-active="true"]     — keyboard cursor (active descendant)
+       :hover                   — pointer hover (same as data-active)
+       [aria-disabled="true"]   — non-interactive option
+     ════════════════════════════════════════════════════════════ */
+
+  .combobox__option {
+    /* Layout */
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    box-sizing: border-box;
+    width: 100%;
+
+    /* Geometry */
+    padding: 0.5rem 0.9rem;
+
+    /* Left accent: placeholder so selected state can add the bar
+       without shifting layout (border-left changes box model,
+       so we compensate with padding-left). */
+    border-left: 2px solid transparent;
+    padding-left: calc(0.9rem - 2px); /* 0.9rem - 2px border */
+
+    /* Typography */
+    font-family: var(--font-display);
+    font-size: var(--text-ui-sm); /* 14px — dense list rows */
+    line-height: 1.4;
+    color: var(--color-fg);
+
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+
+    /* Keyboard scroll tracking */
+    scroll-margin: 4px;
+
+    /* Hover / active tint transition */
+    transition:
+      background-color var(--motion-duration-fast) var(--motion-ease),
+      color            var(--motion-duration-fast) var(--motion-ease),
+      border-color     var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  /* ── Hover + keyboard-active state ──────────────────────────── */
+  .combobox__option:hover,
+  .combobox__option[data-active="true"] {
+    background-color: rgb(127 220 181 / 0.06);
+    color: var(--color-fg); /* retain default text color on hover */
+  }
+
+  /* ── Selected state ──────────────────────────────────────────── */
+  .combobox__option[aria-selected="true"] {
+    background-color: rgb(127 220 181 / 0.08);
+    color: var(--color-aurora-mint);
+    border-left-color: var(--color-aurora-mint);
+  }
+
+  /* ── Selected + keyboard-active: stronger tint ──────────────── */
+  .combobox__option[aria-selected="true"]:hover,
+  .combobox__option[aria-selected="true"][data-active="true"] {
+    background-color: rgb(127 220 181 / 0.14);
+  }
+
+  /* ── Disabled option ─────────────────────────────────────────── */
+  .combobox__option[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     8. OPTION LABEL & META — .combobox__option-label / -meta
+     ════════════════════════════════════════════════════════════ */
+
+  .combobox__option-label {
+    /* Primary text — inherits option color (mint when selected) */
+    color: var(--color-fg);
+    /* Selected parent overrides via color inheritance */
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* When option is selected, the label inherits the mint color */
+  .combobox__option[aria-selected="true"] .combobox__option-label {
+    color: inherit; /* inherits var(--color-aurora-mint) from parent */
+  }
+
+  .combobox__option-meta {
+    /* Secondary text — monospace, dimmed, fixed size */
+    font-family: var(--font-mono);
+    font-size: var(--text-ui-xs); /* 13px */
+    color: var(--color-fg-dim);
+    line-height: 1.4;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* When option is selected, dim the meta slightly less */
+  .combobox__option[aria-selected="true"] .combobox__option-meta {
+    color: rgb(127 220 181 / 0.65);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     9. GROUP — .combobox__group + .combobox__group-label
+     Sectioned group header. The header is sticky so it remains
+     visible while scrolling through long lists.
+     ════════════════════════════════════════════════════════════ */
+
+  .combobox__group {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Nested group ul (role="group") — reset UA list styles */
+  .combobox__group > ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .combobox__group-label {
+    /* Sticky group header */
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+
+    /* Surface — matches listbox background so options scroll under it */
+    background-color: rgb(14 21 36 / 0.97);
+    backdrop-filter: blur(8px);
+
+    /* Typography — mono uppercase, matches .fieldset__legend style */
+    font-family: var(--font-mono);
+    font-size: var(--text-mono-sm); /* 0.78rem */
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-aurora-mint);
+    line-height: 1.4;
+
+    /* Geometry */
+    padding: 0.5rem 0.9rem 0.3rem;
+
+    /* Subtle separator above group (except first) */
+    border-top: 1px solid var(--color-line);
+  }
+
+  /* First group label — no top border to avoid double line */
+  .combobox__group:first-child .combobox__group-label {
+    border-top: 0;
+  }
+
+  [data-theme='light'] .combobox__group-label {
+    background-color: rgb(232 228 219 / 0.97);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     10. EMPTY STATE — .combobox__empty
+     Shown when search yields no matching options.
+     role="presentation" — the consumer may want a live region
+     elsewhere to announce this to screen readers.
+     ════════════════════════════════════════════════════════════ */
+
+  .combobox__empty {
+    display: block;
+    padding: 1.5rem;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: var(--text-ui-sm); /* 14px */
+    color: var(--color-fg-dim);
+    font-style: italic;
+    line-height: 1.5;
+    list-style: none;
+    cursor: default;
+    user-select: none;
+  }
+
+} /* end @layer components */
+
+
+/* ════════════════════════════════════════════════════════════════
+   REDUCED MOTION
+   Disable all animations and transitions for users who prefer
+   reduced motion. The listbox simply appears/disappears without
+   the entrance animation.
+════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .combobox__control,
+  .combobox__input,
+  .combobox__clear,
+  .combobox__trigger,
+  .combobox__option {
+    transition: none !important;
+  }
+
+  .combobox__listbox {
+    animation: none !important;
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   FORCED COLORS (Windows high-contrast / Increased Contrast mode)
+   Browsers replace surface and border colours with system colours.
+   We restore semantic meaning for:
+     • Focus rings → Highlight (system accent)
+     • Selected option → system Highlight + HighlightText
+     • Active/hovered option → Highlight at lower opacity equivalent
+     • Trigger chevron rotation still works (transform survives)
+════════════════════════════════════════════════════════════════ */
+@media (forced-colors: active) {
+
+  /* Focus ring on the input — must use system Highlight */
+  .combobox__input:focus-visible {
+    outline-color: Highlight;
+  }
+
+  .combobox__clear:focus-visible,
+  .combobox__trigger:focus-visible {
+    outline-color: Highlight;
+  }
+
+  /* Control border on focus-within */
+  .combobox__control:focus-within {
+    border-color: Highlight;
+    box-shadow: none;
+  }
+
+  /* Listbox border */
+  .combobox__listbox {
+    border-color: ButtonText;
+    background-color: Canvas;
+    backdrop-filter: none;
+  }
+
+  /* Selected option — use system Highlight so meaning is preserved.
+     forced-color-adjust: none keeps our left-border accent visible. */
+  .combobox__option[aria-selected="true"] {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+    border-left-color: HighlightText;
+  }
+
+  .combobox__option[aria-selected="true"] .combobox__option-label,
+  .combobox__option[aria-selected="true"] .combobox__option-meta {
+    color: HighlightText;
+  }
+
+  /* Active/hover option — system Highlight at button level */
+  .combobox__option:hover,
+  .combobox__option[data-active="true"] {
+    forced-color-adjust: none;
+    background-color: ButtonFace;
+    color: ButtonText;
+    outline: 1px solid Highlight;
+    outline-offset: -1px;
+  }
+
+  /* Selected + active — keep Highlight dominant */
+  .combobox__option[aria-selected="true"]:hover,
+  .combobox__option[aria-selected="true"][data-active="true"] {
+    background-color: Highlight;
+    color: HighlightText;
+    outline: 2px solid Highlight;
+  }
+
+  /* Group label */
+  .combobox__group-label {
+    background-color: Canvas;
+    color: Mark;
+    backdrop-filter: none;
+    border-top-color: ButtonText;
+  }
+
+  /* Disabled options */
+  .combobox__option[aria-disabled="true"] {
+    color: GrayText;
+  }
+}

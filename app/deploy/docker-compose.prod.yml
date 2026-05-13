@@ -1,0 +1,200 @@
+# ──────────────────────────────────────────────────────────────
+# Nordlys v0.2 — KraftCERT node (production, Synology NAS)
+#
+# Domain: kraftcert-stk.a1.cappern.net
+# Synology reverse proxy → frontend:4173 (HTTPS terminated at NAS)
+#
+# ──────────────────────────────────────────────────────────────
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nordlys
+      POSTGRES_PASSWORD: nordlys
+      POSTGRES_DB: nordlys
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nordlys"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  migrate:
+    build:
+      context: ../be
+      dockerfile: Dockerfile.migrate
+    command: ["bun", "/app/packages/db/src/migrate.ts"]
+    environment:
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  core-svc:
+    build:
+      context: ../be
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/core-svc
+    environment:
+      PORT: "3010"
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      REDIS_URL: redis://redis:6379
+      MESH_SVC_URL: http://mesh-svc:3011
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3010/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  mesh-svc:
+    build:
+      context: ../be
+      dockerfile: Dockerfile.runtime
+      args:
+        SERVICE_DIR: services/mesh-svc
+    environment:
+      PORT: "3011"
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      REDIS_URL: redis://redis:6379
+      CORE_SVC_URL: http://core-svc:3010
+      VARDE_BOOTSTRAP: "ws://varde-svc:3020/ws"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3011/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      core-svc:
+        condition: service_healthy
+      varde-svc:
+        condition: service_healthy
+
+  collector-svc:
+    build:
+      context: ../be
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/collector-svc
+    environment:
+      PORT: "3012"
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      CORE_SVC_URL: http://core-svc:3010
+      SCENARIOS_DIR: /app/services/collector-svc/scenarios
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3012/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      core-svc:
+        condition: service_healthy
+
+  scanner-svc:
+    build:
+      context: ../be
+      dockerfile: Dockerfile.scanner
+      args:
+        SERVICE_DIR: services/scanner-svc
+    environment:
+      PORT: "3013"
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      CORE_SVC_URL: http://core-svc:3010
+      SCANNER_MOCK_WHEN_MISSING: "true"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3013/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      core-svc:
+        condition: service_healthy
+
+  varde-svc:
+    build:
+      context: ../be
+      dockerfile: Dockerfile.runtime
+      args:
+        SERVICE_DIR: services/varde-svc
+    environment:
+      PORT: "3020"
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      VARDE_ID: varde-kraftcert-v2
+      # Public WSS URL advertised in roster gossip so peers can dial in.
+      # Synology reverse proxy: varde-kraftcert-stk.a1.cappern.net → host:3020
+      PUBLIC_URL: https://varde-kraftcert-stk.a1.cappern.net
+      VARDE_TEST_MODE: "true"
+    ports:
+      - "3020:3020"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3020/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  # CLI: docker exec nordlys-v2 cli-verify <code>
+  api-gateway:
+    build:
+      context: ../be
+      dockerfile: Dockerfile.svc
+      args:
+        SERVICE_DIR: services/api-gateway
+    container_name: nordlys-v2
+    environment:
+      PORT: "3000"
+      DATABASE_URL: postgres://nordlys:nordlys@postgres:5432/nordlys
+      CORE_SVC_URL: http://core-svc:3010
+      MESH_SVC_URL: http://mesh-svc:3011
+      COLLECTOR_SVC_URL: http://collector-svc:3012
+      SCANNER_SVC_URL: http://scanner-svc:3013
+      CORS_ORIGIN: "https://kraftcert-stk.a1.cappern.net"
+      REDIS_URL: redis://redis:6379
+      API_KEYS: "ingest:ingest-secret-v2"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      core-svc:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: app/deploy/Dockerfile.frontend
+    environment:
+      CORE_API_URL: http://api-gateway:3000
+      PORT: "4173"
+      ORIGIN: "https://kraftcert-stk.a1.cappern.net"
+    ports:
+      - "4173:4173"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+
+volumes:
+  pgdata:

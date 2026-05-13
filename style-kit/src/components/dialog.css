@@ -1,0 +1,492 @@
+/* ──────────────────────────────────────────────────────────────
+   Nordlys Design System — Dialog (Modal) Component
+   dialog.css · @layer components
+
+   CONTENTS
+   ─────────
+   1.  Base dialog element (.dialog) — resets native UA styles
+   2.  Visual surface (.dialog__form) — frosted glass panel
+   3.  Backdrop (::backdrop) — overlay + blur
+   4.  Entrance animation (.dialog[open]) — @starting-style
+   5.  Header (.dialog__header / __title / __subtitle)
+   6.  Close button (.dialog__close)
+   7.  Body (.dialog__body)
+   8.  Footer (.dialog__footer)
+   9.  Variants — .dialog--narrow / --wide / --danger
+   10. Light-theme overrides
+   11. Reduced-motion override
+   12. Forced-colors (high-contrast) override
+
+   NATIVE <dialog> USAGE
+   ──────────────────────
+   Open as modal (preferred — provides focus trap + Escape-to-close):
+     document.getElementById('my-dialog').showModal();
+
+   Open as non-modal (no backdrop, no focus trap):
+     document.getElementById('my-dialog').showModal() → use .show() instead
+
+   Escape key — Closing via Escape is native browser behaviour when opened
+   with .showModal(). The UA will dispatch a "cancel" event then close the
+   dialog. No JS is required to wire this up.
+
+   Close from inside — A <form method="dialog"> inside the <dialog> will
+   close the dialog on submit and set dialog.returnValue to the submitting
+   button's value attribute. Use this for confirm/cancel patterns:
+     <button value="cancel">Avbryt</button>
+     <button value="confirm" type="submit">Bekreft</button>
+
+   Consumer responsibilities
+   ──────────────────────────
+   • Supply a trigger button and call .showModal() on click.
+   • Supply aria-labelledby pointing to .dialog__title if you need explicit
+     ARIA association (native <dialog> is already role="dialog" but linking
+     the title gives assistive tech a better accessible name).
+   • Restore focus to the opener button when the dialog closes:
+       dialogEl.addEventListener('close', () => openerBtn.focus());
+   • The .dialog__close and Avbryt buttons should close without submitting.
+     Use formnovalidate + either type="button" (JS .close()) or ensure the
+     <form method="dialog"> closes on the button's value. See demo markup.
+
+   ────────────────────────────────────────────────────────────── */
+
+
+/* ── Entrance keyframes (declared outside @layer to survive purge) ── */
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+
+@layer components {
+
+  /* ════════════════════════════════════════════════════════════
+     1. BASE DIALOG ELEMENT
+     Reset the native UA dialog styles so we can fully own the
+     visual presentation. The surface itself lives on .dialog__form.
+     ════════════════════════════════════════════════════════════ */
+
+  .dialog {
+    /* Reset native UA styles */
+    padding: 0;
+    border: 0;
+    background: transparent;
+    outline: none;
+
+    /* Sizing */
+    max-width: min(560px, calc(100vw - 2rem));
+    width: 100%;
+
+    /* Centering — native <dialog> already centers, but explicit margin:auto
+       ensures correct positioning even if UA defaults differ */
+    margin: auto;
+
+    /* Typography baseline */
+    color: var(--color-fg);
+    font-family: var(--font-display);
+  }
+
+  /* ── Open state — entrance animation ──────────────────────── */
+  /* @starting-style defines where the animation begins (the "from" state).
+     Without it the browser sees the dialog jump directly to its final state. */
+  .dialog[open] {
+    animation:
+      dialog-in var(--motion-duration-slow) var(--motion-ease-aurora) both;
+  }
+
+  @starting-style {
+    .dialog[open] {
+      opacity: 0;
+      transform: translateY(8px) scale(0.985);
+    }
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     2. VISUAL SURFACE — .dialog__form
+     The frosted-glass panel. All visual chrome (background,
+     border, shadow) lives here, not on the native <dialog>,
+     so the dialog element itself stays a transparent wrapper.
+     ════════════════════════════════════════════════════════════ */
+
+  .dialog__form {
+    /* Heavier background than a card so it reads clearly over backdrop */
+    background: rgb(from var(--color-bg-raised) r g b / 0.92);
+
+    /* Frosted glass */
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    /* Subtle rounding — precision with warmth */
+    border-radius: var(--radius-lg, 12px);
+
+    /* Border */
+    border: 1px solid var(--color-line-hi);
+
+    /* Strong elevation — must clearly float above page content */
+    box-shadow:
+      0 24px 64px -12px rgb(from var(--color-bg) r g b / 0.7),
+      0 8px 24px -8px rgb(from var(--color-bg) r g b / 0.5);
+
+    /* Stacking context */
+    position: relative;
+    isolation: isolate;
+
+    /* Full width of the dialog wrapper */
+    width: 100%;
+
+    /* Flex column layout for scrollable body */
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 4rem);
+    overflow: hidden;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     3. BACKDROP
+     The semi-transparent overlay behind the modal. Native
+     ::backdrop is only available when the dialog is opened via
+     .showModal() (modal mode). It cannot be styled via the
+     class — we always use the pseudo-element selector.
+     ════════════════════════════════════════════════════════════ */
+
+  .dialog::backdrop {
+    background: rgb(from var(--color-bg) r g b / 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    /* Entrance animation */
+    animation:
+      backdrop-in var(--motion-duration) var(--motion-ease-out) both;
+  }
+
+  @starting-style {
+    .dialog::backdrop {
+      opacity: 0;
+    }
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     4. HEADER
+     Flex row: title block on left (truncation-safe), close
+     button pinned right. Border-bottom separates from body.
+     ════════════════════════════════════════════════════════════ */
+
+  .dialog__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.4rem 1.6rem 1rem;
+    border-bottom: 1px solid var(--color-line);
+    flex-shrink: 0;
+  }
+
+  /* Left column: title + subtitle. min-width:0 allows long titles to wrap
+     rather than pushing the close button out of the panel. */
+  .dialog__header > :first-child {
+    min-width: 0;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     5. TITLE & SUBTITLE
+     Fixed UI scale (--text-ui-title-lg) — not fluid. Dialog
+     titles should not change size with viewport.
+     ════════════════════════════════════════════════════════════ */
+
+  .dialog__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-ui-title-lg); /* 20.8px */
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    margin: 0;
+    color: var(--color-fg);
+    overflow-wrap: break-word; /* allow wrap on narrow dialogs */
+  }
+
+  .dialog__subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-fg-dim);
+    margin: 0.3rem 0 0;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     6. CLOSE BUTTON
+     Icon-only. Resets native button styles. Hover/focus shifts
+     to --color-aurora-mint for visibility.
+     ════════════════════════════════════════════════════════════ */
+
+  .dialog__close {
+    /* Reset native button */
+    appearance: none;
+    -webkit-appearance: none;
+    background: none;
+    border: 1px solid transparent; /* preserved for forced-colors mode */
+    padding: 0.5rem;
+    margin: 0;
+    cursor: pointer;
+    line-height: 1;
+
+    /* Colour */
+    color: var(--color-fg-dim);
+
+    /* Shrink to icon size, no accidental stretch */
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Transition on color */
+    transition: color var(--motion-duration-fast) var(--motion-ease);
+
+    /* Focus ring setup — transparent at rest, painted on :focus-visible */
+    outline: var(--ring-width) solid transparent;
+    outline-offset: var(--ring-offset);
+  }
+
+  .dialog__close:hover {
+    color: var(--color-aurora-mint);
+    background: rgb(from var(--color-aurora-mint) r g b / 0.1);
+  }
+
+  .dialog__close:focus-visible {
+    outline-color: var(--ring-color);
+    color: var(--color-aurora-mint);
+    background: rgb(from var(--color-aurora-mint) r g b / 0.1);
+  }
+
+  .dialog__close:focus:not(:focus-visible) {
+    outline-color: transparent;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     7. BODY
+     Main content slot. Direct children receive vertical rhythm
+     via the lobotomised owl (> * + *) to avoid manually adding
+     margin-top to each paragraph or field.
+     ════════════════════════════════════════════════════════════ */
+
+  .dialog__body {
+    padding: 1.6rem 1.8rem;
+    font-size: var(--text-body, 0.9rem);
+    line-height: 1.55;
+    color: var(--color-fg);
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  /* Vertical rhythm between direct children */
+  .dialog__body > * + * {
+    margin-top: 0.85rem;
+  }
+
+  /* Remove top margin from the very first child */
+  .dialog__body > :first-child {
+    margin-top: 0;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     8. FOOTER
+     Flex row for action buttons. Default right-aligned so the
+     primary action appears at the right (western reading order).
+     ════════════════════════════════════════════════════════════ */
+
+  .dialog__footer {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem 1.6rem 1.4rem;
+    border-top: 1px solid var(--color-line);
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  /* Modifier: when confirmation is ambiguous or destructive, left-align
+     so buttons map to the natural reading direction */
+  .dialog__footer--start {
+    justify-content: flex-start;
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     9. VARIANTS
+     ════════════════════════════════════════════════════════════ */
+
+  /* ── Narrow — for simple confirmations, 1-2 actions ──────── */
+  .dialog--narrow {
+    max-width: min(400px, calc(100vw - 2rem));
+  }
+
+  /* ── Wide — for complex forms or data-heavy content ───────── */
+  .dialog--wide {
+    max-width: min(720px, calc(100vw - 2rem));
+  }
+
+  .dialog--xl {
+    max-width: min(1200px, calc(100vw - 2rem));
+  }
+
+  /* ── Danger — destructive confirmation treatment ───────────
+     Adds a coloured top accent bar via inset box-shadow so the
+     layout box dimensions don't change (no content shift).
+     The title colour shifts to --color-danger to reinforce intent.
+     ────────────────────────────────────────────────────────── */
+  .dialog--danger .dialog__form {
+    box-shadow:
+      inset 0 4px 0 var(--color-danger),
+      0 24px 64px -12px rgb(from var(--color-bg) r g b / 0.7),
+      0 8px 24px -8px rgb(from var(--color-bg) r g b / 0.5);
+  }
+
+  .dialog--danger .dialog__title {
+    color: var(--color-danger);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════
+     10. LIGHT THEME OVERRIDES
+     ════════════════════════════════════════════════════════════ */
+
+  [data-theme='light'] .dialog__form {
+    /* --color-bg-raised flips per theme to the warm off-white */
+    background: rgb(from var(--color-bg-raised) r g b / 0.92);
+    /* Lighter shadows appropriate for a warm off-white surface */
+    box-shadow:
+      0 24px 64px -12px rgb(from var(--color-fg) r g b / 0.18),
+      0 8px 24px -8px rgb(from var(--color-fg) r g b / 0.12);
+  }
+
+  [data-theme='light'] .dialog--danger .dialog__form {
+    box-shadow:
+      inset 0 4px 0 var(--color-danger),
+      0 24px 64px -12px rgb(from var(--color-fg) r g b / 0.18),
+      0 8px 24px -8px rgb(from var(--color-fg) r g b / 0.12);
+  }
+
+  [data-theme='light'] .dialog::backdrop {
+    background: rgb(from var(--color-bg) r g b / 0.6);
+  }
+
+} /* end @layer components */
+
+
+/* ════════════════════════════════════════════════════════════
+   11. REDUCED MOTION
+   WCAG 2.3.3 (Animation from Interactions — AAA) guidance,
+   and good UX for vestibular-motion-sensitive users.
+   We disable the entrance animation but ensure the dialog
+   remains visible with opacity: 1 so it doesn't disappear.
+   ════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open] {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .dialog::backdrop {
+    animation: none;
+    opacity: 1;
+  }
+
+  .dialog__close {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm, 6px);
+    padding: 0.4rem;
+    margin: 0;
+    cursor: pointer;
+    line-height: 1;
+    color: var(--color-fg-dim);
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      color var(--motion-duration-fast) var(--motion-ease),
+      background var(--motion-duration-fast) var(--motion-ease);
+    outline: var(--ring-width) solid transparent;
+    outline-offset: var(--ring-offset);
+  }
+
+  .dialog__close svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   12. FORCED COLORS (Windows High Contrast / Accessibility mode)
+   In forced-colors mode the browser replaces custom colors with
+   system palette values. We ensure:
+     • Focus rings use the system Highlight color (not aurora-mint)
+     • The close button keeps a visible border so it stays
+       distinguishable from the surrounding header
+   ════════════════════════════════════════════════════════════ */
+
+@media (forced-colors: active) {
+  .dialog__close {
+    /* Ensure the button is visually distinct as a control */
+    border-color: ButtonText;
+    forced-color-adjust: none;
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+
+  .dialog__close:hover,
+  .dialog__close:focus-visible {
+    background-color: Highlight;
+    color: HighlightText;
+    border-color: Highlight;
+  }
+
+  .dialog__close:focus-visible {
+    outline-color: Highlight;
+  }
+
+  /* Ensure the form surface has a visible frame in high-contrast */
+  .dialog__form {
+    border-color: ButtonText;
+  }
+
+  /* Backdrop should be a solid system overlay */
+  .dialog::backdrop {
+    background: Canvas;
+    opacity: 0.75;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

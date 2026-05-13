@@ -1,0 +1,219 @@
+/* ──────────────────────────────────────────────────────────────
+   Nordlys — Tag / Chip Components
+   Compact, inline classification labels. Smaller and squarer
+   than .badge — designed for dense data tables, event feeds,
+   and IOC (Indicator of Compromise) listings.
+
+   Usage examples:
+     <!-- Generic aurora tags -->
+     <span class="tag tag--neutral">MISP Event</span>
+     <span class="tag tag--mint">Aktiv</span>
+
+     <!-- IOC type chips with auto prefix glyph -->
+     <span class="tag tag--ioc-ip">192.168.1.1</span>
+     <span class="tag tag--ioc-hash">sha256:a1b2c3d4...</span>
+     <span class="tag tag--ioc-domain">evil.example.com</span>
+     <span class="tag tag--ioc-url">https://evil.example.com/payload</span>
+     <span class="tag tag--ioc-ttp">T1566.001</span>
+
+     <!-- Grouped tags -->
+     <div class="tag-group">
+       <span class="tag tag--ioc-ip">10.0.0.1</span>
+       <span class="tag tag--ioc-domain">c2.example.com</span>
+       <span class="tag tag--ioc-ttp">T1071</span>
+     </div>
+
+   IOC prefix glyphs aid rapid scanning without relying on
+   colour alone, satisfying WCAG 1.4.1 (Use of Colour).
+   ────────────────────────────────────────────────────────────── */
+
+@layer components {
+
+  /* ══════════════════════════════════════════════════════════════
+     BASE TAG
+     Compact rectangular pill — intentionally sharper than .badge.
+     Transparent background; coloured border + text carry meaning.
+     ══════════════════════════════════════════════════════════════ */
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--color-line-hi);
+    border-radius: 3px;
+    background: transparent;
+    font-family: var(--font-mono);
+    font-size: var(--text-mono-sm);    /* 0.78rem */
+    letter-spacing: 0.1em;
+    text-transform: none;              /* Tags are case-sensitive (IPs, hashes) */
+    color: var(--color-fg-dim);
+    white-space: nowrap;
+    vertical-align: middle;
+    line-height: 1.5;
+    transition:
+      border-color var(--motion-duration-fast) var(--motion-ease),
+      color var(--motion-duration-fast) var(--motion-ease),
+      background var(--motion-duration-fast) var(--motion-ease);
+  }
+
+  /* Prefix glyph shared positioning */
+  .tag::before {
+    font-style: normal;
+    opacity: 0.75;
+    flex-shrink: 0;
+    /* The glyph is part of the label — mark it as presentational
+       so screen readers skip it (aria-label on the element carries
+       the semantic prefix for assistive tech). */
+    speak: never;
+  }
+
+
+  /* ══════════════════════════════════════════════════════════════
+     AURORA COLOUR VARIANTS
+     Non-semantic accent tags for grouping, categorisation, etc.
+     ══════════════════════════════════════════════════════════════ */
+
+  .tag--neutral {
+    border-color: var(--color-fg-dim);
+    color: var(--color-fg-dim);
+  }
+
+  .tag--mint {
+    border-color: var(--color-aurora-mint);
+    color: var(--color-aurora-mint);
+    background: rgb(127 220 181 / 0.06);
+  }
+
+  .tag--arctic {
+    border-color: var(--color-aurora-arctic);
+    color: var(--color-aurora-arctic);
+    background: rgb(143 195 223 / 0.06);
+  }
+
+  .tag--lichen {
+    border-color: var(--color-aurora-lichen);
+    color: var(--color-aurora-lichen);
+    background: rgb(216 201 138 / 0.06);
+  }
+
+
+  /* ══════════════════════════════════════════════════════════════
+     IOC TYPE CHIPS
+     Each type has:
+       • A distinct aurora accent colour for rapid scanning
+       • A ::before glyph that categorises the indicator type
+         independently of colour (WCAG 1.4.1)
+     Colour assignments:
+       ip      → arctic  (network/infrastructure)
+       hash    → lichen  (file/cryptographic)
+       domain  → mint    (naming/DNS)
+       url     → arctic  (with soft tint to differ from ip)
+       ttp     → lichen  (technique reference)
+     ══════════════════════════════════════════════════════════════ */
+
+  /* ── IP Address ─────────────────────────────────────────────── */
+  .tag--ioc-ip {
+    border-color: var(--color-aurora-arctic);
+    color: var(--color-aurora-arctic);
+    background: rgb(143 195 223 / 0.07);
+  }
+
+  .tag--ioc-ip::before {
+    content: '⌖';                /* Crosshair — target / network location */
+    font-size: 1.1em;
+    line-height: 1;
+    opacity: 0.8;
+  }
+
+  /* ── File Hash ──────────────────────────────────────────────── */
+  .tag--ioc-hash {
+    border-color: var(--color-aurora-lichen);
+    color: var(--color-aurora-lichen);
+    background: rgb(216 201 138 / 0.07);
+  }
+
+  .tag--ioc-hash::before {
+    content: '#';                /* Universal hash symbol */
+    font-weight: 600;
+    opacity: 0.7;
+  }
+
+  /* ── Domain ─────────────────────────────────────────────────── */
+  .tag--ioc-domain {
+    border-color: var(--color-aurora-mint);
+    color: var(--color-aurora-mint);
+    background: rgb(127 220 181 / 0.07);
+  }
+
+  .tag--ioc-domain::before {
+    content: '⌘';                /* Command/globe — DNS namespace */
+    font-size: 1.05em;
+    line-height: 1;
+    opacity: 0.75;
+  }
+
+  /* ── URL ────────────────────────────────────────────────────── */
+  /* Shares arctic hue with ip but uses arctic-soft tint to
+     visually distinguish full URLs from bare IP addresses. */
+  .tag--ioc-url {
+    border-color: var(--color-aurora-arctic-soft);
+    color: var(--color-aurora-arctic-soft);
+    background: rgb(111 183 224 / 0.07);
+  }
+
+  .tag--ioc-url::before {
+    content: '→';                /* Directionality — a URL points somewhere */
+    opacity: 0.8;
+  }
+
+  /* ── TTP (MITRE ATT&CK tactic/technique/procedure) ─────────── */
+  .tag--ioc-ttp {
+    border-color: var(--color-aurora-lichen-soft);
+    color: var(--color-aurora-lichen-soft);
+    background: rgb(214 227 168 / 0.07);
+  }
+
+  .tag--ioc-ttp::before {
+    content: '⊕';                /* Circled plus — technique/composition */
+    font-size: 1.0em;
+    line-height: 1;
+    opacity: 0.8;
+  }
+
+
+  /* ══════════════════════════════════════════════════════════════
+     TAG GROUP
+     Inline flex wrapper for a cluster of tags.
+     Handles wrapping in constrained containers (table cells, cards).
+     ══════════════════════════════════════════════════════════════ */
+
+  .tag-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  /* When a tag-group is used as a block element (e.g. full-width row) */
+  .tag-group--block {
+    display: flex;
+  }
+
+
+  /* ══════════════════════════════════════════════════════════════
+     LIGHT THEME OVERRIDES
+     Lighten backgrounds; keep borders and text from the colour
+     tokens which already have light-theme values in tokens.css.
+     ══════════════════════════════════════════════════════════════ */
+
+  [data-theme='light'] .tag--mint    { background: rgb(26 158 114 / 0.07); }
+  [data-theme='light'] .tag--arctic  { background: rgb(43 126 163 / 0.07); }
+  [data-theme='light'] .tag--lichen  { background: rgb(154 133 48 / 0.07); }
+
+  [data-theme='light'] .tag--ioc-ip      { background: rgb(43 126 163 / 0.07); }
+  [data-theme='light'] .tag--ioc-hash    { background: rgb(154 133 48 / 0.07); }
+  [data-theme='light'] .tag--ioc-domain  { background: rgb(26 158 114 / 0.07); }
+  [data-theme='light'] .tag--ioc-url     { background: rgb(78 170 208 / 0.07); }
+  [data-theme='light'] .tag--ioc-ttp     { background: rgb(196 184 94 / 0.07); }
+}
