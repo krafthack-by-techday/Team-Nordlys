@@ -1,5 +1,9 @@
 # Juridisk svar — slik adresserer STK innsigelsene
 
+> **DISCLAIMER:** AI-generert research (Claude). Ment som
+> utgangspunkt for diskusjon med jurist — ikke som juridisk
+> rådgivning i seg selv.
+
 > Notat fra claude-jurist med erfaring fra norsk kraftsektor, på STKs side.
 > Underlag: `docs/juridisk-vurdering.md`.
 > Skrevet 2026-04-29.

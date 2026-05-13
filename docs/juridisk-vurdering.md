@@ -1,5 +1,9 @@
 # Juridisk vurdering av STK — det Nordlys bommer på
 
+> **DISCLAIMER:** AI-generert research (Claude). Ment som
+> utgangspunkt for diskusjon med jurist — ikke som juridisk
+> rådgivning i seg selv.
+> 
 > Notat fra perspektivet til en claude-jurist med erfaring fra norsk kraftsektor.
 > Underlag: `stage/index.html` (pitch) og `docs/intervju-analyse.html`.
 > Skrevet 2026-04-29.
