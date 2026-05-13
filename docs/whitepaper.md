@@ -274,6 +274,7 @@ dobbeltlagres.
 | Dataeierskap | Hos avsender | Hos plattformeier | Hos operatør (self-hosted) | **Hos hver peer** |
 | TLP-compliance | Manuell/ære | Varierer | Sharing-gruppe-basert | **Automatisk, 11 lag** |
 | Driftsbyrde per org | Ingen | Lav (SaaS) | Moderat (server + evt. federation) | **Lav (2 stacker)** |
+| Skalering (ny peer) | N/A | Enkel | Manuell sync-konfig per partner (O(N)) | **Invite token → operativ (O(1))** |
 | Kryptert RED-deling | N/A | Avhenger av impl. | GnuPG/S/MIME for meldinger | **Ende-til-ende for alle RED-hendelser** |
 | Fungerer ved internettbrudd | Ja (telefon) | Nei | Nei (enkeltinstans) / delvis (federert) | **Delvis (lokal drift + auto-synk)** |
 | Overlevelse ved angrep på plattform | N/A | Nei | Server er mål | **Ja (ingen sentral komponent)** |
@@ -331,6 +332,17 @@ deltagelse for hele sektoren:
   organisasjoner skalerer dette dårlig. Nordlys gir mesh-
   topologi fra første oppstart — en ny peer er operativ etter
   onboarding uten å konfigurere bilaterale relasjoner.
+- **Skalering.** MISP federation er punkt-til-punkt: full mesh
+  mellom 400 organisasjoner krever 79 800 bilaterale
+  synkroniseringskoblinger, hver med manuell konfigurasjon av
+  nøkler, filtre og retning. Det realistiske alternativet —
+  et hub-and-spoke-oppsett — reduserer til ~400 koblinger,
+  men gjeninnfører sentral avhengighet. Nordlys' bounded
+  gossip gir full dekning med ~15 automatisk valgte peers
+  per node (3 000 koblinger totalt, null manuell
+  konfigurasjon). Ny peer: invite token → operativ
+  umiddelbart. Administrativ byrde per ny organisasjon:
+  O(1), ikke O(N).
 - **Resiliens uten HA-oppsett.** En enkelt MISP-instans uten
   redundans stopper delingen ved nedetid. Med federation
   fortsetter andre instanser, men dette krever at HA eller
