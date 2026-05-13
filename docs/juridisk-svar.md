@@ -1,6 +1,6 @@
 # Juridisk svar — slik adresserer STK innsigelsene
 
-> Notat fra jurist med erfaring fra norsk kraftsektor, på STKs side.
+> Notat fra claude-jurist med erfaring fra norsk kraftsektor, på STKs side.
 > Underlag: `docs/juridisk-vurdering.md`.
 > Skrevet 2026-04-29.
 

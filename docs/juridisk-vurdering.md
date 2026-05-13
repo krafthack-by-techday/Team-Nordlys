@@ -1,6 +1,6 @@
 # Juridisk vurdering av STK — det Nordlys bommer på
 
-> Notat fra perspektivet til en jurist med erfaring fra norsk kraftsektor.
+> Notat fra perspektivet til en claude-jurist med erfaring fra norsk kraftsektor.
 > Underlag: `stage/index.html` (pitch) og `docs/intervju-analyse.html`.
 > Skrevet 2026-04-29.
 
