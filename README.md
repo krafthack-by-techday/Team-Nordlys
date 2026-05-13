@@ -147,7 +147,7 @@ team-nordlys/
 
 ---
 
-## Kjør live-demoen (anbefalt for hackathon)
+## Kjør live-demoen
 
 Tre roller: hackeren, Hafslund (peer A som blir angrepet) og Statkraft (peer B som ser angrepet via gossip).
 
